@@ -1,0 +1,11 @@
+diff -uwr ../node/test/simple/test-dgram-ref.js node/test/simple/test-dgram-ref.js
+--- ../node/test/simple/test-dgram-ref.js       2012-11-09 12:25:02.662864900 -0800
++++ node/test/simple/test-dgram-ref.js  2013-03-05 17:49:04.123586600 -0800
+@@ -24,4 +24,6 @@
+
+ // should not hang, see #1282
+ dgram.createSocket('udp4');
++if (common.isIPv6Enabled) {
+ dgram.createSocket('udp6');
++}
+

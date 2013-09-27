@@ -1,0 +1,11 @@
+--- ../node/test/simple/test-crypto-binary-default.js	2013-05-05 20:53:41.000000000 +0200
++++ node/test/crypto/test-crypto-binary-default.js	2013-05-17 09:54:50.000000000 +0200
+@@ -542,7 +542,7 @@
+ 
+ // Test Diffie-Hellman with two parties sharing a secret,
+ // using various encodings as we go along
+-var dh1 = crypto.createDiffieHellman(256);
++var dh1 = crypto.createDiffieHellman(512);
+ var p1 = dh1.getPrime('buffer');
+ var dh2 = crypto.createDiffieHellman(p1, 'base64');
+ var key1 = dh1.generateKeys();

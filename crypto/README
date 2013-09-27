@@ -1,0 +1,227 @@
+This document provides information on how to use Crypto and TLS modules as well as how to run associated nodejs tests.
+
+-------
+CRYPTO
+-------
+
+Running the nodejs pummel and simple crypto tests
+=================================================
+- The crypto tests are located in test/crypto.
+
+- You need to run the tests with a JDK configured with Unlimited Strength Jurisdiction Policy. 
+(See Installing section)
+
+- java -jar dist/avatar-js.jar src/test/js/test-runner.js test/crypto
+
+
+Running the Avatar.js specific crypto tests
+===========================================
+- The specific crypto test is src/test/js/crypto/test-crypto.js
+
+- You need to run the test with a JDK configured with Unlimited Strength Jurisdiction Policy. 
+(See Installing section)
+
+- java -jar dist/avatar-js.jar src/test/js/test-runner.js src/test/js/crypto/test-crypto.js
+
+
+Running the Avatar.js specific crypto tests with unsupported algorithms
+=======================================================================
+- This test is not mandatory to test crypto.
+- The specific crypto test is src/test/js/crypto/test-crypto.js
+
+- Install a provider that offer support for unsupported algorithms.
+In jre/lib/security/java.security add security.provider.11=<Your provider class>
+
+- java -classpath <provider jar>:dist/avatar-js.jar net.java.avatar.js.Server src/test/js/crypto/test-crypto.js -unsupported
+
+
+Installing the Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files 7
+===============================================================================================
+- Download the Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files 7 
+from: http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
+- Read the UnlimitedJCEPolicy/README.txt for installation procedure
+
+
+crypto module API Limitations
+=============================
+
+Cipher Class
+------------
+There is the flexibility to change set autoPadding after update has been called on Cipher. 
+This is not possible with Avatar.js. Be sure to set the autoPadding before to call update." 
+NB: I never found an example with padding called after update. Seems a documentation typo. Anyway, we should mention it.
+
+"des-ede" support
+-----------------
+JCE support 3DES with three separate sub keys, for two separate sub keys triple DES (this is what des-ede is), 
+create a 24 bytes lon key by duplicating the first 8 bytes of your key
+
+
+crypto module algorithm limitations
+===================================
+The following algorithm are not supported by Oracle JCE provider:
+
+- Unsupported OpenSSL Ciphers:
+        desx               DESX algorithm.
+        gost89             GOST 28147-89 in CFB mode (provided by ccgost engine)
+        gost89-cnt        `GOST 28147-89 in CNT mode (provided by ccgost engine)
+        idea-cbc           IDEA algorithm in CBC mode
+        idea               same as idea-cbc
+        idea-cfb           IDEA in CFB mode
+        idea-ecb           IDEA in ECB mode
+        idea-ofb           IDEA in OFB mode
+        rc5                in all modes
+        aes 128/192/256 in cfb1 mode
+
+- Unsupported OpenSSL Hash digest:
+	-mdc2           to use the mdc2 message digest algorithm
+        -ripemd160      to use the ripemd160 message digest algorithm
+        -md4            to use the md4 message digest algorithm
+        -sha            to use the sha message digest algorithm
+
+- Unsupported OpenSSL HashMac digest:
+	-mdc2           to use the mdc2 message digest algorithm
+        -ripemd160      to use the ripemd160 message digest algorithm
+        -md4            to use the md4 message digest algorithm
+        -md2            to use the md2 message digest algorithm
+        -sha            to use the sha message digest algorithm
+
+- Unsupported Digest with DSA: "dsa-md5", "dsa-md2", "dsa-sha384", "dsa-sha512"
+
+- Unsupported Digest with RSA: 
+
+- What OpenSSL calls sha is in fact sha-0. What JCE default Provider calls sha in in fact sha-1 (sha-0 is not supported by the default Provider). 
+This is not documented but "sha" algorithm name exists. In order to have sha-0 to be applied when sha is provided, you will have to use a provider
+that takes precendence over the default provider. Look at src/test/js/crypto/test-crypto.js on how to add a custom naming mapping.
+
+- Can't read DSA key size > 1024 for DSS1 (DSA+SHA-1).
+
+- Diffie Hellman, prime numbers can't be smaller than 512 and greater than 2048 bits inclusive, http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6521495
+
+
+Avatar.js crypto test keys
+==========================
+Some keys have been regenerated to allow for Avatar.js to pass crypto tests.
+The regenerated keys are located in the crypto/fixtures dir. They are copied at install time to the test/fixtures dir.
+
+Some private keys are not in pk8 format. They have been regenerated as follow:
+
+pkcs8 -topk8 -in ../test/fixtures/test_key.pem -inform pem -out test_key.pem -outform pem -nocrypt
+pkcs8 -topk8 -in ../test/fixtures/test_rsa_privkey.pem -inform pem -out test_rsa_privkey.pem -outform pem -nocrypt
+pkcs8 -topk8 -in ../test/fixtures/test_rsa_privkey_2.pem -inform pem -out test_rsa_privkey_2.pem -outform pem -nocrypt
+
+
+Public RSA key regenerated
+
+openssl rsa -in test_rsa_privkey_2.pem -pubout -outform PEM -out test_rsa_pubkey_2.pem
+
+
+DSA keys regerated in 1024 bits. This is a limitation for DSS1 algorithm (DSA+SHA1) in Java. We have generated a new key pair of strength 1024.
+
+1) openssl dsaparam -out dsaparam.pem 1024
+2) openssl gendsa -out est_dsa_privkey.pem dsaparam.pem
+3) pkcs8 -topk8 -in test_dsa_privkey.pem -inform pem -out test_dsa_privkey.pem -outform pem -nocrypt
+4) openssl dsa -in test_dsa_privkey.pem -pubout -outform PEM -out test_dsa_pubkey.pem YES
+
+-------
+TLS
+-------
+This module implements support for TLS/SSL.
+
+TODO
+----
+- OpenSSL name and expression mapping.
+- 3 Missing tests: 2 in pummel, 1 openssl one that depends on process.stdin.write
+
+Limitations
+===========
+- honorCipherOrder is not supported, Java runtime is picking from the client list 
+the strongest cipher suite as documented in http://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html
+- SSLv2 is not supported by Oracle JCE. SSLv2 is unsecure, use TLS 1.0 or higher.
+- NPN is not supported. Need to log an RFE againt JRE to have support in JDK 9.
+- In nodejs, asking the client to authenticate is a "REQUEST" not a "REQUIRE". In Java, this is a "REQUIRE". 
+We managed to make Java to accept untrusted certificate, but there is no way to make Java to accept none certificate. In this case,
+the connection is closed by the server. The test test-tls-server-verify.js has been updated to have client not sending certificate
+to not be tested. test-https-pfx.js has been disabled. This behavior is tracked by: JDK-8007788
+- In tls, there is the ability to provide some undocumented options (the Secure options). I didn't find any isuage of these options. I am wandering if this is not dead code.
+
+
+Change with respect to nodejs documentation
+============================================
+- Defaults ciphersuite is the one from Java JSSE.
+- Not (yet) support for cipher suite OpenSSL names, use standard full cipher suite names.
+
+Nodejs TLS test keys
+=====================
+Some keys have been regenerated to allow for Avatar.js to pass tls tests.
+The regenerated keys are located in the crypto/fixtures/keys dir. 
+They are copied at install time to the test/fixtures/keys dir.
+openssl pkcs8 -topk8 -in ../test/fixtures/keys/agent1-key.pem -inform pem -out crypto/fixtures/keys/agent1-key.pem -outform pem -nocrypt
+openssl pkcs8 -topk8 -in ../test/fixtures/keys/agent2-key.pem -inform pem -out crypto/fixtures/keys/agent2-key.pem -outform pem -nocrypt
+openssl pkcs8 -topk8 -in ../test/fixtures/keys/agent3-key.pem -inform pem -out crypto/fixtures/keys/agent3-key.pem -outform pem -nocrypt
+openssl pkcs8 -topk8 -in ../test/fixtures/keys/agent4-key.pem -inform pem -out crypto/fixtures/keys/agent4-key.pem -outform pem -nocrypt
+openssl pkcs8 -topk8 -in ../test/fixtures/pass-key.pem -inform pem -out crypto/fixtures/pass-key.pem -outform pem
+passphrase as password.
+openssl pkcs8 -topk8 -in ../test/fixtures/agent.key -inform pem -out crypto/fixtures/agent.key -outform pem -nocrypt
+
+Nodejs tests that require Unlimited Strength
+============================================
+These tests require that you install Unlimited Strength. They are copied at build time in the 
+test/crypto dir
+- test-tls-getcipher.js 
+- test-tls-honorcipherorder.js
+
+
+Running the Avatar.js specific tls tests
+========================================
+- This test is not mandatory to test tls.
+- The specific tls test is src/test/crypto/test-tls.js
+
+- java -jar dist/avatar-js.jar src/test/crypto/test-tls.js
+- java -jar dist/avatar-js.jar src/test/crypto/test-tls-altnames.js
+
+
+Generation of the certificate for test-tls-altnames.js test
+===========================================================
+- key, cnf, csr and crt files are located in the crypto/altnames dir.
+- Generate the priv key
+ openssl genrsa -out altnames-agent-key-trans.pem 1024
+- To PK8 
+openssl pkcs8 -topk8 -in altnames-agent-key-trans.pem -inform pem -out altnames-agent-key.pem -outform pem -nocrypt
+- Generate the request:
+openssl req -new -out altnames-agent-key.csr -key altnames-agent-key.pem -config altnames.cnf
+- Generate the certificate: 
+openssl x509 -req -days 9999 -in altnames-agent-key.csr -signkey altnames-agent-key.pem -out altnames-agent.crt -extensions v3_req -extfile altnames.cnf
+
+
+JRE Bugs that are affecting TLS 
+===============================
+JDK-8005859 for wish we have a workaround: https://jbs.oracle.com/bugs/browse/JDK-8005859
+JDK-8007785 for NPN support
+JDK-8007788 to accept null certificate when asked client to authenticate
+
+Notes
+=====
+The main difference between Java and nodejs 
+is related to Certificate validation handling.
+Nominal usage of Java SSL support doesn't allow for unverified server certificate. 
+If a certificate is received and it is not trusted, then an Exception is thrown and Handshake is closed. 
+Nodejs allows for untrusted connection. To achieve the nodejs behavior, 
+the TrustManger needs to be wrapped inside a trustmanager that will delegate to the actual trustmanager
+and not re-throw any exception. The status (trusted or not) is kept. 
+tls.js, when handshake is over, will call verifyError. According to the error value,
+tls will open the secure connection, but the connection will be marked has being not authorized.
+
+The actual errors (certificate validation is NOT considered has being an error) are:
+- invalid server side private key.
+- invalid non encrypted received content
+
+Java SSL support allows for more flexibility than nodejs in order to retrieve 
+the set of trusted authorities.
+The default source of trust is used when no "ca" option is provided (on server and/or client side) 
+the default mechanism to retrieve trustores is used 
+(as documented in http://download.java.net/jdk8/docs/technotes/guides/security/jsse/JSSERefGuide.html).
+For example, to provide your own truststore use the system properties -Djavax.net.ssl.trustStore 
+and -Djavax.net.ssl.trustStorePassword.
+

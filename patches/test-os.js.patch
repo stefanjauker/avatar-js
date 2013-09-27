@@ -1,0 +1,24 @@
+--- /Users/jfdenise/workspaces/v10.latest/node/test/simple/test-os.js	2013-08-22 13:55:29.000000000 +0200
++++ /Users/jfdenise/workspaces/v10.latest/nodejar/test/simple/test-os.js	2013-08-29 12:13:31.000000000 +0200
+@@ -88,12 +88,19 @@
+     var expected = [{ address: '127.0.0.1', family: 'IPv4', internal: true }];
+     assert.deepEqual(actual, expected);
+     break;
+-  case 'win32':
++  case 'darwin':
+     var filter = function(e) { return e.address == '127.0.0.1'; };
+-    var actual = interfaces['Loopback Pseudo-Interface 1'].filter(filter);
++    var actual = interfaces.lo0.filter(filter);
+     var expected = [{ address: '127.0.0.1', family: 'IPv4', internal: true }];
+     assert.deepEqual(actual, expected);
+     break;
++  
++//  case 'win32':
++//    var filter = function(e) { return e.address == '127.0.0.1'; };
++//    var actual = interfaces['Loopback Pseudo-Interface 1'].filter(filter);
++//    var expected = [{ address: '127.0.0.1', family: 'IPv4', internal: true }];
++//    assert.deepEqual(actual, expected);
++//    break;
+ }
+ 
+ var EOL = os.EOL;

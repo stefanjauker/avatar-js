@@ -1,0 +1,13 @@
+--- ../node/test/simple/test-tls-pause.js	2013-05-21 14:51:32.000000000 +0200
++++ node/test/simple/test-tls-pause.js	2013-05-22 18:42:07.000000000 +0200
+@@ -35,7 +35,9 @@
+   cert: fs.readFileSync(path.join(common.fixturesDir, 'test_cert.pem'))
+ };
+ 
+-var bufSize = 1024 * 1024;
++// Too large, net layer read 100 bytes at once, it takes too long....
++// 1024 * 1024; ==> 100 * 1024;
++var bufSize = 100 * 1024;
+ var sent = 0;
+ var received = 0;
+ 

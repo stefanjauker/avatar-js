@@ -1,0 +1,21 @@
+--- ../nodejs/test/simple/test-net-pingpong.js	2013-06-11 16:57:15.688781205 -0700
++++ node/test/simple/test-net-pingpong.js	2013-08-14 13:53:02.006308054 -0700
+@@ -135,9 +135,18 @@
+ pingPongTest(common.PIPE);
+ pingPongTest(common.PORT);
+ pingPongTest(common.PORT + 1, 'localhost');
++
++// IPv6 Test
++if (common.isIPv6Enabled) {
+ pingPongTest(common.PORT + 2, '::1');
++}
+ 
+ process.on('exit', function() {
++// IPv6 Test
++if (common.isIPv6Enabled) {
+   assert.equal(4, tests_run);
++} else {
++  assert.equal(3, tests_run);
++}
+   console.log('done');
+ });

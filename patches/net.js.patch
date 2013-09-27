@@ -1,0 +1,31 @@
+--- /Users/jfdenise/workspaces/v10.latest/node/lib/net.js	2013-08-22 13:55:28.000000000 +0200
++++ src/main/js/lib/net.js	2013-08-22 16:32:37.000000000 +0200
+@@ -396,7 +396,7 @@
+ Socket.prototype.end = function(data, encoding) {
+   stream.Duplex.prototype.end.call(this, data, encoding);
+   this.writable = false;
+-  DTRACE_NET_STREAM_END(this);
++  //DTRACE_NET_STREAM_END(this);
+ 
+   // just in case we're waiting for an EOF.
+   if (this.readable && !this._readableState.endEmitted)
+@@ -473,7 +473,7 @@
+   this.destroyed = true;
+ 
+   if (this.server) {
+-    COUNTER_NET_SERVER_CONNECTION_CLOSE(this);
++    //COUNTER_NET_SERVER_CONNECTION_CLOSE(this);
+     debug('has server');
+     this.server._connections--;
+     if (this.server._emitCloseIfDrained) {
+@@ -1175,8 +1175,8 @@
+   self._connections++;
+   socket.server = self;
+ 
+-  DTRACE_NET_SERVER_CONNECTION(socket);
+-  COUNTER_NET_SERVER_CONNECTION(socket);
++  //DTRACE_NET_SERVER_CONNECTION(socket);
++  //COUNTER_NET_SERVER_CONNECTION(socket);
+   self.emit('connection', socket);
+ }
+ 

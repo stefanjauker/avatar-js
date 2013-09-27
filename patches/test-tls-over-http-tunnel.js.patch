@@ -1,0 +1,15 @@
+--- /Users/jfdenise/workspaces/v10.latest/node/test/simple/test-tls-over-http-tunnel.js	2013-08-22 13:48:54.000000000 +0200
++++ /Users/jfdenise/workspaces/v10.latest/nodejar/test/simple/test-tls-over-http-tunnel.js	2013-09-09 14:02:32.000000000 +0200
+@@ -85,6 +85,12 @@
+       serverSocket.on('end', function() {
+         clientSocket.destroy();
+       });
++
++      // The client is allowed to send the SSL close message.
++      // The connection to server is already closed.
++      serverSocket.on('error', function(err) {
++            assert.equal(err.code, 'EPIPE');
++      });
+     } else {
+       serverSocket.write(chunk);
+     }

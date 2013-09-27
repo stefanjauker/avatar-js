@@ -1,0 +1,59 @@
+--- ../node/test/simple/test-tls-server-verify.js	2013-05-05 20:53:41.000000000 +0200
++++ node/test/simple/test-tls-server-verify.js	2013-07-03 16:55:24.000000000 +0200
+@@ -37,6 +37,7 @@
+ 
+ var testCases =
+     [{ title: 'Do not request certs. Everyone is unauthorized.',
++    
+       requestCert: false,
+       rejectUnauthorized: false,
+       CAs: ['ca1-cert'],
+@@ -56,7 +57,7 @@
+        [{ name: 'agent1', shouldReject: false, shouldAuth: true },
+         { name: 'agent2', shouldReject: false, shouldAuth: false },
+         { name: 'agent3', shouldReject: false, shouldAuth: false },
+-        { name: 'nocert', shouldReject: false, shouldAuth: false }
++        //{ name: 'nocert', shouldReject: false, shouldAuth: false }
+        ]
+     },
+ 
+@@ -68,7 +69,7 @@
+        [{ name: 'agent1', shouldReject: false, shouldAuth: true },
+         { name: 'agent2', shouldReject: true },
+         { name: 'agent3', shouldReject: true },
+-        { name: 'nocert', shouldReject: true }
++        //{ name: 'nocert', shouldReject: true }
+        ]
+     },
+ 
+@@ -77,10 +78,11 @@
+       rejectUnauthorized: true,
+       CAs: ['ca1-cert', 'ca2-cert'],
+       clients:
+-       [{ name: 'agent1', shouldReject: false, shouldAuth: true },
++       [
++        { name: 'agent1', shouldReject: false, shouldAuth: true },
+         { name: 'agent2', shouldReject: true },
+         { name: 'agent3', shouldReject: false, shouldAuth: true },
+-        { name: 'nocert', shouldReject: true }
++        //{ name: 'nocert', shouldReject: true }
+        ]
+     },
+ 
+@@ -97,7 +99,7 @@
+         { name: 'agent3', shouldReject: false, shouldAuth: true },
+         // Agent4 has a cert in the CRL.
+         { name: 'agent4', shouldReject: true, shouldAuth: false },
+-        { name: 'nocert', shouldReject: true }
++        //{ name: 'nocert', shouldReject: true }
+        ]
+     }
+     ];
+@@ -258,7 +260,6 @@
+       c.write('\n_unauthed\n');
+     }
+   });
+-
+   function runNextClient(clientIndex) {
+     var options = tcase.clients[clientIndex];
+     if (options) {

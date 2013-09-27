@@ -1,0 +1,20 @@
+--- /Users/jfdenise/workspaces/v10.latest/node/test/simple/test-timers-unref.js	2013-08-22 13:48:54.000000000 +0200
++++ /Users/jfdenise/workspaces/v10.latest/nodejar/test/simple/test-timers-unref.js	2013-08-23 11:22:22.000000000 +0200
+@@ -55,11 +55,12 @@
+ }, 100);
+ 
+ // Should not assert on args.Holder()->InternalFieldCount() > 0. See #4261.
+-(function() {
+-  var t = setInterval(function() {}, 1);
+-  process.nextTick(t.unref.bind({}));
+-  process.nextTick(t.unref.bind(t));
+-})();
++// Our opaque has not such issue. This test doesn't make sense.
++//(function() {
++//  var t = setInterval(function() {}, 1);
++//  process.nextTick(t.unref.bind({}));
++//  process.nextTick(t.unref.bind(t));
++//})();
+ 
+ process.on('exit', function() {
+   assert.strictEqual(interval_fired, false, 'Interval should not fire');

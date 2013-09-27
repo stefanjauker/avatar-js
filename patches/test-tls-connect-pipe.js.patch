@@ -1,0 +1,13 @@
+--- /Users/jfdenise/workspaces/v10.latest/node/test/simple/test-tls-connect-pipe.js	2013-08-22 13:48:54.000000000 +0200
++++ /Users/jfdenise/workspaces/v10.latest/nodejar/test/simple/test-tls-connect-pipe.js	2013-08-29 12:24:45.000000000 +0200
+@@ -36,6 +36,10 @@
+   ++serverConnected;
+   server.close();
+ });
++
++if(fs.existsSync(common.PIPE)) {
++    fs.unlinkSync(common.PIPE);
++}
+ server.listen(common.PIPE, function() {
+   var options = { rejectUnauthorized: false };
+   var client = tls.connect(common.PIPE, options, function() {

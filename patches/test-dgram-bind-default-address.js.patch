@@ -1,0 +1,18 @@
+diff -uwr ../node/test/simple/test-dgram-bind-default-address.js node/test/simple/test-dgram-bind-default-address.js
+--- ../node/test/simple/test-dgram-bind-default-address.js   2013-06-04 14:54:55.002786000 -0700
++++ node/test/simple/test-dgram-bind-default-address.js 2013-08-08 15:30:30.717705500 -0700
+@@ -29,6 +29,8 @@
+   this.close();
+ }));
+
++// IPv6 Test
++if (common.isIPv6Enabled) {
+ dgram.createSocket('udp6').bind(common.PORT + 1, common.mustCall(function() {
+   assert.equal(this.address().port, common.PORT + 1);
+   var address = this.address().address;
+@@ -37,3 +39,4 @@
+   assert.equal(address, '::');
+   this.close();
+ }));
++}
+

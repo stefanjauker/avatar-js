@@ -1,0 +1,15 @@
+--- //Users/jfdenise/workspaces/latest/node/test/simple/test-http-end-throw-socket-handling.js	2013-08-05 09:41:31.000000000 +0200
++++ node/test/simple/test-http-end-throw-socket-handling.js	2013-08-07 16:47:57.000000000 +0200
+@@ -50,10 +50,11 @@
+   }
+ });
+ 
++// increase timeout
+ setTimeout(function() {
+   process.removeListener('uncaughtException', catcher);
+   throw new Error('Taking too long!');
+-}, 1000).unref();
++},10000).unref();
+ 
+ process.on('uncaughtException', catcher);
+ var errors = 0;

@@ -1,0 +1,12 @@
+--- //Users/jfdenise/workspaces/latest/node/test/simple/test-http-many-keep-alive-connections.js	2013-08-07 23:39:10.000000000 +0200
++++ node/test/simple/test-http-many-keep-alive-connections.js	2013-08-07 23:41:05.000000000 +0200
+@@ -23,7 +23,8 @@
+ var assert = require('assert');
+ var http = require('http');
+ 
+-var expected = 10000;
++// test takes too long otherwise
++var expected = 100;
+ var responses = 0;
+ var requests = 0;
+ var connection;

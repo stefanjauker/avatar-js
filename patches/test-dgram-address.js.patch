@@ -1,0 +1,19 @@
+diff -uwr ../node/test/simple/test-dgram-address.js node/test/simple/test-dgram-address.js
+--- ../node/test/simple/test-dgram-address.js   2012-11-09 12:25:02.597861200 -0800
++++ node/test/simple/test-dgram-address.js  2013-03-05 14:17:31.504156000 -0800
+@@ -44,7 +44,8 @@
+ socket_ipv4.bind(common.PORT, localhost_ipv4);
+
+ // IPv6 Test
+-var localhost_ipv6 = '::1';
++if (common.isIPv6Enabled) {
++    var localhost_ipv6 = '::1';
+ var socket_ipv6 = dgram.createSocket('udp6');
+ var family_ipv6 = 'IPv6';
+
+@@ -62,3 +63,4 @@
+ });
+
+ socket_ipv6.bind(common.PORT, localhost_ipv6);
++}
+

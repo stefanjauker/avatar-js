@@ -1,0 +1,11 @@
+--- ../node-v10/test/simple/test-next-tick-starvation.js	2013-04-30 22:00:43.509305626 -0700
++++ node/test/simple/test-next-tick-starvation.js	2013-05-28 13:57:11.682839454 -0700
+@@ -44,7 +44,7 @@
+ }
+ 
+ spin();
+-setTimeout(onTimeout, 50);
++setTimeout(onTimeout, 1);
+ 
+ process.on('exit', function() {
+   assert.ok(ran);

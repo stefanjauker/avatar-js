@@ -1,0 +1,11 @@
+--- //Users/jfdenise/workspaces/latest/node/test/simple/test-net-write-slow.js	2013-08-05 09:41:32.000000000 +0200
++++ node/test/simple/test-net-write-slow.js	2013-08-09 17:55:40.000000000 +0200
+@@ -32,7 +32,7 @@
+ 
+ var server = net.createServer(function(socket) {
+   socket.setNoDelay();
+-  socket.setTimeout(1000);
++  socket.setTimeout(5000);
+   socket.on('timeout', function() {
+     assert.fail('flushed: ' + flushed +
+                 ', received: ' + received + '/' + SIZE * N);

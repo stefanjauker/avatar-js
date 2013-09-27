@@ -1,0 +1,66 @@
+--- /Users/jfdenise/workspaces/v10.latest/node/lib/tls.js	2013-08-22 13:55:28.000000000 +0200
++++ src/main/js/lib/tls.js	2013-08-26 17:58:15.000000000 +0200
+@@ -359,7 +359,10 @@
+ 
+     // Handle and report errors
+     if (this.pair.ssl && this.pair.ssl.error) {
+-      return cb(this.pair.error(true));
++        // dynamic is different, error event is propagated
++        // by the SecurePair.
++        this.pair.error();
++        return;
+     }
+ 
+     // Force SSL_read call to cycle some states/data inside OpenSSL
+@@ -461,7 +464,16 @@
+ 
+     // Get NPN and Server name when ready
+     this.pair.maybeInitFinished();
+-
++    // We need to check for ssl being destroyed.
++    // If an invalide certificate is received, openSSL will return -1 when 
++    // _buffer.use is called and no data will be written on this connection.
++    // This is due to the fact that we are checking the certificate lazily once
++    // the secure connection is establised.
++    // This is a tls difference that will be removed if we rely on openSSL
++    if(this.pair._secureEstablished && this.pair._doneFlag && !this.pair.ssl) {
++        read = -1;
++        bytesRead = 0;
++    }
+     // `maybeInitFinished()` can emit the 'secure' event which
+     // in turn destroys the connection in case of authentication
+     // failure and sets `this.pair.ssl` to `null`.
+@@ -1121,7 +1133,8 @@
+     passphrase: self.passphrase,
+     cert: self.cert,
+     ca: self.ca,
+-    ciphers: self.ciphers || DEFAULT_CIPHERS,
++    // Default ciphers is provided by binding.
++    ciphers: self.ciphers,
+     secureProtocol: self.secureProtocol,
+     secureOptions: self.secureOptions,
+     crl: self.crl,
+@@ -1136,6 +1149,12 @@
+ 
+   // constructor call
+   net.Server.call(this, function(socket) {
++    var address = socket.address();
++    // Required to compute SSL Session
++    if(address && address.address && address.port){
++      sharedCreds.context.setAddress(address.address, address.port);
++    }
++    
+     var creds = crypto.createCredentials(null, sharedCreds.context);
+ 
+     var pair = new SecurePair(creds,
+@@ -1331,6 +1350,10 @@
+                               cleartext: options.cleartext,
+                               encrypted: options.encrypted
+                             });
++  // Required to compute SSL Session
++  var port = options.port ? options.port : (options.socket ? options.socket.remotePort : -1);
++  var host = options.host ? options.host : 'localhost';
++  sslcontext.context.setAddress(host, port);
+ 
+   if (options.session) {
+     var session = options.session;

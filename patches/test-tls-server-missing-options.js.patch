@@ -1,0 +1,18 @@
+--- ../node/test/simple/test-tls-server-missing-options.js	2013-05-05 20:53:41.000000000 +0200
++++ node/test/simple/test-tls-server-missing-options.js	2013-05-27 11:36:39.000000000 +0200
+@@ -26,13 +26,9 @@
+ 
+ var common = require('../common');
+ var assert = require('assert');
+-var https = require('https');
++//var https = require('https');
+ var tls = require('tls');
+ 
+ assert.throws(function() {
+   tls.createServer({ /* empty */}).listen(0);
+-}, /missing.+certificate/i);
+-
+-assert.throws(function() {
+-  https.createServer({ /* empty */}).listen(0);
+-}, /missing.+certificate/i);
++});

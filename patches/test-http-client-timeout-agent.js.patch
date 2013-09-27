@@ -1,0 +1,12 @@
+--- //Users/jfdenise/workspaces/latest/node/test/simple/test-http-client-timeout-agent.js	2013-08-05 09:41:31.000000000 +0200
++++ node/test/simple/test-http-client-timeout-agent.js	2013-08-07 16:45:47.000000000 +0200
+@@ -70,7 +70,8 @@
+       console.log('req#'+this.id+' error');
+       this.destroy();
+     });
+-    req.setTimeout(50, function () {
++    // increase timeout otherwise first requests timeout before being receipt.
++    req.setTimeout(1000, function () {
+       var req = this;
+       console.log('req#'+this.id + ' timeout');
+       req.abort();

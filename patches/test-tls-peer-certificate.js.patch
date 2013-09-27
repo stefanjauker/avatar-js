@@ -1,0 +1,14 @@
+--- ../node/test/simple/test-tls-peer-certificate.js	2013-05-05 20:53:41.000000000 +0200
++++ node/test/simple/test-tls-peer-certificate.js	2013-05-27 12:21:37.000000000 +0200
+@@ -54,6 +54,11 @@
+     server.close();
+   });
+   socket.end('Hello');
++  // Our dynamic is different, we can receive shutdown message
++  // before client sent message.
++  socket.on('error', function(){
++    print("Received, error, error msg received from server");
++  })
+ });
+ 
+ process.on('exit', function() {

@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="avatar-js" default="build" basedir=".">
+
+    <property file="${user.home}/.avatar-js.properties"/>
+    <property file="${basedir}/project.properties"/>
+    <import file="${avatar-js.home}/common.xml"/>
+
+    <macrodef name="run-ant">
+        <attribute name="dir"/>
+        <attribute name="target"/>
+        <sequential>
+            <echo>cd @{dir}; ant @{target}</echo>
+            <ant dir="@{dir}" target="@{target}" inheritall="false"/>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="git-pull">
+        <attribute name="dir"/>
+        <sequential>
+            <echo>cd @{dir}; git pull --rebase</echo>
+            <exec dir="@{dir}" executable="git">
+                <arg value="pull"/>
+                <arg value="--rebase"/>
+            </exec>
+        </sequential>
+    </macrodef>
+
+    <target name="jar-all" depends="init">
+        <run-ant dir="${libuv.home}" target="jar"/>
+        <run-ant dir="${http-parser.home}" target="jar"/>
+        <antcall target="jar" inheritall="false"/>
+    </target>
+
+    <target name="clean-all" depends="init">
+        <run-ant dir="${libuv.home}" target="clean"/>
+        <run-ant dir="${http-parser.home}" target="clean"/>
+        <antcall target="clean" inheritall="false"/>
+    </target>
+
+    <target name="test-all" depends="init">
+        <run-ant dir="${libuv.home}" target="test"/>
+        <run-ant dir="${http-parser.home}" target="test"/>
+        <antcall target="test" inheritall="false"/>
+    </target>
+
+    <target name="pull-all" depends="init">
+        <git-pull dir="${libuv.home}"/>
+        <git-pull dir="${http-parser.home}"/>
+        <git-pull dir="${basedir}"/>
+    </target>
+
+    <target name="setup" depends="copy-source-files, patch-source-files"/>
+
+    <target name="build" depends="setup, jar-all"/>
+
+    <target name="init" depends="common-init">
+        <property name="product.name" value="avatar-js"/>
+        <property name="build.type" value="Debug"/>
+        <property name="src.java.dir" location="src/main/java"/>
+        <property name="test.java.dir" location="src/test/java"/>
+        <property name="src.js.dir" location="src/main/js"/>
+        <property name="test.js.dir" location="src/test/js"/>
+
+        <property name="patches.dir" location="${basedir}/patches"/>
+        <property name="test.dir" location="${basedir}/test"/>
+        <property name="build.properties.file" location="${classes.dir}/build.properties"/>
+        <property name="native.build.dir" value="${basedir}/out/${build.type}/obj.target/${product.name}/"/>
+
+        <loadproperties srcFile="project.properties"/>
+
+        <property name="javac.debug" value="true"/>
+        <property name="javac.debuglevel" value="lines"/>
+
+        <path id="javac.classpath.id">
+            <zipfileset dir="${libuv.home}/dist" includes="*.jar"/>
+            <zipfileset dir="${http-parser.home}/dist" includes="*.jar"/>
+        </path>
+        <path id="javac.test.classpath.id" refid="javac.classpath.id"/>
+    </target>
+
+    <target name="copy-source-files" depends="init" description="copy source files to local project">
+        <mkdir dir="${test.dir}"/>
+
+        <!-- copy modules -->
+        <property name="source.lib.dir" value="${source.home}/lib"/>
+        <available type="dir" file="${source.lib.dir}" property="source.lib.dir.available"/>
+        <fail message="source lib dir not found at ${source.lib.dir}" unless="source.lib.dir.available"/>
+        <copy todir="src/main/js/lib" overwrite="true">
+            <filelist dir="${source.lib.dir}" files="${source.lib.modules}"/>
+        </copy>
+
+        <!-- copy test/simple -->
+        <property name="source.test.simple.dir" value="${source.home}/test/simple"/>
+        <property name="source.test.pummel.dir" value="${source.home}/test/pummel"/>
+        <property name="source.test.fixtures.dir" value="${source.home}/test/fixtures"/>
+        <available type="dir" file="${source.test.simple.dir}" property="source.test.simple.dir.available"/>
+        <fail message="source test/simple dir not found at ${source.test.simple.dir}"
+              unless="source.test.simple.dir.available"/>
+        <copy todir="${test.dir}/simple" overwrite="true">
+            <filelist dir="${source.test.simple.dir}" files="${source.test.simple.list}"/>
+        </copy>
+        <copy todir="${test.dir}/pummel" overwrite="true">
+            <fileset dir="${source.home}/test/pummel"/>
+        </copy>
+        <copy todir="${test.dir}/fixtures" overwrite="true">
+            <fileset dir="${source.home}/test/fixtures"/>
+        </copy>
+
+        <!-- copy test/simple/test-crypto-* tests in crypto dir -->
+        <copy todir="${test.dir}/crypto" overwrite="true">
+            <filelist dir="${source.test.simple.dir}" files="${source.test.simple.crypto.list}"/>
+        </copy>
+        <!-- copy test/pummel/test-crypto-* tests in crypto dir -->
+        <copy todir="${test.dir}/crypto" overwrite="true">
+            <filelist dir="${source.test.pummel.dir}" files="${source.test.pummel.crypto.list}"/>
+        </copy>
+
+        <!-- copy test infrastructure -->
+        <copy todir="${test.dir}" file="${source.home}/test/common.js" overwrite="true"/>
+        <copy todir="${test.dir}/fixtures" overwrite="true">
+            <fileset dir="${source.home}/test/fixtures"/>
+        </copy>
+
+        <!-- Replace crypto keys -->
+        <copy todir="${test.dir}/fixtures" overwrite="true">
+            <fileset dir="crypto/fixtures"/>
+        </copy>
+        <!-- Replace tls keys -->
+        <copy todir="${test.dir}/fixtures/keys" overwrite="true">
+            <fileset dir="crypto/fixtures/keys"/>
+        </copy>
+        <!-- copy benchmarks -->
+        <copy todir="${basedir}/benchmark" overwrite="true">
+            <fileset dir="${source.home}/benchmark"/>
+        </copy>
+
+        <mkdir dir="${test.dir}/tmp"/>
+    </target>
+
+    <target name="configure-unix" depends="config-gyp" if="isLinux">
+        <exec executable="python" dir="." failonerror="true">
+            <arg value="${source.home}/tools/gyp/gyp"/>
+            <arg value="--depth=."/>
+            <arg value="--format=make"/>
+            <arg value="${product.name}.gyp"/>
+            <arg value="-Dtarget=${build.type}"/>
+            <arg value="-Dtarget_arch=x64"/>
+        </exec>
+    </target>
+
+    <target name="configure-mac" depends="config-gyp" if="isMacOSX">
+        <exec executable="python" dir="." failonerror="true">
+            <arg value="${source.home}/tools/gyp/gyp"/>
+            <arg value="--depth=."/>
+            <arg value="--format=make"/>
+            <arg value="${product.name}.gyp"/>
+            <arg value="-Dtarget=${build.type}"/>
+            <arg value="-Dtarget_arch=x64"/>
+        </exec>
+    </target>
+
+    <target name="configure-windows" depends="config-gyp" if="isWindows">
+        <exec executable="python" dir="." failonerror="true">
+            <arg value="${source.home}/tools/gyp/gyp"/>
+            <arg value="--depth=."/>
+            <arg value="${product.name}.gyp"/>
+            <arg value="-Dtarget=${build.type}"/>
+            <arg value="-Dtarget_arch=x64"/>
+        </exec>
+    </target>
+
+
+    <target name="javah" depends="compile">
+        <javah destdir="${native.build.dir}" classpath="${classes.dir}">
+            <class name="net.java.avatar.js.os.OS"/>
+            <class name="net.java.avatar.js.os.Process"/>
+        </javah>
+    </target>
+
+    <target name="jar" depends="generate-build-properties, compile, make">
+        <copy todir="${classes.dir}">
+            <fileset dir="${src.js.dir}">
+                <include name="**/*.js"/>
+            </fileset>
+        </copy>
+        <mkdir dir="${dist.dir}"/>
+        <property name="product.jar" value="${dist.dir}/${product.name}.jar"/>
+        <jar destfile="${product.jar}">
+            <fileset dir="${classes.dir}" includes="**/*.class"/>
+            <fileset dir="${classes.dir}" includes="**/*.js"/>
+            <fileset dir="${classes.dir}" includes="**/*.properties"/>
+            <zipgroupfileset dir="${libuv.home}/dist" includes="libuv-java.jar"/>
+            <zipgroupfileset dir="${http-parser.home}/dist" includes="http-parser-java.jar"/>
+            <manifest>
+                <attribute name="Built-By" value="${user.name}"/>
+                <attribute name="Main-Class" value="net.java.avatar.js.Server"/>
+            </manifest>
+        </jar>
+        <copy todir="${dist.dir}">
+            <fileset dir="${libuv.home}/dist" includes="*.so*"/>
+            <fileset dir="${libuv.home}/dist" includes="*.dll"/>
+            <fileset dir="${libuv.home}/dist" includes="*.dylib"/>
+            <fileset dir="${http-parser.home}/dist" includes="*.so*"/>
+            <fileset dir="${http-parser.home}/dist" includes="*.dll"/>
+            <fileset dir="${http-parser.home}/dist" includes="*.dylib"/>
+        </copy>
+    </target>
+
+    <target name="generate-build-properties" depends="init"
+            description="generate a properties file containing build info and a list of built-in modules">
+
+        <!-- list of built-in modules -->
+        <pathconvert property="builtin.modules" pathsep=" ">
+            <fileset dir="${src.js.dir}/lib">
+                <include name="*.js"/>
+            </fileset>
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*.js" to="*"/>
+            </chainedmapper>
+        </pathconvert>
+
+        <echo file="${build.properties.file}" append="false">${ant.project.name}.source.compatible.version=${source.compatible.version}${line.separator}</echo>
+        <echo file="${build.properties.file}" append="true">${ant.project.name}.libuv.compatible.version=${libuv.compatible.version}${line.separator}</echo>
+        <echo file="${build.properties.file}" append="true">${ant.project.name}.build.java.version=${java.version}${line.separator}</echo>
+        <echo file="${build.properties.file}" append="true">${ant.project.name}.build.java.vm.version=${java.vm.version}${line.separator}</echo>
+        <echo file="${build.properties.file}" append="true">${ant.project.name}.build.java.vm.name=${java.vm.name}${line.separator}</echo>
+        <echo file="${build.properties.file}" append="true">${ant.project.name}.build.java.class.version=${java.class.version}${line.separator}</echo>
+        <echo file="${build.properties.file}" append="true">${ant.project.name}.build.os.name=${os.name}${line.separator}</echo>
+        <echo file="${build.properties.file}" append="true">${ant.project.name}.build.os.arch=${os.arch}${line.separator}</echo>
+        <echo file="${build.properties.file}" append="true">${ant.project.name}.build.os.version=${os.version}${line.separator}</echo>
+        <echo file="${build.properties.file}" append="true">${ant.project.name}.build.time=${DSTAMP}.${TSTAMP}${line.separator}</echo>
+        <echo file="${build.properties.file}" append="true">${ant.project.name}.builtin.modules=${builtin.modules}${line.separator}</echo>
+    </target>
+
+    <property name="diff.options" value="-uwr"/>
+    <macrodef name="apply-diff" description="diff wrapper">
+        <attribute name="src"/>
+        <attribute name="mod"/>
+        <attribute name="name"/>
+        <sequential>
+            <echo>diff ${diff.options} ${source.home}/@{src}/@{name} @{mod}/@{name}</echo>
+            <exec executable="diff" output="${patches.dir}/@{name}.patch">
+                <arg value="${diff.options}"/>
+                <arg value="${source.home}/@{src}/@{name}"/>
+                <arg value="@{mod}/@{name}"/>
+            </exec>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="apply-patch-dir" description="patch dir wrapper">
+        <attribute name="name"/>
+        <sequential>
+            <echo>applying ${patches.dir}/@{name}.patch</echo>
+            <patch patchfile="${patches.dir}/@{name}.patch"
+                   ignorewhitespace="true" reverse="false" strip="0" quiet="false"/>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="apply-patch-file" description="patch file wrapper">
+        <attribute name="name"/>
+        <attribute name="target"/>
+        <sequential>
+            <echo>applying ${patches.dir}/@{name}.patch to @{target}</echo>
+            <patch patchfile="${patches.dir}/@{name}.patch" originalfile="@{target}/@{name}"
+                   ignorewhitespace="true" reverse="false" strip="0" quiet="false"/>
+        </sequential>
+    </macrodef>
+
+    <!-- keep sorted and synchronized with patch-source-files -->
+    <target name="diff-source-files" depends="init"
+            description="generate patch files listing changes to source files">
+        <mkdir dir="${patches.dir}"/>
+        <!-- modules -->
+        <apply-diff src="lib" mod="src/main/js/lib" name="fs.js"/>
+        <apply-diff src="lib" mod="src/main/js/lib" name="http.js"/>
+        <apply-diff src="lib" mod="src/main/js/lib" name="querystring.js"/>
+        <apply-diff src="lib" mod="src/main/js/lib" name="module.js"/>
+        <apply-diff src="lib" mod="src/main/js/lib" name="net.js"/>
+        <apply-diff src="lib" mod="src/main/js/lib" name="string_decoder.js"/>
+        <apply-diff src="lib" mod="src/main/js/lib" name="tls.js"/>
+        <!-- tests -->
+        <apply-diff src="test" mod="${test.dir}" name="common.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-buffer.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-chdir.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-child-process-fork-exec-argv.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-dgram-address.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-dgram-ref.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-error-reporting.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-fs-readfile-pipe.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-client-timeout-agent.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-end-throw-socket-handling.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-head-request.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-many-ended-pipelines.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-many-keep-alive-connections.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-https-strict.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-module-loading.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-pingpong.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-server-address.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-write-slow.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-next-tick.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-next-tick-starvation.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-os.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-process-exec-argv.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-pipe-head.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-readline-interface.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-script-context.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-stream2-read-sync-stack.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-string-decoder.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-timers-unref.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-timers-zero-timeout.js"/>
+        <!-- tls tests -->
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-tls-connect-pipe.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-tls-fast-writing.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-tls-over-http-tunnel.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-tls-pause.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-tls-peer-certificate.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-tls-peer-certificate-multi-keys.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-tls-server-missing-options.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-tls-server-verify.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/crypto" name="test-tls-getcipher.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/crypto" name="test-tls-honorcipherorder.js"/>
+        <!-- crypto tests -->
+        <apply-diff src="test/simple" mod="${test.dir}/crypto" name="test-crypto.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/crypto" name="test-crypto-binary-default.js"/>
+        <apply-diff src="test/pummel" mod="${test.dir}/crypto" name="test-crypto-dh.js"/>
+    </target>
+
+    <!-- keep sorted and synchronized with diff-source-files -->
+    <target name="patch-source-files" depends="init" description="apply patches to source files">
+        <!-- modules -->
+        <apply-patch-file target="src/main/js/lib" name="fs.js"/>
+        <apply-patch-file target="src/main/js/lib" name="http.js"/>
+        <apply-patch-file target="src/main/js/lib" name="querystring.js"/>
+        <apply-patch-file target="src/main/js/lib" name="module.js"/>
+        <apply-patch-file target="src/main/js/lib" name="net.js"/>
+        <apply-patch-file target="src/main/js/lib" name="string_decoder.js"/>
+        <apply-patch-file target="src/main/js/lib" name="tls.js"/>
+        <!-- tests -->
+        <apply-patch-file target="${test.dir}" name="common.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-buffer.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-chdir.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-child-process-fork-exec-argv.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-dgram-address.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-dgram-ref.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-error-reporting.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-fs-readfile-pipe.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-http.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-http-client-timeout-agent.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-http-end-throw-socket-handling.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-http-head-request.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-http-many-ended-pipelines.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-http-many-keep-alive-connections.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-https-strict.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-module-loading.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-net-pingpong.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-net-server-address.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-net-write-slow.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-next-tick.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-next-tick-starvation.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-os.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-process-exec-argv.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-pipe-head.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-readline-interface.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-script-context.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-stream2-read-sync-stack.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-string-decoder.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-timers-unref.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-timers-zero-timeout.js"/>
+        <!-- tls tests -->
+        <apply-patch-file target="${test.dir}/simple" name="test-tls-connect-pipe.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-tls-fast-writing.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-tls-over-http-tunnel.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-tls-pause.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-tls-peer-certificate.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-tls-peer-certificate-multi-keys.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-tls-server-missing-options.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-tls-server-verify.js"/>
+        <apply-patch-file target="${test.dir}/crypto" name="test-tls-getcipher.js"/>
+        <apply-patch-file target="${test.dir}/crypto" name="test-tls-honorcipherorder.js"/>
+        <!-- crypto tests -->
+        <apply-patch-file target="${test.dir}/crypto" name="test-crypto.js"/>
+        <apply-patch-file target="${test.dir}/crypto" name="test-crypto-binary-default.js"/>
+        <apply-patch-file target="${test.dir}/crypto" name="test-crypto-dh.js"/>
+    </target>
+
+    <target name="generate-policy-file" depends="init">
+        <property name="policy.file" value="dist/avatar-js.policy"/>
+        <!-- avatar-js jar requires AllPermission -->
+        <echo message="grant codeBase &quot;file:/${basedir}/dist/${product.name}.jar&quot; {" file="${policy.file}"/>
+        <echo message="" file="${policy.file}" append="true"/>
+        <echo message="    permission java.security.AllPermission;" file="${policy.file}" append="true"/>
+        <echo message="" file="${policy.file}" append="true"/>
+        <echo message="};" file="${policy.file}" append="true"/>
+        <echo message="" file="${policy.file}" append="true"/>
+
+        <!-- tests require AllPermissions -->
+        <echo message="grant codeBase &quot;file:/${basedir}/test/-&quot; {" file="${policy.file}" append="true"/>
+        <echo message="" file="${policy.file}" append="true"/>
+        <echo message="    permission java.security.AllPermission;" file="${policy.file}" append="true"/>
+        <echo message="" file="${policy.file}" append="true"/>
+        <echo message="};" file="${policy.file}" append="true"/>
+        <echo message="" file="${policy.file}" append="true" />
+
+        <!-- for Windows - normalize path separators in URLs -->
+        <replace file="${policy.file}">
+            <replacetoken>\</replacetoken>
+            <replacevalue>/</replacevalue>
+        </replace>
+
+        <!-- for Unix - avoid leading // in URLs -->
+        <replace file="${policy.file}">
+            <replacetoken>//</replacetoken>
+            <replacevalue>/</replacevalue>
+        </replace>
+    </target>
+
+    <target name="test-security" depends="init, generate-policy-file, run-security-policy-tests, run-security-no-policy-tests"/>
+
+    <target name="run-security-policy-tests" depends="init">
+        <java fork="true" jar="dist/${product.name}.jar" failonerror="true">
+            <arg value="src/test/js/test-runner.js" />
+            <arg value="-secure" />
+            <arg value="src/test/js/security" />
+        </java>
+    </target>
+
+    <target name="run-security-no-policy-tests" depends="init">
+        <java fork="true" jar="dist/${product.name}.jar" failonerror="true">
+            <arg value="src/test/js/test-runner.js" />
+            <arg value="src/test/js/security/nopolicy" />
+        </java>
+    </target>
+
+    <target name="package-linux" depends="init" if="isLinux">
+        <property name="package.name" value="${product.name}-linux"/>
+    </target>
+
+    <target name="package-macos" depends="init" if="isMacOSX">
+        <property name="package.name" value="${product.name}-macosx"/>
+    </target>
+
+    <target name="package-windows" depends="init" if="isWindows">
+        <property name="package.name" value="${product.name}-windows"/>
+    </target>
+
+    <target name="package" depends="build, package-linux, package-macos, package-windows">
+        <delete dir="dist/${product.name}"/>
+        <delete file="dist/${package.name}.zip"/>
+        <copy todir="${dist.dir}/${product.name}/lib">
+            <fileset dir="${dist.dir}" includes="*.so*"/>
+            <fileset dir="${dist.dir}" includes="*.dll"/>
+            <fileset dir="${dist.dir}" includes="*.dylib"/>
+            <fileset dir="${dist.dir}" includes="*.jar"/>
+        </copy>
+        <copy todir="${dist.dir}/${product.name}">
+            <fileset dir="." includes="README"/>
+            <fileset dir="." includes="LICENSE"/>
+        </copy>
+        <zip  basedir="${dist.dir}/" includes="${product.name}/**"
+             destfile="${dist.dir}/${package.name}.zip"/>
+    </target>
+</project>

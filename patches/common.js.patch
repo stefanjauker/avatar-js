@@ -1,0 +1,34 @@
+--- ../node/test/common.js	2013-08-22 13:48:54.000000000 +0200
++++ test/common.js	2013-09-20 09:37:44.000000000 +0200
+@@ -55,7 +55,7 @@
+ exports.ddCommand = function(filename, kilobytes) {
+   if (process.platform === 'win32') {
+     var p = path.resolve(exports.fixturesDir, 'create-file.js');
+-    return '"' + process.argv[0] + '" "' + p + '" "' +
++    return process.argv[0] + ' "' + p + '" "' +
+            filename + '" ' + (kilobytes * 1024);
+   } else {
+     return 'dd if=/dev/zero of="' + filename + '" bs=1024 count=' + kilobytes;
+@@ -135,7 +135,8 @@
+     knownGlobals.push(Uint32Array);
+     knownGlobals.push(Float32Array);
+     knownGlobals.push(Float64Array);
+-    knownGlobals.push(DataView);
++    //nashorn https://jbs.oracle.com/bugs/browse/JDK-8015958
++    //knownGlobals.push(DataView);
+   }
+ 
+   for (var x in global) {
+@@ -198,3 +199,12 @@
+     return fn.apply(this, arguments);
+   };
+ };
++
++exports.isIPv6Enabled = true;
++var dgram = require('dgram');
++var socket = dgram.createSocket('udp6');
++try {
++    socket.send6('', common.PORT, '::1');
++} catch(error) {
++    exports.isIPv6Enabled = false;
++}

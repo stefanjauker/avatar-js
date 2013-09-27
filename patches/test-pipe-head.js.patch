@@ -1,0 +1,15 @@
+--- /Users/jfdenise/workspaces/v10.latest/node/test/simple/test-pipe-head.js	2013-08-22 13:48:54.000000000 +0200
++++ /Users/jfdenise/workspaces/v10.latest/nodejar/test/simple/test-pipe-head.js	2013-08-26 10:28:35.000000000 +0200
+@@ -31,10 +31,10 @@
+ var nodePath = process.argv[0];
+ var script = join(common.fixturesDir, 'print-10-lines.js');
+ 
+-var cmd = '"' + nodePath + '" "' + script + '" | head -2';
++var cmd = nodePath + ' "' + script + '" | head -2';
+ 
+ var finished = false;
+-
++print("CMD " + cmd);
+ exec(cmd, function(err, stdout, stderr) {
+   if (err) throw err;
+   var lines = stdout.split('\n');

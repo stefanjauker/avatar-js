@@ -1,0 +1,14 @@
+--- ../node/test/simple/test-next-tick.js	2013-05-05 20:53:41.000000000 +0200
++++ node/test/simple/test-next-tick.js	2013-05-16 19:27:19.000000000 +0200
+@@ -46,7 +46,8 @@
+ 
+ process.on('exit', function() {
+   assert.equal(5, complete);
+-  process.nextTick(function() {
+-    throw new Error('this should not occur');
+-  });
++// We are handling next tick of exit handler.
++//  process.nextTick(function() {
++//    throw new Error('this should not occur');
++//  });
+ });

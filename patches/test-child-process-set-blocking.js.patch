@@ -1,0 +1,11 @@
+--- ../node/test/simple/test-child-process-set-blocking.js  Fri Jan 11 16:35:09 2013 -0800
++++ node/test/simple/test-child-process-set-blocking.js Fri Jan 11 16:36:09 2013 -0800
+@@ -26,7 +26,7 @@
+ var SIZE = 100000;
+ var childGone = false;
+ 
+-var cp = ch.spawn('python', ['-c', 'print ' + SIZE + ' * "C"'], {
++var cp = ch.spawn('python', ['--version'], {
+   customFds: [0, 1, 2]
+ });
+ 

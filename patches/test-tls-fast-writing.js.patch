@@ -1,0 +1,44 @@
+--- ../node/test/simple/test-tls-fast-writing.js	2013-05-05 20:53:41.000000000 +0200
++++ node/test/simple/test-tls-fast-writing.js	2013-05-27 11:36:37.000000000 +0200
+@@ -35,10 +35,20 @@
+ var gotChunk = false;
+ var gotDrain = false;
+ 
+-var timer = setTimeout(function() {
+-  console.log('not ok - timed out');
+-  process.exit(1);
+-}, 500);
++/* This test is of great interest for the stream 2 activity it generates.
++ both sides of the pipes are filled with crazy content, our runtime
++ must manage it properly.
++ Main algo: User writes in a loop 1024b Buffer until write returns false.
++ When drain event is received, writing occurs again until server side received data
++ 1) Content is written, encrypted by SecureConnection, read from encryptedStream, pushed in
++    _readable_stream array. A NextTick is added to push content to net layer. highWaterMark is 16*1024
++ 2) When HighWaterMark is reached, encrypted content starts to accumulate in the SecureConnection.
++    HighWaterMark is 128*1024.
++ 3) When HighWaterMark is reached, write returns false, _readable stream nextTick are scheduled, data pushed
++    to net layer.
++ 4) When write can again accapts user input, drain event is emmitted, writing content occurs again.
++ 5) Test ends when data has been received and drain event occured.
++*/
+ 
+ function onconnection(conn) {
+   conn.on('data', function(c) {
+@@ -75,6 +85,15 @@
+   }
+   function write() {
+     // this needs to return false eventually
+-    while (false !== conn.write(chunk));
++    var i = 0;
++    while (true){
++        print("^&&&&&&&&&&&&&&& NEW BUFFER " + i);
++        i += 1;
++        if(false === conn.write(chunk)){
++            print("DONE");
++            break;
++        }
++        print("END NEW BUFFER");
++    }
+   }
+ });

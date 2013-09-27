@@ -1,0 +1,20 @@
+--- ../node/test/simple/test-chdir.js	2013-05-05 20:53:41.000000000 +0200
++++ node/test/simple/test-chdir.js	2013-06-03 10:13:45.000000000 +0200
+@@ -33,7 +33,16 @@
+     'weird \uc3a4\uc3ab\uc3af characters \u00e1\u00e2\u00e3');
+ fs.mkdirSync(dir);
+ process.chdir(dir);
+-assert(process.cwd() == dir);
++
++// On some platform (eg:Mac OS), UTF-8 decomposed is used to encode some unicode characters.
++// Unicode decomposition is defined : http://www.unicode.org/reports/tr15/tr15-23.html
++// The dir string here uses composed representation. We need to normalize the name before to compare.
++// This is a Java behavior. FS path are not normalized when they are returned
++// by the Java API.
++// Normalization needs to occur in user script
++var normalized = java.text.Normalizer.normalize(process.cwd(), java.text.Normalizer.Form.NFC);
++
++assert(normalized == dir);
+ 
+ process.chdir('..');
+ assert(process.cwd() == path.resolve(common.fixturesDir));

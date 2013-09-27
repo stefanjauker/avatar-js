@@ -1,0 +1,41 @@
+--- /Users/jfdenise/workspaces/v10.latest/node/lib/http.js	2013-08-22 13:55:28.000000000 +0200
++++ src/main/js/lib/http.js	2013-08-22 16:31:07.000000000 +0200
+@@ -1009,12 +1009,12 @@
+ OutgoingMessage.prototype._finish = function() {
+   assert(this.connection);
+   if (this instanceof ServerResponse) {
+-    DTRACE_HTTP_SERVER_RESPONSE(this.connection);
+-    COUNTER_HTTP_SERVER_RESPONSE();
++ //   DTRACE_HTTP_SERVER_RESPONSE(this.connection);
++   // COUNTER_HTTP_SERVER_RESPONSE();
+   } else {
+     assert(this instanceof ClientRequest);
+-    DTRACE_HTTP_CLIENT_REQUEST(this, this.connection);
+-    COUNTER_HTTP_CLIENT_REQUEST();
++   // DTRACE_HTTP_CLIENT_REQUEST(this, this.connection);
++   // COUNTER_HTTP_CLIENT_REQUEST();
+   }
+   this.emit('finish');
+ };
+@@ -1679,8 +1679,8 @@
+   }
+ 
+ 
+-  DTRACE_HTTP_CLIENT_RESPONSE(socket, req);
+-  COUNTER_HTTP_CLIENT_RESPONSE();
++  //DTRACE_HTTP_CLIENT_RESPONSE(socket, req);
++  //COUNTER_HTTP_CLIENT_RESPONSE();
+   req.res = res;
+   res.req = req;
+ 
+@@ -2023,8 +2023,8 @@
+     var res = new ServerResponse(req);
+ 
+     res.shouldKeepAlive = shouldKeepAlive;
+-    DTRACE_HTTP_SERVER_REQUEST(req, socket);
+-    COUNTER_HTTP_SERVER_REQUEST();
++    //DTRACE_HTTP_SERVER_REQUEST(req, socket);
++    //COUNTER_HTTP_SERVER_REQUEST();
+ 
+     if (socket._httpMessage) {
+       // There are already pending outgoing res, append.

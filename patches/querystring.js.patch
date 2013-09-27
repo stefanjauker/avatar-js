@@ -1,0 +1,11 @@
+--- ../node-v10/lib/querystring.js	2013-04-30 22:00:43.429305623 -0700
++++ src/main/js/lib/querystring.js	2013-05-16 21:07:18.751227395 -0700
+@@ -39,7 +39,7 @@
+ 
+ // a safe fast alternative to decodeURIComponent
+ QueryString.unescapeBuffer = function(s, decodeSpaces) {
+-  var out = new Buffer(s.length);
++  var out = new Buffer(s.length + 1); // NASHORN - add one to prevent buffer overflow
+   var state = 'CHAR'; // states: CHAR, HEX0, HEX1
+   var n, m, hexchar;
+ 

@@ -1,0 +1,15 @@
+--- /Users/jfdenise/workspaces/v10.latest/node/test/simple/test-http-many-ended-pipelines.js	2013-08-22 13:48:54.000000000 +0200
++++ /Users/jfdenise/workspaces/v10.latest/nodejar/test/simple/test-http-many-ended-pipelines.js	2013-08-28 15:22:42.000000000 +0200
+@@ -51,4 +51,12 @@
+ client.on('connect', function() {
+   server.close();
+ });
++// On linux, we do get a ECONNRESET. This is time dependent 
++// (If debug is enabled, we don't get the error).
++// When the socket is destroyed, such error is expected on the client side.
++// An error handler should have been set in the original test
++client.on('error', function(err) {
++  print("Destroying the socket can raisonably create read ECONNRESET");
++  assert.equal(err.code, "ECONNRESET");
++});
+ client.pipe(process.stdout);

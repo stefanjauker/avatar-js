@@ -1,0 +1,11 @@
+--- ../nodejs/test/simple/test-child-process-fork-exec-argv.js	2012-11-09 12:25:02.254841500 -0800
++++ test/simple/test-child-process-fork-exec-argv.js	2013-09-06 15:44:23.295981100 -0700
+@@ -31,7 +31,7 @@
+ } else if (process.argv[2] === 'child') {
+   fork(__filename, ['fork']);
+ } else {
+-  var execArgv = ['--harmony_proxies', '--max-stack-size=0'];
++  var execArgv = ['--trace-deprecation', '--no-deprecation'];
+   var args = [__filename, 'child', 'arg0'];
+ 
+   var child = spawn(process.execPath, execArgv.concat(args));

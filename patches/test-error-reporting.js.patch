@@ -1,0 +1,11 @@
+--- /Users/jfdenise/workspaces/v10.latest/node/test/simple/test-error-reporting.js	2013-08-22 13:48:54.000000000 +0200
++++ /Users/jfdenise/workspaces/v10.latest/nodejar/test/simple/test-error-reporting.js	2013-08-23 13:03:41.000000000 +0200
+@@ -30,7 +30,7 @@
+ var exits = 0;
+ 
+ function errExec(script, callback) {
+-  var cmd = '"' + process.argv[0] + '" "' +
++  var cmd = process.argv[0] + ' "' +
+       path.join(common.fixturesDir, script) + '"';
+   return exec(cmd, function(err, stdout, stderr) {
+     // There was some error

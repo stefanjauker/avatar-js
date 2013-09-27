@@ -1,0 +1,19 @@
+--- ../node/test/simple/test-tls-peer-certificate-multi-keys.js	2013-05-05 20:53:41.000000000 +0200
++++ node/test/simple/test-tls-peer-certificate-multi-keys.js	2013-05-27 12:22:05.000000000 +0200
+@@ -49,10 +49,15 @@
+     var peerCert = socket.getPeerCertificate();
+     common.debug(util.inspect(peerCert));
+     assert.deepEqual(peerCert.subject.OU,
+-                     ['Information Technology', 'Engineering', 'Marketing']);
++                     ['Marketing', 'Engineering', 'Information Technology']);
+     verified = true;
+     server.close();
+   });
++  // Our dynamic is different, we can receive shutdown message
++  // before client sent message.
++  socket.on('error', function(){
++    print("Received, error, error msg received from server");
++  })
+   socket.end('Hello');
+ });
+ 

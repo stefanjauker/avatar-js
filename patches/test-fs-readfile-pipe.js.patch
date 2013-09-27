@@ -1,0 +1,13 @@
+--- /Users/jfdenise/workspaces/v10.latest/node/test/simple/test-fs-readfile-pipe.js	2013-08-22 13:48:54.000000000 +0200
++++ /Users/jfdenise/workspaces/v10.latest/nodejar/test/simple/test-fs-readfile-pipe.js	2013-08-23 15:08:59.000000000 +0200
+@@ -44,8 +44,9 @@
+ 
+ var exec = require('child_process').exec;
+ var f = JSON.stringify(__filename);
+-var node = JSON.stringify(process.execPath);
++var node = process.execPath;
+ var cmd = 'cat ' + f + ' | ' + node + ' ' + f + ' child';
++print("CMD " + cmd);
+ exec(cmd, function(err, stdout, stderr) {
+   if (err) console.error(err);
+   assert(!err, 'it exits normally');
