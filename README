@@ -10,25 +10,25 @@ Build Instructions
       (do 'git pull' to refresh repo if you get an error saying this version is unknown)
 
 3. Clone dependencies
-   a) git://java.net/avatar-js~libuv (read-only)
-      ssh://<id>@git.java.net/avatar-js~libuv libuv
+   a) git clone git://java.net/avatar-js~libuv-java libuv-java (read-only)
+      git clone ssh://<id>@git.java.net/avatar-js~libuv-java libuv-java
 
-   b) git://java.net/avatar-js~http-parser (read-only)
-      ssh://<id>@git.java.net/avatar-js~http-parser http-parser
+   b) git clone git://java.net/avatar-js~http-parser-java http-parser-java (read-only)
+      git clone ssh://<id>@git.java.net/avatar-js~http-parser-java http-parser-java
 
-   c) git://java.net/avatar-js~src (read-only)
-      ssh://<id>@git.java.net/avatar-js~src avatar-js
+   c) git clone git://java.net/avatar-js~src avatar-js (read-only)
+      git clone ssh://<id>@git.java.net/avatar-js~src avatar-js
 
    d) Download testng from http://testng.org/doc/download.html
       unzip bundle and place testng.jar somewhere in your workspace
 
 3. Edit ~/.avatar-js.properties to set various locations, for example
 
-   source.home = /ws/source
-   avatar-js.home = /ws/avatar-js
-   libuv.home = /ws/libuv
-   http-parser.home = /ws/http-parser
-   testng.jar = /ws/lib/testng.jar
+   source.home = /ws/source (from 2a)
+   libuv.home = /ws/libuv-java (from 3a)
+   http-parser.home = /ws/http-parser-java (from 3b)
+   avatar-js.home = /ws/avatar-js (from 3c)
+   testng.jar = /ws/lib/testng.jar (from 3d)
 
 4. Setup environment so that native libraries can be found
    cd avatar-js
@@ -59,7 +59,7 @@ Limitations and Gotchas
    c) Windows 7 & 8 x64
 
 2. Dependencies
-   Requires a recent build of jdk8 (b106+)
+   Requires a recent build of jdk8 (b108+)
 
 3. Globals - some additional globals are exposed
    a) context of type ScriptContext [http://download.java.net/jdk8/docs/api/javax/script/ScriptContext.html]
