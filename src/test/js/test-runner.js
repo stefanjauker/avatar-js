@@ -144,6 +144,7 @@ var bold = colorize ? escape + 1 + 'm' : '';
 var reset = colorize ? escape + 0 + 'm' : '';
 
 var args = ['-server', (assertions ? '-ea' : '-da'), '-Djava.awt.headless=true'];
+args.push('-Xcheck:jni');
 args.push('-Djava.library.path=' + target);
 var jarArgs = ['-jar', jar.toString()];
 if (!deprecations) {
