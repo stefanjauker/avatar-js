@@ -62,6 +62,8 @@ var LibUV = Packages.net.java.libuv.LibUV;
 var Process = Packages.net.java.avatar.js.os.Process;
 var Server = Packages.net.java.avatar.js.Server;
 var Event = Packages.net.java.avatar.js.eventloop.Event
+var Constants = Packages.net.java.avatar.js.constants.Constants;
+var Signals = Packages.net.java.libuv.handles.SignalHandle;
 
 Object.defineProperty(exports, 'throwDeprecation', {
     enumerable: true,
@@ -546,6 +548,18 @@ exports.umask  = function(mask) {
 exports.openStdin = function() {
     process.stdin.resume();
     return process.stdin;
+}
+
+var signalHandle = new Signals(eventloop.loop());
+signalHandle.signalCallback = function(signum) {
+    exports.emit(Constants.getConstantsString().get(signum));
+}
+// install some signal handlers on unix
+// installing some others generate EINVAL (invalid argument)
+// the JVM also installs some of its own
+if (exports.platform !== 'win32') {
+    signalHandle.start(28); // SIGWINCH
+    signalHandle.start(10); // SIGUSR1
 }
 
 if (exports.platform !== 'win32') {
