@@ -551,13 +551,16 @@ exports.openStdin = function() {
 }
 
 var signalHandle = new Signals(eventloop.loop());
+// this handle should not keep the event loop from terminating
+signalHandle.unref();
 signalHandle.signalCallback = function(signum) {
     exports.emit(Constants.getConstantsString().get(signum));
 }
 // install some signal handlers on unix
 // installing some others generate EINVAL (invalid argument)
 // the JVM also installs some of its own
-if (exports.platform !== 'win32') {
+// does not work on windows and hangs the process on mac
+if (exports.platform !== 'win32' && exports.platform !== 'darwin') {
     signalHandle.start(28); // SIGWINCH
     signalHandle.start(10); // SIGUSR1
 }
