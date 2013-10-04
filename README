@@ -1,7 +1,9 @@
 Build Instructions
 
-1. Install jdk8
+1. Install jdk8, ant and python
    a) Install the latest jdk8 build from http://jdk8.java.net/download.html
+   b) Ensure ant is installed and ant --version is 1.8+
+   c) Ensure python is installed and python --version is 2.7.5+
 
 2. Download node.js
    a) git clone https://github.com/joyent/node.git source
@@ -45,7 +47,7 @@ Build Instructions
    c) ant -Dbuild.type=Release jar-all (to build Release configuration)
 
 7. Test
-   a) java -jar dist/avatar-jar.jar src/test/js/test-runner.js test/simple/
+   a) java -jar dist/avatar-js.jar src/test/js/test-runner.js test/simple/
       (test-runner.js supports many options, look at source for help)
 
 8. Running applications
