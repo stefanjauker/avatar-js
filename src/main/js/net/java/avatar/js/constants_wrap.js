@@ -24,7 +24,7 @@
  */
 
 (function(exports) {
-    var constants = Packages.net.java.avatar.js.constants.Constants.getConstants();
+    var constants = Packages.net.java.libuv.Constants.getConstants();
     var pi = constants.entrySet().iterator();
     while (pi.hasNext()) {
         var p = pi.next();

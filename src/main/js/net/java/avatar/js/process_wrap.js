@@ -31,7 +31,7 @@
     var events = require('events');
 
     var ProcessHandle = Packages.net.java.libuv.handles.ProcessHandle;
-    var Constants = Packages.net.java.avatar.js.constants.Constants;
+    var Constants = Packages.net.java.libuv.Constants;
     var loop = __avatar.eventloop.loop();
     
     var AccessController = java.security.AccessController;

@@ -152,7 +152,6 @@ public final class Server {
             }
         } finally {
             eventLoop.timer().clearAll();
-            eventLoop.fs().shutdown();
             eventLoop.stop();
             logging.shutdown();
         }

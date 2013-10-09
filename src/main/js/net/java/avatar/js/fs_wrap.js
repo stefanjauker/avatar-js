@@ -25,549 +25,669 @@
 
 (function(exports) {
 
-    var fileSystem = __avatar.eventloop.fs();
+    var FileHandle = Packages.net.java.libuv.handles.FileHandle;
+    var PendingOperations = Packages.net.java.libuv.handles.PendingOperations;
+    var JavaBuffer = Packages.net.java.avatar.js.buffer.Buffer;
+    var loop = __avatar.eventloop.loop();
+    var fs = new FileHandle(loop);
 
-    var mapJavaException = function(e, isfd) {
-        if (e === null) {
-            return null;
-        }
-        var code;
-        var message;
-        var path;
-        if (e instanceof java.nio.file.NoSuchFileException) {
-            code = 'ENOENT';
-            message = 'no such file or directory';
-            path = e.getFile();
-        } else if (e instanceof java.nio.file.NotDirectoryException) {
-            code = 'ENOTDIR';
-            path = e.getFile();
-            message = 'not a directory';
-        } else if (e instanceof java.io.FileNotFoundException) {
-            code = isfd ? 'EBADF' : 'ENOENT';
-            message = 'file not found';
-            // Best effort. This is not specified but this message contains the path
-            path = e.getMessage();
-        } else if (e instanceof java.nio.file.FileAlreadyExistsException) {
-            code = 'EEXIST';
-            message = 'file already exists, EEXIST';
-            path = e.getFile();
-        } else if (e instanceof java.nio.file.FileSystemException &&
-                   e.getReason() === 'Operation not permitted') {
-            code = 'EPERM';
-            message = 'Operation not permitted';
-            path = e.getFile();
-        } else {
-            // fall-through to generic IO error
-            code = 'EIO';
-            message = 'i/o error';
-            if (Packages.net.java.avatar.js.Server.assertions()) {
-                e.printStackTrace();
-            }
-        }
-        var error = new Error(code + ', ' + message + ' \'' + e.message + '\'');
-        error.code = code;
-        if (path) {
-            error.path = path;
-        }
-        return error;
-    }
-
-    var getStats = function(stat) {
-        if (stat) {
-            return new exports.Stats(stat);
-        }
-    }
-
-    exports.stat = function(path, callback) {
-        if (typeof callback === 'function') {
-            fileSystem.stat(path, function(name, args) {
-                callback(mapJavaException(args[0]), getStats(args[1]));
-            });
-        } else {
-            try {
-                return new exports.Stats(fileSystem.stat(path));
-            } catch (e) {
-                throw mapJavaException(e);
-            }
-        }
-    }
-
-    exports.lstat = function(path, callback) {
-        if (typeof callback === 'function') {
-            fileSystem.lstat(path, function(name, args) {
-                callback(mapJavaException(args[0]), getStats(args[1]));
-            });
-        } else {
-            try {
-                return new exports.Stats(fileSystem.lstat(path));
-            } catch (e) {
-                throw mapJavaException(e);
-            }
-        }
-    }
-
-    exports.fstat = function(fd, callback) {
-        if (typeof callback === 'function') {
-            fileSystem.fstat(fd, function(name, args) {
-                callback(mapJavaException(args[0], true), getStats(args[1]));
-            });
-        } else {
-            try {
-                return new exports.Stats(fileSystem.fstat(fd));
-            } catch (e) {
-                throw mapJavaException(e, true);
-            }
-        }
-    }
-
-    exports.open = function(path, flags, mode, callback) {
-        if (typeof callback === 'function') {
-            return fileSystem.open(path, flags, mode, function(name, args) {
-                callback(mapJavaException(args[0]), args[1]);
-            });
-        } else {
-            try {
-                return fileSystem.open(path, flags, mode);
-            } catch (e) {
-                throw mapJavaException(e);
-            }
-        }
-    }
-
-    exports.unlink = function(path, callback) {
-        if (typeof callback === 'function') {
-            return fileSystem.unlink(path, function(name, args) {
-                callback(extractArgs(args));
-            });
-        } else {
-            try {
-                return fileSystem.unlink(path);
-            } catch (e) {
-                throw mapJavaException(e);
-            }
-        }
-    }
+    Object.defineProperty(exports, '_closeCallback', { value: new PendingOperations() });
 
     exports.close = function(fd, callback) {
         if (typeof callback === 'function') {
-            fileSystem.close(fd, function(name, args) {
-                callback(extractArgs(args, true));
+            var id = exports._closeCallback.push(callback);
+            fs.setCloseCallback(function(id, args) {
+                var cb = exports._closeCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb();
+                }
             });
+            return fs.close(fd, id);
         } else {
             try {
-                fileSystem.close(fd);
-            } catch (e) {
-                throw mapJavaException(e, true);
+                return fs.close(fd);
+            } catch(e) {
+                throw exports._error(e);
             }
         }
     }
 
-    exports.write = function(fd, buffer, offset, length, position, callback) {
-        if (position === null || position === undefined) {
-            position = -1;
-        }
+    Object.defineProperty(exports, '_openCallback', { value: new PendingOperations() });
+
+    exports.open = function(path, flags, mode, callback) {
         if (typeof callback === 'function') {
-            return fileSystem.write(fd, buffer._impl, offset, length, position,
-                    function(name, args) {
-                callback(mapJavaException(args[0], true), args[1], args[2]);
+            var id = exports._openCallback.push(callback);
+            var cb = callback;
+            fs.setOpenCallback(function(id, args) {
+                var cb = exports._openCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    var fd = args[0];
+                    cb(undefined, args[0]);
+                }
             });
+            return fs.open(path, flags, mode, id);
         } else {
             try {
-                return fileSystem.write(fd, buffer._impl, offset, length, position);
-            } catch (e) {
-                throw mapJavaException(e, true);
+                return fs.open(path, flags, mode);
+            } catch(e) {
+                throw exports._error(e);
             }
         }
     }
+
+    Object.defineProperty(exports, '_readCallback', { value: new PendingOperations() });
 
     exports.read = function(fd, buffer, offset, length, position, callback) {
-        if (position === null || position === undefined) {
+        if (position == null || position == undefined) {
             position = -1;
         }
         if (typeof callback === 'function') {
-            return fileSystem.read(fd, buffer._impl, offset, length, position,
-                    function(name, args) {
-                callback(mapJavaException(args[0], true), args[1], args[2]);
-            });
-        } else {
-            try {
-                return fileSystem.read(fd, buffer._impl, offset, length, position);
-            } catch (e) {
-                throw mapJavaException(e, true);
-            }
-        }
-    }
-
-    exports.chmod = function(path, mode, callback) {
-        if (typeof callback === 'function') {
-            return fileSystem.chmod(path, mode, function(name, args) {
-                callback(extractArgs(args));
-            });
-        } else {
-            try {
-                return fileSystem.chmod(path, mode);
-            } catch (e) {
-                throw mapJavaException(e);
-            }
-        }
-    }
-
-    exports.fchmod = function(fd, mode, callback) {
-        if (typeof callback === 'function') {
-            return fileSystem.fchmod(fd, mode, function(name, args) {
-                callback(extractArgs(args, true));
-            });
-        } else {
-            try {
-                return fileSystem.fchmod(fd, mode);
-            } catch (e) {
-                throw mapJavaException(e, true);
-            }
-        }
-    }
-
-    exports.readdir = function(path, callback) {
-        if (typeof callback === 'function') {
-            return fileSystem.readdir(path, function(name, args) {
-                var ar = [];
-                if (! args[0]) {
-                    var it = args[1].iterator();
-                    while (it.hasNext()) {
-                        var e = it.next();
-                        ar.push(e);
-                    }
+            var id = exports._readCallback.push(callback);
+            fs.setReadCallback(function(id, args) {
+                var cb = exports._readCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException), undefined, -1);
+                } else {
+                    var bytesRead = args[0];
+                    var data = new Buffer(new JavaBuffer(args[1]));
+                    cb(undefined, bytesRead, data);
                 }
-                callback(mapJavaException(args[0]), ar);
-            })
+            });
+            return fs.read(fd, buffer._impl.array(), offset, length, position, id);
         } else {
             try {
-                var ar = [];
-                var list = fileSystem.readdir(path);
-                var it = list.iterator();
-                while (it.hasNext()) {
-                    var e = it.next();
-                    ar.push(e);
-                }
-                return ar;
-            } catch (e) {
-                throw mapJavaException(e);
+                return fs.read(fd, buffer._impl.array(), offset, length, position);
+            } catch(e) {
+                throw exports._error(e);
             }
         }
     }
 
-/*
-  { dev: 2114,
-  ino: 48064969,
-  mode: 33188,
-  nlink: 1,
-  uid: 85,
-  gid: 100,
-  rdev: 0,
-  size: 527,
-  blksize: 4096, <== Not retrievable in Java
-  blocks: 8, <== Not retrievable in Java
-  atime: Mon, 10 Oct 2011 23:24:11 GMT,
-  mtime: Mon, 10 Oct 2011 23:24:11 GMT,
-  ctime: Mon, 10 Oct 2011 23:24:11 GMT }
-  */
-    exports.Stats = function(stats) {
-        // Needed first place
-        var basic = stats.basicFileAttributes;
-        if (basic) {
-            this.size = basic.size();
-        }
-        this.mode = stats.mode;
-        var that = this;
+    Object.defineProperty(exports, '_unlinkCallback', { value: new PendingOperations() });
 
-        Object.defineProperty(that, "atime",
-        { get: function() {
-                if (!that.__atime && basic) {
-                    that.__atime = new Date(basic.lastAccessTime().toMillis());
-                }
-                return that.__atime;
-            },
-          set: undefined,
-          enumerable: true,
-          configurable: false
-        });
-        Object.defineProperty(that, "ctime",
-        { get: function() {
-                if (!that.__ctime && basic) {
-                    that.__ctime = new Date(basic.creationTime().toMillis());
-                }
-                return that.__ctime;
-            },
-          set: undefined,
-          enumerable: true,
-          configurable: false
-        });
-        Object.defineProperty(that, "mtime",
-        { get: function() {
-                if (!that.__mtime && basic) {
-                    that.__mtime = new Date(basic.lastModifiedTime().toMillis());
-                }
-                return that.__mtime;
-            },
-          set: undefined,
-          enumerable: true,
-          configurable: false
-        });
-
-        // We are deferring access to unix attributes. This is a perf killer.
-        // We can't use __no_such_property, Stats properties MUST be enumerable.
-        if (fileSystem.isWindows()) {
-            that.uid = 0;
-            that.gid = 0;
-            that.dev = 0;
-            that.ino = 0;
-            that.nlink = 0;
-        } else {
-            Object.defineProperty(that, "uid",
-            { get: function() {
-                    var unix = stats.unixFileAttributes;
-                    if (!that.__uid && unix) {
-                        that.__uid = unix.get("uid");
-                    }
-                    return that.__uid == null ? undefined : that.__uid;
-                },
-              set: undefined,
-              enumerable: true,
-              configurable: false
-            });
-            Object.defineProperty(that, "gid",
-            { get: function() {
-                    var unix = stats.unixFileAttributes;
-                    if (!that.__gid && unix) {
-                        that.__gid = unix.get("gid");
-                    }
-                    return that.__gid == null ? undefined : that.__gid;
-                },
-              set: undefined,
-              enumerable: true,
-              configurable: false
-            });
-            Object.defineProperty(that, "dev",
-            { get: function() {
-                    var unix = stats.unixFileAttributes;
-                    if (!that.__dev && unix) {
-                        that.__dev = unix.get("dev");
-                    }
-                    return that.__dev == null ? undefined : that.__dev;
-                },
-              set: undefined,
-              enumerable: true,
-              configurable: false
-            });
-            Object.defineProperty(that, "ino",
-            { get: function() {
-                    var unix = stats.unixFileAttributes;
-                    if (!that.__ino && unix) {
-                        that.__ino = unix.get("ino");
-                    }
-                    return that.__ino == null ? undefined : that.__ino;
-                },
-              set: undefined,
-              enumerable: true,
-              configurable: false
-            });
-            Object.defineProperty(that, "nlink",
-            { get: function() {
-                    var unix = stats.unixFileAttributes;
-                    if (!that.__nlink && unix) {
-                        that.__nlink = unix.get("nlink");
-                    }
-                    return that.__nlink == null ? undefined : that.__nlink;
-                },
-              set: undefined,
-              enumerable: true,
-              configurable: false
-            });
-        }
-    };
-
-    exports.fsync = function(fd, callback) {
+    exports.unlink = function(path, callback) {
         if (typeof callback === 'function') {
-            return fileSystem.fsync(fd, function(name, args) {
-                callback(extractArgs(args, true));
+            var id = exports._unlinkCallback.push(callback);
+            fs.setUnlinkCallback(function(id, args) {
+                var cb = exports._unlinkCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb();
+                }
             });
+            return fs.unlink(path, id);
         } else {
             try {
-                return fileSystem.fsync(fd);
-            } catch (e) {
-                throw mapJavaException(e, true);
+                return fs.unlink(path);
+            } catch(e) {
+                throw exports._error(e);
             }
         }
     }
 
-    exports.fdatasync = function(fd, callback) {
+    Object.defineProperty(exports, '_writeCallback', { value: new PendingOperations() });
+
+    exports.write = function(fd, buffer, offset, length, position, callback) {
+        if (position == null || position == undefined) {
+            position = -1;
+        }
         if (typeof callback === 'function') {
-            return fileSystem.fdatasync(fd, function(name, args) {
-                callback(extractArgs(args, true));
+            var id = exports._writeCallback.push(callback);
+            fs.setWriteCallback(function(id, args) {
+                var cb = exports._writeCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException), -1, undefined);
+                } else {
+                    var bytesWritten = args[0];
+                    cb(undefined, bytesWritten, buffer);
+                }
             });
+            return fs.write(fd, buffer._impl.array(), offset, length, position, id);
         } else {
             try {
-                return fileSystem.fdatasync(fd);
-            } catch (e) {
-                throw mapJavaException(e, true);
+                return fs.write(fd, buffer._impl.array(), offset, length, position);
+            } catch(e) {
+                throw exports._error(e);
             }
         }
     }
+
+    Object.defineProperty(exports, '_mkdirCallback', { value: new PendingOperations() });
 
     exports.mkdir = function(path, mode, callback) {
         if (typeof callback === 'function') {
-            return fileSystem.mkdir(path, mode, function(name, args) {
-                callback(extractArgs(args));
+            var id = exports._mkdirCallback.push(callback);
+            fs.setMkdirCallback(function(id, args) {
+                var cb = exports._mkdirCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb();
+                }
             });
+            return fs.mkdir(path, mode, id);
         } else {
             try {
-                return fileSystem.mkdir(path, mode);
-            } catch (e) {
-                throw mapJavaException(e);
+                return fs.mkdir(path, mode);
+            } catch(e) {
+                throw exports._error(e);
             }
         }
     }
+
+    Object.defineProperty(exports, '_rmdirCallback', { value: new PendingOperations() });
 
     exports.rmdir = function(path, callback) {
         if (typeof callback === 'function') {
-            return fileSystem.rmdir(path, function(name, args) {
-                callback(extractArgs(args));
+            var id = exports._rmdirCallback.push(callback);
+            fs.setRmdirCallback(function(id, args) {
+                var cb = exports._rmdirCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb();
+                }
             });
+            return fs.rmdir(path, id);
         } else {
             try {
-                return fileSystem.rmdir(path);
-            } catch (e) {
-                throw mapJavaException(e);
+                return fs.rmdir(path);
+            } catch(e) {
+                throw exports._error(e);
             }
         }
     }
+
+    Object.defineProperty(exports, '_readdirCallback', { value: new PendingOperations() });
+
+    exports.readdir = function(path, callback) {
+        if (typeof callback === 'function') {
+            var id = exports._readdirCallback.push(callback);
+            fs.setReaddirCallback(function(id, args) {
+                var cb = exports._readdirCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException), undefined);
+                } else {
+                    var dirs = [];
+                    for (var i = 0; i < args.length; i++) {
+                        dirs.push(args[i]);
+                    }
+                    cb(undefined, dirs);
+                }
+            });
+            return fs.readdir(path, 0, id);
+        } else {
+            try {
+                var args = fs.readdir(path, 0);
+                var dirs = [];
+                for (var i = 0; i < args.length; i++) {
+                    dirs.push(args[i]);
+                }
+                return dirs;
+            } catch(e) {
+                throw exports._error(e);
+            }
+        }
+    }
+
+    Object.defineProperty(exports, '_statCallback', { value: new PendingOperations() });
+
+    exports.stat = function(path, callback) {
+        if (typeof callback === 'function') {
+            var id = exports._statCallback.push(callback);
+            fs.setStatCallback(function(id, args) {
+                var cb = exports._statCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb(undefined, new exports.Stats(args[0]));
+                }
+            });
+            return fs.stat(path, id);
+        } else {
+            try {
+                var stats = fs.stat(path);
+                return new exports.Stats(stats);
+            } catch(e) {
+                throw exports._error(e);
+            }
+        }
+    }
+
+    Object.defineProperty(exports, '_fstatCallback', { value: new PendingOperations() });
+
+    exports.fstat = function(fd, callback) {
+        if (typeof callback === 'function') {
+            var id = exports._fstatCallback.push(callback);
+            fs.setFStatCallback(function(id, args) {
+                var cb = exports._fstatCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb(undefined, new exports.Stats(args[0]));
+                }
+            });
+            return fs.fstat(fd, id);
+        } else {
+            try {
+                var stats = fs.fstat(fd);
+                return new exports.Stats(stats);
+            } catch(e) {
+                throw exports._error(e);
+            }
+        }
+    }
+
+    Object.defineProperty(exports, '_renameCallback', { value: new PendingOperations() });
 
     exports.rename = function(oldPath, newPath, callback) {
         if (typeof callback === 'function') {
-            return fileSystem.rename(oldPath, newPath, function(name, args) {
-                callback(extractArgs(args));
+            var id = exports._renameCallback.push(callback);
+            fs.setRenameCallback(function(id, args) {
+                var cb = exports._renameCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb();
+                }
             });
+            return fs.rename(oldPath, newPath, id);
         } else {
             try {
-                return fileSystem.rename(oldPath, newPath);
-            } catch (e) {
-                throw mapJavaException(e);
+                return fs.rename(oldPath, newPath);
+            } catch(e) {
+                throw exports._error(e);
             }
         }
     }
+
+    Object.defineProperty(exports, '_fsyncCallback', { value: new PendingOperations() });
+
+    exports.fsync = function(fd, callback) {
+        if (typeof callback === 'function') {
+            var id = exports._fsyncCallback.push(callback);
+            fs.setFSyncCallback(function(id, args) {
+                var cb = exports._fsyncCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb();
+                }
+            });
+            return fs.fsync(fd, id);
+        } else {
+            try {
+                return fs.fsync(fd);
+            } catch(e) {
+                throw exports._error(e);
+            }
+        }
+    }
+
+    Object.defineProperty(exports, '_fdatasyncCallback', { value: new PendingOperations() });
+
+    exports.fdatasync = function(fd, callback) {
+        if (typeof callback === 'function') {
+            var id = exports._fdatasyncCallback.push(callback);
+            fs.setFDatasyncCallback(function(id, args) {
+                var cb = exports._fdatasyncCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb();
+                }
+            });
+            return fs.fdatasync(fd, id);
+        } else {
+            try {
+                return fs.fdatasync(fd);
+            } catch(e) {
+                throw exports._error(e);
+            }
+        }
+    }
+
+    Object.defineProperty(exports, '_ftruncateCallback', { value: new PendingOperations() });
 
     exports.ftruncate = function(fd, length, callback) {
         if (typeof callback === 'function') {
-            return fileSystem.truncate(fd, length, function(name, args) {
-                callback(extractArgs(args, true));
+            var id = exports._ftruncateCallback.push(callback);
+            fs.setFTuncateCallback(function(id, args) {
+                var cb = exports._ftruncateCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb();
+                }
             });
+            return fs.ftruncate(fd, length, id);
         } else {
             try {
-                return fileSystem.truncate(fd, length);
-            } catch (e) {
-                throw mapJavaException(e, true);
+                return fs.ftruncate(fd, length);
+            } catch(e) {
+                throw exports._error(e);
             }
         }
     }
 
-    exports.fchown = function(fd, uid, gid, callback) {
+    Object.defineProperty(exports, '_chmodCallback', { value: new PendingOperations() });
+
+    exports.chmod = function(path, mode, callback) {
         if (typeof callback === 'function') {
-            return fileSystem.fchown(fd, uid, gid, function(name, args) {
-                callback(extractArgs(args, true));
+            var id = exports._chmodCallback.push(callback);
+            fs.setChmodCallback(function(id, args) {
+                var cb = exports._chmodCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb();
+                }
             });
+            return fs.chmod(path, mode, id);
         } else {
             try {
-                return fileSystem.fchown(fd, uid, gid);
-            } catch (e) {
-                throw mapJavaException(e, true);
+                return fs.chmod(path, mode);
+            } catch(e) {
+                throw exports._error(e);
             }
         }
     }
 
-    exports.chown = function(path, uid, gid, callback) {
-        if (typeof callback === 'function') {
-            return fileSystem.chown(path, uid, gid, function(name, args) {
-                callback(extractArgs(args));
-            });
-        } else {
-            try {
-                return fileSystem.chown(path, uid, gid);
-            } catch (e) {
-                throw mapJavaException(e);
-            }
-        }
-    }
-
-    exports.link = function(srcpath, dstpath, callback) {
-        if (typeof callback === 'function') {
-            return fileSystem.link(srcpath, dstpath, function(name, args) {
-                callback(extractArgs(args));
-            });
-        } else {
-            try {
-                return fileSystem.link(srcpath, dstpath);
-            } catch (e) {
-                throw mapJavaException(e);
-            }
-        }
-    }
-
-    exports.symlink = function(destination, path, type_, callback) {
-        if (typeof callback === 'function') {
-            return fileSystem.symlink(destination, path, type_, function(name, args) {
-                callback(extractArgs(args));
-            });
-        } else {
-            try {
-                return fileSystem.symlink(destination, path, type_);
-            } catch (e) {
-                throw mapJavaException(e);
-            }
-        }
-    }
-
-    exports.readlink = function(path, callback) {
-        if (typeof callback === 'function') {
-            return fileSystem.readlink(path, function(name, args) {
-                callback(mapJavaException(args[0]), args[1]);
-            });
-        } else {
-            try {
-                return fileSystem.readlink(path);
-            } catch (e) {
-                throw mapJavaException(e);
-            }
-        }
-    }
+    Object.defineProperty(exports, '_utimeCallback', { value: new PendingOperations() });
 
     exports.utimes = function(path, atime, mtime, callback) {
         if (typeof callback === 'function') {
-            return fileSystem.utimes(path, atime, mtime, function(name, args) {
-                callback(extractArgs(args));
+            var id = exports._utimeCallback.push(callback);
+            fs.setUtimeCallback(function(id, args) {
+                var cb = exports._utimeCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb(undefined, args[0]);
+                }
             });
+            return fs.utime(path, atime, mtime, id);
         } else {
             try {
-                return fileSystem.utimes(path, atime, mtime);
-            } catch (e) {
-                throw mapJavaException(e);
+                return fs.utime(path, atime, mtime);
+            } catch(e) {
+                throw exports._error(e);
             }
         }
     }
+
+    Object.defineProperty(exports, '_futimeCallback', { value: new PendingOperations() });
 
     exports.futimes = function(fd, atime, mtime, callback) {
         if (typeof callback === 'function') {
-            return fileSystem.futimes(fd, atime, mtime, function(name, args) {
-                callback(extractArgs(args, true));
+            var id = exports._futimeCallback.push(callback);
+            fs.setFUtimeCallback(function(id, args) {
+                var cb = exports._futimeCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb(undefined, args[0]);
+                }
             });
+            return fs.futime(fd, atime, mtime, id);
         } else {
             try {
-                return fileSystem.futimes(fd, atime, mtime);
-            } catch (e) {
-                throw mapJavaException(e, true);
+                return fs.futime(fd, atime, mtime);
+            } catch(e) {
+                throw exports._error(e);
             }
         }
     }
 
-    function extractArgs(args, isfd) {
-        return args && args.length > 0 ? mapJavaException(args[0], isfd) : undefined;
+    Object.defineProperty(exports, '_lstatCallback', { value: new PendingOperations() });
+
+    exports.lstat = function(path, callback) {
+        if (typeof callback === 'function') {
+            var id = exports._lstatCallback.push(callback);
+            fs.setLStatCallback(function(id, args) {
+                var cb = exports._lstatCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb(undefined, new exports.Stats(args[0]));
+                }
+            });
+            return fs.lstat(path, id);
+        } else {
+            try {
+                var stats = fs.lstat(path);
+                return new exports.Stats(stats);
+            } catch(e) {
+                throw exports._error(e);
+            }
+        }
     }
+
+    Object.defineProperty(exports, '_linkCallback', { value: new PendingOperations() });
+
+    exports.link = function(srcpath, dstpath, callback) {
+        if (typeof callback === 'function') {
+            var id = exports._linkCallback.push(callback);
+            fs.setLinkCallback(function(id, args) {
+                var cb = exports._linkCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb();
+                }
+            });
+            return fs.link(srcpath, dstpath, id);
+        } else {
+            try {
+                return fs.link(srcpath, dstpath);
+            } catch(e) {
+                throw exports._error(e);
+            }
+        }
+    }
+
+    Object.defineProperty(exports, '_symlinkCallback', { value: new PendingOperations() });
+
+    exports.symlink = function(destination, path, type, callback) {
+        var flags = 0;
+        if (type === 'dir') {
+            flags |= 0x0001;  //UV_FS_SYMLINK_DIR
+        } else if (type === 'junction') {
+            flags |= 0x0002; //UV_FS_SYMLINK_JUNCTION
+        } else if (type != 'file') {
+            throw new Error('Unknown symlink type');
+        }
+
+        if (typeof callback === 'function') {
+            var id = exports._symlinkCallback.push(callback);
+            fs.setSymlinkCallback(function(id, args) {
+                var cb = exports._symlinkCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb(undefined, args[0]);
+                }
+            });
+            return fs.symlink(destination, path, flags, id);
+        } else {
+            try {
+                return fs.symlink(destination, path, flags);
+            } catch(e) {
+                throw exports._error(e);
+            }
+        }
+    }
+
+    Object.defineProperty(exports, '_readlinkCallback', { value: new PendingOperations() });
+
+    exports.readlink = function(path, callback) {
+        if (typeof callback === 'function') {
+            var id = exports._readlinkCallback.push(callback);
+            fs.setReadlinkCallback(function(id, args) {
+                var cb = exports._readlinkCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb(undefined, args[0]);
+                }
+            });
+            return fs.readlink(path, id);
+        } else {
+            try {
+                return fs.readlink(path);
+            } catch(e) {
+                throw exports._error(e);
+            }
+        }
+    }
+
+    Object.defineProperty(exports, '_fchmodCallback', { value: new PendingOperations() });
+
+    exports.fchmod = function(fd, mode, callback) {
+        if (typeof callback === 'function') {
+            var id = exports._fchmodCallback.push(callback);
+            fs.setFChmodCallback(function(id, args) {
+                var cb = exports._fchmodCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb();
+                }
+            });
+            return fs.fchmod(fd, mode, id);
+        } else {
+            try {
+                return fs.fchmod(fd, mode);
+            } catch(e) {
+                throw exports._error(e);
+            }
+        }
+    }
+
+    Object.defineProperty(exports, '_chownCallback', { value: new PendingOperations() });
+
+    exports.chown = function(path, uid, gid, callback) {
+        if (typeof callback === 'function') {
+            var id = exports._chownCallback.push(callback);
+            fs.setChownCallback(function(id, args) {
+                var cb = exports._chownCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb();
+                }
+            });
+            return fs.chown(path, uid, gid, id);
+        } else {
+            try {
+                return fs.chown(path, uid, gid);
+            } catch(e) {
+                throw exports._error(e);
+            }
+        }
+    }
+
+    Object.defineProperty(exports, '_fchownCallback', { value: new PendingOperations() });
+
+    exports.fchown = function(fd, uid, gid, callback) {
+        if (typeof callback === 'function') {
+            var id = exports._fchownCallback.push(callback);
+            fs.setFChownCallback(function(id, args) {
+                var cb = exports._fchownCallback.shift(id);
+                var status = args[0];
+                if (status == -1) {
+                    var nativeException = args[1];
+                    cb(exports._error(nativeException));
+                } else {
+                    cb();
+                }
+            });
+            return fs.fchown(path, uid, gid, id);
+        } else {
+            try {
+                return fs.fchown(path, uid, gid);
+            } catch(e) {
+                throw exports._error(e);
+            }
+        }
+    }
+
+    exports.Stats = function(stats) {
+        Object.defineProperty(this, 'dev', { enumerable: true, get: function() {  return stats.getDev(); } });
+        Object.defineProperty(this, 'ino', { enumerable: true, get: function() {  return stats.getIno(); } });
+        Object.defineProperty(this, 'mode', { enumerable: true, get: function() {  return stats.getMode(); } });
+        Object.defineProperty(this, 'nlink', { enumerable: true, get: function() {  return stats.getNlink(); } });
+        Object.defineProperty(this, 'uid', { enumerable: true, get: function() {  return stats.getUid(); } });
+        Object.defineProperty(this, 'gid', { enumerable: true, get: function() {  return stats.getGid(); } });
+        Object.defineProperty(this, 'rdev', { enumerable: true, get: function() {  return stats.getRdev(); } });
+        Object.defineProperty(this, 'size', { enumerable: true, get: function() {  return stats.getSize(); } });
+        Object.defineProperty(this, 'blksize', { enumerable: true, get: function() {  return stats.getBlksize(); } });
+        Object.defineProperty(this, 'blocks', { enumerable: true, get: function() {  return stats.getBlocks(); } });
+        Object.defineProperty(this, 'atime', { enumerable: true, get: function() {  return new Date(stats.getAtime()); } });
+        Object.defineProperty(this, 'mtime', { enumerable: true, get: function() {  return new Date(stats.getMtime()); } });
+        Object.defineProperty(this, 'ctime', { enumerable: true, get: function() {  return new Date(stats.getCtime()); } });
+    }
+
+    Object.defineProperty(exports, '_error', {
+        value : function(exception) {
+                  var error = new Error(exception.getErrnoMessage());
+                  error.errno = exception.errno()
+                  error.code = exception.errnoString();
+                  error.message = exception.errnoString() + ', ' + exception.getErrnoMessage() + ' \'' + exception.path() +'\'';
+                  error.path = exception.path();
+                  process._errno = error.code;
+                  return error;
+              }
+    });
 });

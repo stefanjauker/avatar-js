@@ -53,7 +53,6 @@ import javax.management.ObjectName;
 import javax.script.ScriptException;
 
 import net.java.avatar.js.dns.DNS;
-import net.java.avatar.js.fs.FileSystem;
 import net.java.avatar.js.log.Logger;
 import net.java.avatar.js.log.Logging;
 import net.java.avatar.js.timers.Timers;
@@ -86,7 +85,6 @@ public final class EventLoop {
     private final String uvVersion;
     private final Logging logging;
     private final Timers timer;
-    private final FileSystem fs;
     private final DNS dns;
     private final LoopHandle uvLoop;
     private final int instanceNumber;
@@ -450,7 +448,6 @@ public final class EventLoop {
         this.uvVersion = uvVersion;
         this.logging = logging;
         this.timer = new Timers(this);
-        this.fs = new FileSystem(this);
         this.dns = new DNS(this);
         this.uvLoop = new LoopHandle(new CallbackExceptionHandler() {
             @Override
@@ -491,10 +488,6 @@ public final class EventLoop {
 
     public Timers timer() {
         return timer;
-    }
-
-    public FileSystem fs() {
-        return fs;
     }
 
     public DNS dns() {
