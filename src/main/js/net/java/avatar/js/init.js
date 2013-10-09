@@ -63,7 +63,10 @@ var gc = global.gc;
 
 // isolate NativeModule
 (function() {
-
+    var AccessController = java.security.AccessController;
+    var PrivilegedAction = java.security.PrivilegedAction;
+    var avatarPermission = new java.lang.RuntimePermission("avatar-js");
+    var avatarContext = __avatar.controlContext;
     function NativeModule(id) {
         this.filename = id + '.js';
         this.id = id;
@@ -100,11 +103,21 @@ var gc = global.gc;
     }
 
     NativeModule.exists = function(id) {
-        return __avatar.loader.exists(id);
+        var exists = AccessController.doPrivileged(new PrivilegedAction() {
+            run: function() {
+                return __avatar.loader.exists(id);
+            }
+        }, avatarContext, avatarPermission);
+        return exists;
     }
 
     NativeModule.getSource = function(id) {
-        return __avatar.loader.load(id);
+        var source = AccessController.doPrivileged(new PrivilegedAction() {
+            run: function() {
+                return __avatar.loader.load(id);
+            }
+        }, avatarContext, avatarPermission);
+        return source;
     }
 
     NativeModule.wrap = function(script) {
@@ -112,14 +125,23 @@ var gc = global.gc;
     };
 
     NativeModule.getURL = function(id) {
-        return __avatar.loader.getURL(id);
+        var url = AccessController.doPrivileged(new PrivilegedAction() {
+            run: function() {
+                return __avatar.loader.getURL(id);
+            }
+        });
+        return url;
     }
 
     NativeModule.prototype.compile = function() {
         var url = NativeModule.getURL(this.id);
-        var fn = load(url);
-        fn(this.exports, NativeModule.require, this, this.filename);
-
+        var that = this;
+        AccessController.doPrivileged(new PrivilegedAction() {
+            run: function() {
+                var fn = load(url);
+                fn(that.exports, NativeModule.require, that, that.filename);
+            }
+        });
         this.loaded = true;
     };
 

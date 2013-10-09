@@ -30,6 +30,8 @@ import java.io.FileNotFoundException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.AccessControlContext;
+import java.security.AccessController;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -318,14 +320,21 @@ public final class Server {
         private int exitCode = 0;
         private final Invocable invocable;
         private Object nativeModule;
+        private final AccessControlContext ctx;
         private SecureHolder(final EventLoop evtloop,
                              final Loader loader,
                              final Invocable invocable) {
             this.evtloop = evtloop;
             this.loader = loader;
             this.invocable = invocable;
+            this.ctx = AccessController.getContext();
         }
 
+        public AccessControlContext getControlContext() {
+            checkPermission();
+            return ctx;
+        }
+        
         public EventLoop getEventloop() {
             checkPermission();
             return evtloop;

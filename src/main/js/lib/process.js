@@ -421,6 +421,9 @@ Object.defineProperty(exports, 'version', {
 });
 
 var _bindings_cache = {};
+var AccessController = java.security.AccessController;
+var PrivilegedAction = java.security.PrivilegedAction;
+
 Object.defineProperty(exports, 'binding', {
     enumerable: true,
     value: function(module) {
@@ -438,13 +441,17 @@ Object.defineProperty(exports, 'binding', {
             module += '_wrap';
         }
         var file = '/net/java/avatar/js/' + module + '.js';
-        var url = Server.getResource(file);
-        if (url === null) {
-            throw new Error('binding not found for module ' + module);
-        }
         var exports = {};
-        var f = load(url);
-        f(exports, NativeModule.require);
+        AccessController.doPrivileged(new PrivilegedAction() {
+            run: function() {
+                var url = Server.getResource(file);
+                if (url === null) {
+                    throw new Error('binding not found for module ' + module);
+                }
+                var f = load(url);
+                f(exports, NativeModule.require);
+            }
+        });
         _bindings_cache[module] = exports;
         return exports;
     }

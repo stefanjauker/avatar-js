@@ -25,6 +25,8 @@
 
 package net.java.avatar.js.eventloop;
 
+import java.security.AccessControlContext;
+import java.security.AccessController;
 import net.java.libuv.Callback;
 
 import net.java.avatar.js.Server;
@@ -34,7 +36,7 @@ public final class Event {
     private final String name;
     private final Callback callback;
     private final Object[] args;
-
+    private final AccessControlContext ctx;
     public Event(final String name, final Callback callback) {
         this(name, callback, (Object[]) null);
     }
@@ -44,14 +46,28 @@ public final class Event {
         this.callback = callback;
         this.args = new Object[1];
         this.args[0] = arg;
+        if(System.getSecurityManager() != null) {
+           this.ctx = AccessController.getContext();
+        } else {
+            this.ctx = null;
+        }
     }
 
     public Event(final String name, final Callback callback, final Object... args) {
         this.name = name;
         this.callback = callback;
         this.args = args == null ? null : args.clone();
+        if(System.getSecurityManager() != null) {
+           this.ctx = AccessController.getContext();
+        } else {
+            this.ctx = null;
+        }
     }
-
+    
+    AccessControlContext getContext() {
+            return ctx;
+    }
+    
     String getName() {
         return name;
     }

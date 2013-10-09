@@ -30,6 +30,12 @@
     var TTYHandle = Packages.net.java.libuv.handles.TTYHandle;
     var loop = __avatar.eventloop.loop();
 
+    var AccessController = java.security.AccessController;
+    var PrivilegedAction = java.security.PrivilegedAction;
+    var LibUVPermission = Packages.net.java.libuv.LibUVPermission;
+    // From this context, only the libuv.handle permission will be granted.
+    var avatarContext = __avatar.controlContext;
+    
     exports.TTY = TTY;
 
     exports.isTTY = function(fd) {
@@ -43,9 +49,13 @@
     function TTY(fd, readable) {
 
         var that = this;
-
-        Object.defineProperty(this, '_tty', { value: new TTYHandle(loop, fd, readable) });
-
+        AccessController.doPrivileged(new PrivilegedAction() {
+            run: function() {
+                Object.defineProperty(that, '_tty', 
+                    { value: new TTYHandle(loop, fd, readable) });
+            }
+        }, avatarContext, LibUVPermission.HANDLE);
+        
         this._tty.readCallback = function(args) {
             if (args && args.length > 0 && args[0]) {
                 var buffer = new Buffer(new JavaBuffer(args[0]));

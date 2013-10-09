@@ -29,6 +29,10 @@ import jdk.nashorn.api.scripting.NashornException;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -60,7 +64,7 @@ import net.java.libuv.LibUV;
 import net.java.libuv.handles.LoopHandle;
 
 public final class EventLoop {
-
+    
     private static final int DEFAULT_QUEUE_SIZE = Integer.MAX_VALUE;
     private static final int DEFAULT_CORE_THREADS = Runtime.getRuntime().availableProcessors() * 2;
     private static final int DEFAULT_MAX_THREADS = Integer.MAX_VALUE;
@@ -246,15 +250,27 @@ public final class EventLoop {
     }
 
     private void processEvent(final Event event) throws Exception {
-        processEvent(event.getName(), event.getCallback(), event.getArgs());
+        processEvent(event.getName(), event.getCallback(), event.getContext(), event.getArgs());
     }
 
-    private void processEvent(final String name, final Callback callback, final Object... args) throws Exception {
+    private void processEvent(final String name, final Callback callback, 
+            final AccessControlContext context, final Object... args) throws Exception {
         assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
         assert callback != null : "callback is null for event " + name;
         try {
             if (LOG.enabled()) { LOG.log(Event.toString(name, args)); }
-            callback.call(name, args);
+            if (context != null) {
+                // Reuses the caller context when executing the callback.
+                AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+                    @Override
+                    public Object run() throws Exception {
+                        callback.call(name, args);
+                        return null;
+                    }
+                }, context);
+            } else {
+                callback.call(name, args);
+            }
         } catch (final Exception ex) {
             if (!handleCallbackException(ex)) {
                 executor.shutdown();
@@ -375,7 +391,24 @@ public final class EventLoop {
     }
 
     public Future<?> submit(final Runnable runnable) {
-        return executor.submit(runnable);
+        Runnable toSubmit = runnable;
+        if (System.getSecurityManager() != null) {
+            // snapshot to be reused at execution time.
+            final AccessControlContext context = AccessController.getContext();
+            toSubmit = new Runnable() {
+                @Override
+                public void run() {
+                    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                        @Override
+                        public Object run() {
+                            runnable.run();
+                            return null;
+                        }
+                    }, context);
+                }
+            };
+        }
+        return executor.submit(toSubmit);
     }
 
     @Override

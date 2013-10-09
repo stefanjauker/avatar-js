@@ -28,15 +28,25 @@
     var JavaBuffer = Packages.net.java.avatar.js.buffer.Buffer;
     var UDPHandle = Packages.net.java.libuv.handles.UDPHandle;
     var loop = __avatar.eventloop.loop();
-
+    var AccessController = java.security.AccessController;
+    var PrivilegedAction = java.security.PrivilegedAction;
+    var LibUVPermission = Packages.net.java.libuv.LibUVPermission;
+    // From this context, only the libuv.handle permission will be granted.
+    var avatarContext = __avatar.controlContext;
+    
     exports.UDP = UDP;
 
     function UDP(dgram) {
         var that = this;
-
+        
         Object.defineProperty(this, '_writeWrappers', { value: [] });
-
-        Object.defineProperty(this, '_udp', { value: dgram ? dgram : new UDPHandle(loop) });
+        AccessController.doPrivileged(new PrivilegedAction() {
+            run: function() {
+                Object.defineProperty(that, '_udp', 
+                { value: dgram ? dgram : new UDPHandle(loop) });
+            }
+        }, avatarContext, LibUVPermission.HANDLE);
+        
 
         this._udp.recvCallback = function(args) {
             var nread = args[0];

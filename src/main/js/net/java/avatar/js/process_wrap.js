@@ -33,15 +33,25 @@
     var ProcessHandle = Packages.net.java.libuv.handles.ProcessHandle;
     var Constants = Packages.net.java.avatar.js.constants.Constants;
     var loop = __avatar.eventloop.loop();
-
+    
+    var AccessController = java.security.AccessController;
+    var PrivilegedAction = java.security.PrivilegedAction;
+    var LibUVPermission = Packages.net.java.libuv.LibUVPermission;
+    // From this context, only the libuv.handle permission will be granted.
+    var avatarContext = __avatar.controlContext;
+    
     exports.Process = function() {
         return new Process();
     }
 
     function Process() {
         var that = this;
-        this.process = new ProcessHandle(loop);
-
+        this.process = AccessController.doPrivileged(new PrivilegedAction() {
+            run: function() {
+                return new ProcessHandle(loop);
+            }
+        }, avatarContext, LibUVPermission.HANDLE);
+        
         this.process.exitCallback = function(args) {
             var status = args[0];
             var signal = args[1];
@@ -111,14 +121,14 @@
         }
 
         this.pid = this.process.spawn(
-            options.file,
-            args,
-            env,
-            cwd,
-            processFlagSet,
-            stdioOptions,
-            uid,
-            gid);
+                    options.file,
+                    args,
+                    env,
+                    cwd,
+                    processFlagSet,
+                    stdioOptions,
+                    uid,
+                    gid);
         return this.pid == -1 ? -1 : 0;
     }
 

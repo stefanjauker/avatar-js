@@ -1,6 +1,39 @@
---- ../node/lib/module.js	2013-07-24 19:23:26.000000000 +0200
-+++ src/main/js/lib/module.js	2013-07-24 19:24:04.000000000 +0200
-@@ -325,6 +325,11 @@
+--- ../node/lib/module.js	2013-08-22 13:55:28.000000000 +0200
++++ src/main/js/lib/module.js	2013-10-07 14:01:12.000000000 +0200
+@@ -271,13 +271,19 @@
+   return [id, [path.dirname(parent.filename)]];
+ };
+ 
++var AccessController = java.security.AccessController;
++var PrivilegedAction = java.security.PrivilegedAction;       
+ 
+ Module._load = function(request, parent, isMain) {
+   if (parent) {
+     debug('Module._load REQUEST  ' + (request) + ' parent: ' + parent.id);
+   }
+ 
+-  var filename = Module._resolveFilename(request, parent);
++   var filename = AccessController.doPrivileged(new PrivilegedAction() {
++    run: function() {
++        return Module._resolveFilename(request, parent);
++    }
++   });
+ 
+   var cachedModule = Module._cache[filename];
+   if (cachedModule) {
+@@ -309,7 +315,11 @@
+   var hadException = true;
+ 
+   try {
++    AccessController.doPrivileged(new PrivilegedAction() {
++        run: function() {
+     module.load(filename);
++        }
++    });
+     hadException = false;
+   } finally {
+     if (hadException) {
+@@ -325,6 +335,11 @@
      return request;
    }
  
@@ -12,24 +45,7 @@
    var resolvedModule = Module._resolveLookupPaths(request, parent);
    var id = resolvedModule[0];
    var paths = resolvedModule[1];
-@@ -361,7 +366,15 @@
- Module.prototype.require = function(path) {
-   assert(typeof path === 'string', 'path must be a string');
-   assert(path, 'missing path');
--  return Module._load(path, this);
-+  var self = this;
-+  var AccessController = java.security.AccessController;
-+  var PrivilegedAction = java.security.PrivilegedAction;       
-+  var loaded = AccessController.doPrivileged(new PrivilegedAction() {
-+      run: function() {
-+       return Module._load(path, self);
-+      }
-+  });
-+  return loaded;
- };
- 
- 
-@@ -373,8 +386,11 @@
+@@ -373,8 +388,11 @@
  // Returns exception if any
  Module.prototype._compile = function(content, filename) {
    var self = this;
@@ -41,7 +57,7 @@
  
    function require(path) {
      return self.require(path);
-@@ -434,7 +450,10 @@
+@@ -434,7 +452,10 @@
    }
  
    // create wrapper function
@@ -53,7 +69,7 @@
  
    var compiledWrapper = runInThisContext(wrapper, filename, true);
    if (global.v8debug) {
-@@ -470,8 +489,7 @@
+@@ -470,8 +491,7 @@
  
  // Native extension for .js
  Module._extensions['.js'] = function(module, filename) {
@@ -63,7 +79,7 @@
  };
  
  
-@@ -508,7 +526,9 @@
+@@ -508,7 +528,9 @@
      var homeDir = process.env.HOME;
    }
  

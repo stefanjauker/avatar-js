@@ -32,18 +32,31 @@
     var TCPHandle = Packages.net.java.libuv.handles.TCPHandle;
     var loop = __avatar.eventloop.loop();
 
+    var AccessController = java.security.AccessController;
+    var PrivilegedAction = java.security.PrivilegedAction;
+    var LibUVPermission = Packages.net.java.libuv.LibUVPermission;
+    // From this context, only the libuv.handle permission will be granted.
+    var avatarContext = __avatar.controlContext;
+    
     exports.TCP = TCP;
 
     function TCP(socket) {
-
+        
         Object.defineProperty(this, '_writeWrappers', { value: [] });
-
+        
+        // User context, used to check accept permission.
+        Object.defineProperty(this, '_callerContext', { value: AccessController.getContext() });
+        
         var that = this;
         Object.defineProperty(this, 'writeQueueSize', { enumerable: true,
             get : function() { return that._connection ? that._connection.writeQueueSize() : 0 } });
 
-        Object.defineProperty(this, '_connection', { value: socket ? socket : new TCPHandle(loop) });
-
+        var clientHandle = AccessController.doPrivileged(new PrivilegedAction() {
+            run: function() {
+                Object.defineProperty(that, '_connection', { value: socket ? socket : new TCPHandle(loop) });
+            }
+        }, avatarContext, LibUVPermission.HANDLE);
+        
         this._connection.connectionCallback = function(args) {
             var status = args[0];
             if (status == -1) {
@@ -52,7 +65,12 @@
                 process._errno = errno;
             }
             var clientHandle = new TCP();
-            that._connection.accept(clientHandle._connection);
+            AccessController.doPrivileged(new PrivilegedAction() {
+                run: function() {
+                    that._connection.accept(clientHandle._connection);
+                }
+            }, that._callerContext);
+            
             Object.defineProperty(clientHandle, '_connected', {value: true});
             clientHandle._connection.readStart();
             that.onconnection(status == -1 ? undefined : clientHandle);
@@ -123,6 +141,9 @@
         try {
             this._connection.bind(address, port);
         } catch (err) {
+            if(!err.errnoString) {
+                throw err;
+            }
             process._errno = err.errnoString();
             this._connection = undefined;
             return -1;
@@ -138,6 +159,9 @@
         try {
             this._connection.listen(backlog);
         } catch (err) {
+            if(!err.errnoString) {
+                throw err;
+            }
             process._errno = err.errnoString();
             this._connection = undefined;
             return -1;
@@ -155,6 +179,9 @@
         try {
             this._connection.connect(address, port);
         }catch(err) {
+            if(!err.errnoString) {
+                throw err;
+            }
             process._errno = err.errnoString();
             return null;
         }
@@ -165,6 +192,9 @@
         try {
             this._connection.open(fd);
         } catch (err) {
+            if(!err.errnoString) {
+                throw err;
+            }
             process._errno = err.errnoString();
             this._connection = undefined;
             return -1;
