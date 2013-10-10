@@ -37,9 +37,9 @@ if (process.argv[2] === 'child') {
         child.kill();
     });
     if(SCRIPT_ON_EXIT) {
-    process.on('exit', function() {
-        assert.equal(receivedData, expectedData + "\n");
-        SCRIPT_OK = receivedData;
-    });
-}
+        process.on('exit', function() {
+            assert.equal(receivedData, expectedData + "\n");
+            SCRIPT_OK = receivedData;
+        });
+    }
 }

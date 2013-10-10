@@ -36,6 +36,10 @@ public final class Process {
     private Process() {}
 
     public static void abort() {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+           sm.checkPermission(new RuntimePermission("exitVM.*")); 
+        }
         _abort();
     }
 
@@ -44,50 +48,98 @@ public final class Process {
     }
 
     public static int getUid() {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+           sm.checkPermission(new RuntimePermission("avatar-js.getuid")); 
+        }
         return _getUid();
     }
 
     public static void setUid(final int uid) {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+           sm.checkPermission(new RuntimePermission("avatar-js.setuid")); 
+        }
         _setUid(uid);
     }
 
     public static int getGid() {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+           sm.checkPermission(new RuntimePermission("avatar-js.getgid")); 
+        }
         return _getGid();
     }
 
     public static void setGid(final int gid) {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+           sm.checkPermission(new RuntimePermission("avatar-js.setgid")); 
+        }
         _setGid(gid);
     }
 
     public static int umask(final int mask) {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+           sm.checkPermission(new RuntimePermission("avatar-js.setumask")); 
+        }
         return _umask(mask);
     }
 
     public static int getUmask() {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+           sm.checkPermission(new RuntimePermission("avatar-js.getumask")); 
+        }
         return _getUmask();
     }
 
     public static int[] getGroups() {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+           sm.checkPermission(new RuntimePermission("avatar-js.getgroups")); 
+        }
         return _getGroups();
     }
 
     public static void setGroups(String[] grps) {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+           sm.checkPermission(new RuntimePermission("avatar-js.setgroups")); 
+        }
         _setGroups(grps);
     }
 
     public static void initGroups(String user, String group) {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+           sm.checkPermission(new RuntimePermission("avatar-js.initgroups")); 
+        }
         _initGroups_S_S(user, group);
     }
 
     public static void initGroups(int user, int group) {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+           sm.checkPermission(new RuntimePermission("avatar-js.initgroups")); 
+        }
         _initGroups_I_I(user, group);
     }
 
     public static void initGroups(int user, String group) {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+           sm.checkPermission(new RuntimePermission("avatar-js.initgroups")); 
+        }
         _initGroups_I_S(user, group);
     }
 
     public static void initGroups(String user, int group) {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+           sm.checkPermission(new RuntimePermission("avatar-js.initgroups")); 
+        }
         _initGroups_S_I(user, group);
     }
 

@@ -86,6 +86,7 @@ public class PermissionTest {
 
             // Default java.policy grants listen to localhost
             permissions.add(new SocketPermission("localhost:1024-", "listen"));
+            permissions.add(new PropertyPermission("os.arch", "read"));
             this.location = location;
             this.parentDir = new File(location.toURI()).getParentFile();
         }
@@ -356,6 +357,14 @@ public class PermissionTest {
         Permissions permissions = new Permissions();
         
         doFail(bindings, f, permissions);
+    }
+    
+    @Test
+    public void testProcess() throws Exception {
+        File f = new File("src/test/js/security/process.js");
+        Map<String, Object> bindings = new HashMap<String, Object>();    
+        
+        doSuccess(bindings, f, new Permissions());
     }
     
     private static void testFailure(Callable r) throws Exception {

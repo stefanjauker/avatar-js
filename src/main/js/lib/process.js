@@ -342,7 +342,9 @@ Object.defineProperty(exports, 'cwd', {
 
 Object.defineProperty(exports, '_tickCallback', {
     value: function() {
-        eventloop.processQueuedEvents();
+        // Permission is required to tick callbacks, 
+        // user code is not expected to call this method.
+        __avatar.eventloop.processQueuedEvents();
     }
 });
 
@@ -359,12 +361,13 @@ Object.defineProperty(exports, 'chdir', {
 Object.defineProperty(exports, '_exiting', { writable: true, value: false });
 exports.exit = function(status) {
     var code = status ? status : 0;
-    eventloop.drain();
+    // permission is required to stop the eventloop.
+    __avatar.eventloop.drain();
     if (!exports._exiting) {
         exports._exiting = true;
         exports.emit('exit', code);
     }
-    eventloop.stop();
+    __avatar.eventloop.stop();
     java.lang.System.exit(code);
 }
 
