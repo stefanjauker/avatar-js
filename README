@@ -79,3 +79,11 @@ Limitations and Gotchas
 6. No const keyword
    a) the const keyword is not supported, replace with var
       affects the mongodb and grunt modules
+
+7. No signal handlers installed by default
+   some generate EINVAL (invalid argument)
+   and the JVM installs some of its own and we do not want to cause conflicts
+   an app can install signal handlers as needed using
+      process.signals.start('SIGUSR1');
+   or
+     process.signals.start(43);

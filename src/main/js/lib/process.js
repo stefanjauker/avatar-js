@@ -342,7 +342,7 @@ Object.defineProperty(exports, 'cwd', {
 
 Object.defineProperty(exports, '_tickCallback', {
     value: function() {
-        // Permission is required to tick callbacks, 
+        // Permission is required to tick callbacks,
         // user code is not expected to call this method.
         __avatar.eventloop.processQueuedEvents();
     }
@@ -566,14 +566,17 @@ signalHandle.unref();
 signalHandle.signalCallback = function(signum) {
     exports.emit(Constants.getConstantsString().get(signum));
 }
-// install some signal handlers on unix
-// installing some others generate EINVAL (invalid argument)
-// the JVM also installs some of its own
-// does not work on windows and hangs the process on mac
-if (exports.platform !== 'win32' && exports.platform !== 'darwin') {
-    signalHandle.start(28); // SIGWINCH
-    signalHandle.start(10); // SIGUSR1
-}
+// do not install any signal handlers by default
+// some generate EINVAL (invalid argument)
+// and the JVM installs some of its own and we do not want to cause conflicts
+// an app can install signal handlers as needed using
+//   process.signals.start('SIGUSR1');
+// or
+//   process.signals.start(43);
+Object.defineProperty(exports, 'signals', {
+    enumerable: true,
+    value: signalHandle
+});
 
 if (exports.platform !== 'win32') {
     exports.getgroups = function() {
