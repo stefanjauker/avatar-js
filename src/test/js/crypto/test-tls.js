@@ -22,8 +22,7 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-
-var common = require('../../../test/common');
+var PORT = 9999;
 var assert = require('assert');
 var tls = require('tls');
 var fs = require('fs');
@@ -51,7 +50,7 @@ var server = tls.Server(options, function(socket) {
     }
 });
 
-server.listen(common.PORT, function() {
+server.listen(PORT, function() {
     for(var i = 0; i < NUM_CONNECTED; i++){
         doTest();
 
@@ -60,7 +59,7 @@ server.listen(common.PORT, function() {
 });
 function doTest() {
     var client = tls.connect({ ca: [fs.readFileSync("test/fixtures/keys/ca1-cert.pem")],
-        port: common.PORT, rejectUnauthorized:false
+        port: PORT, rejectUnauthorized:false
     }, function() {
         ++clientConnected;
         var authorized = client.authorized ||
