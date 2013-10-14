@@ -102,6 +102,9 @@
                         '<(AVATAR-JS_PATH)/../obj.target/avatar-js/throw.cpp',
                     ],
                     'defines': [
+                        '_UNICODE',
+                        'UNICODE',
+                        '_WIN32_WINNT=0x0600',
                         '_WIN32',
                     ],
                     'cflags': [
