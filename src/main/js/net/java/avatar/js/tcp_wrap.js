@@ -55,7 +55,7 @@
             run: function() {
                 Object.defineProperty(that, '_connection', { value: socket ? socket : new TCPHandle(loop) });
             }
-        }, avatarContext, [LibUVPermission.HANDLE]);
+        }, avatarContext, Java.to([LibUVPermission.HANDLE], "java.security.Permission[]"));
         
         this._connection.connectionCallback = function(args) {
             var status = args[0];

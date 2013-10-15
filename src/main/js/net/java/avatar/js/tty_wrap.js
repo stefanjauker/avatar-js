@@ -54,7 +54,7 @@
                 Object.defineProperty(that, '_tty', 
                     { value: new TTYHandle(loop, fd, readable) });
             }
-        }, avatarContext, [LibUVPermission.HANDLE]);
+        }, avatarContext, Java.to([LibUVPermission.HANDLE], "java.security.Permission[]"));
         
         this._tty.readCallback = function(args) {
             if (args && args.length > 0 && args[0]) {

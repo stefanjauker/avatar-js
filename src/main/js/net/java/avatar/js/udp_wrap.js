@@ -45,7 +45,7 @@
                 Object.defineProperty(that, '_udp', 
                 { value: dgram ? dgram : new UDPHandle(loop) });
             }
-        }, avatarContext, [LibUVPermission.HANDLE]);
+        }, avatarContext, Java.to([LibUVPermission.HANDLE], "java.security.Permission[]"));
         
 
         this._udp.recvCallback = function(args) {
