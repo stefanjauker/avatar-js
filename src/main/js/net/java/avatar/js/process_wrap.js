@@ -50,7 +50,7 @@
             run: function() {
                 return new ProcessHandle(loop);
             }
-        }, avatarContext, LibUVPermission.HANDLE);
+        }, avatarContext, [LibUVPermission.HANDLE]);
         
         this.process.exitCallback = function(args) {
             var status = args[0];

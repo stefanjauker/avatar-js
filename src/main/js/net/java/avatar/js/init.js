@@ -107,7 +107,7 @@ var gc = global.gc;
             run: function() {
                 return __avatar.loader.exists(id);
             }
-        }, avatarContext, avatarPermission);
+        }, avatarContext, [avatarPermission]);
         return exists;
     }
 
@@ -116,7 +116,7 @@ var gc = global.gc;
             run: function() {
                 return __avatar.loader.load(id);
             }
-        }, avatarContext, avatarPermission);
+        }, avatarContext, [avatarPermission]);
         return source;
     }
 
