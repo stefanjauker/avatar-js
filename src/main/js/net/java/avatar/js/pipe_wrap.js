@@ -57,7 +57,7 @@
                 Object.defineProperty(that, '_pipe', 
                     { value: pipe ? pipe : new PipeHandle(loop, ipc) });
             }
-        }, avatarContext, Java.to([LibUVPermission.HANDLE], "java.security.Permission[]"));
+        }, avatarContext, LibUVPermission.HANDLE);
 
         this._pipe.readCallback = function(args) {
             if (args && args.length > 0 && args[0]) {
@@ -73,7 +73,7 @@
                             run: function() {
                                 return new PipeHandle(loop, args[1], true);
                             }
-                        }, avatarContext, Java.to([LibUVPermission.HANDLE], "java.security.Permission[]"));
+                        }, avatarContext, LibUVPermission.HANDLE);
                        var p = new Pipe(pipeHandle);
                        that.onread(data, 0, data.length, p);
                    } else if (args[2] == UV_TCP) {
@@ -81,7 +81,7 @@
                             run: function() {
                                 return new TCPHandle(loop, args[1]);
                             }
-                        }, avatarContext, Java.to([LibUVPermission.HANDLE], "java.security.Permission[]"));
+                        }, avatarContext, LibUVPermission.HANDLE);
                        var tcp = new TCP(socket);
                        that.onread(data, 0, data.length, tcp);
                    } else if (args[2] == UV_UDP) {
@@ -89,7 +89,7 @@
                             run: function() {
                                 return new UDPHandle();
                             }
-                        }, avatarContext, Java.to([LibUVPermission.HANDLE], "java.security.Permission[]"));
+                        }, avatarContext, LibUVPermission.HANDLE);
                        var udp = new dgram.UDP(datagram);
                        that.onread(data, 0, data.length, udp);
                    } else {

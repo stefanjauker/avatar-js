@@ -50,7 +50,7 @@
             run: function() {
                 return new ProcessHandle(loop);
             }
-        }, avatarContext, Java.to([LibUVPermission.HANDLE], "java.security.Permission[]"));
+        }, avatarContext, LibUVPermission.HANDLE);
         
         this.process.exitCallback = function(args) {
             var status = args[0];
