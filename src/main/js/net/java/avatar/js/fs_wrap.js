@@ -533,6 +533,9 @@
 
     exports.symlink = function(destination, path, type, callback) {
         var flags = 0;
+        if (!type) {
+            type = 'file';
+        }
         if (type === 'dir') {
             flags |= 0x0001;  //UV_FS_SYMLINK_DIR
         } else if (type === 'junction') {
