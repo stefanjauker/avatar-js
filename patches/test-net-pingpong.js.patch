@@ -1,6 +1,17 @@
---- ../nodejs/test/simple/test-net-pingpong.js	2013-06-11 16:57:15.688781205 -0700
-+++ node/test/simple/test-net-pingpong.js	2013-08-14 13:53:02.006308054 -0700
-@@ -135,9 +135,18 @@
+--- ../nodejs/test/simple/test-net-pingpong.js	2013-10-17 16:19:45.538407400 -0700
++++ test/simple/test-net-pingpong.js	2013-10-17 16:20:51.257907400 -0700
+@@ -35,7 +35,9 @@
+   var server = net.createServer({ allowHalfOpen: true }, function(socket) {
+     console.log('connection: ' + socket.remoteAddress);
+     assert.equal(server, socket.server);
+-    assert.equal(1, server.connections);
++    server.getConnections(function(err, count) {
++        assert.equal(1, count);
++    });
+ 
+     socket.setNoDelay();
+     socket.timeout = 0;
+@@ -135,9 +137,18 @@
  pingPongTest(common.PIPE);
  pingPongTest(common.PORT);
  pingPongTest(common.PORT + 1, 'localhost');
@@ -11,7 +22,7 @@
 +}
  
  process.on('exit', function() {
-+// IPv6 Test
++//IPv6 Test
 +if (common.isIPv6Enabled) {
    assert.equal(4, tests_run);
 +} else {
