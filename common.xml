@@ -194,6 +194,10 @@
         <delete file="${product.name}.vcxproj"/>
         <delete file="${product.name}.vcxproj.filters"/>
         <delete file="gyp-mac-tool"/>
+        <delete>
+            <fileset dir="." includes="test*.txt"/>
+            <fileset dir="." includes="*.log"/>
+        </delete>
     </target>
 
     <target name="test" depends="compile-tests">
