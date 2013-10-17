@@ -197,8 +197,8 @@ function runNextTest() {
     var dir = path.join(results, testName).replace(/\.js$/, '');
     mkdirsSync(dir, results);
     if (redirect) {
-        var out = fs.openSync(path.join(dir, 'stdout.txt'), 'w');
-        var err = fs.openSync(path.join(dir, 'stderr.txt'), 'w');
+        var out = fs.createWriteStream(path.join(dir, 'stdout.txt'), 'w');
+        var err = fs.createWriteStream(path.join(dir, 'stderr.txt'), 'w');
     }
 
     var restArgs = [].concat(args, '-Davatar-js.log.output.dir=' + dir, jarArgs, testName);
@@ -214,14 +214,14 @@ function runNextTest() {
     java.stderr.setEncoding('utf8');
     java.stdout.on('data', function(data) {
         if (redirect) {
-            fs.writeSync(out, data);
+            out.write(data);
         } else {
             stdout.write(data);
         }
     });
     java.stderr.on('data', function(data) {
         if (redirect) {
-            fs.writeSync(err, data);
+            err.write(data);
         } else {
             stderr.write(data);
         }
@@ -230,8 +230,8 @@ function runNextTest() {
         clearTimeout(timeoutId);
         stderr.write(((Date.now() - start) / 1000).toFixed(0) + 's ');
         if (redirect) {
-            fs.closeSync(out);
-            fs.closeSync(err);
+            out.close();
+            out.close();
         }
         if (code != 0 || failed) {
             testsFailed++;
