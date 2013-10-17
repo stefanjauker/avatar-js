@@ -239,7 +239,10 @@ Object.defineProperty(exports, 'stderr', {
 Object.defineProperty(exports, 'execPath', {
     enumerable: true,
     get: function() {
-        return 'java -cp ' +
+        return 'java ' +
+               '-Djava.library.path=' +
+               java.lang.System.getProperty('java.library.path') + ' ' +
+               '-cp ' +
                java.lang.System.getProperty('java.class.path') + ' ' +
                Server.class.getName();
     }
