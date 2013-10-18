@@ -190,6 +190,16 @@ Buffer.prototype._init = function() {
                 return that[name];
             }
         },
+        
+        __has__: function(name) { // called by slice and var exists = "x" in obj;
+            if (typeof name == 'number') {
+                return name < that._impl.capacity();
+            } else { 
+                // Overrides properties are handled by nashorn runtime.
+                // Checking the Buffer prototype, "in" goes up the chain
+                return Object.keys(Buffer.prototype).indexOf(name) > -1
+            }
+        },
 
         __put__: function(name, value) {
             if (typeof name == 'number') {
@@ -217,7 +227,11 @@ Buffer.prototype._init = function() {
         },
 
         __getIds__: function() {
-            return [ 'length', 'toString', 'write', 'copy', 'isBuffer', 'slice', 'fill' ];
+            // Called when for in is called.
+            // The list of properties must contain: all indexes, overrides and Buffer.prototype.
+            // Getting all indexes would kill perf, but we can add Buffer.prototype.
+            return [ 'length', 'toString', 'write', 'copy', 
+                'isBuffer', 'slice', 'fill' ].concat(Object.keys(Buffer.prototype));
         }
 
     });
