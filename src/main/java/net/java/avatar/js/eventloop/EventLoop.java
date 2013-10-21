@@ -69,7 +69,7 @@ import net.java.libuv.UDPCallback;
 import net.java.libuv.handles.LoopHandle;
 
 public final class EventLoop {
-    
+
     private static final int DEFAULT_QUEUE_SIZE = Integer.MAX_VALUE;
     private static final int DEFAULT_CORE_THREADS = Runtime.getRuntime().availableProcessors() * 2;
     private static final int DEFAULT_MAX_THREADS = Integer.MAX_VALUE;
@@ -203,7 +203,7 @@ public final class EventLoop {
                 // do this last to avoid unnecessary iteration
                 tasks.peek() != null ||
                 eventQueue.peek() != null)) {
-            
+
             // throw pending exception, if any
             if (pendingException != null) {
                 final Exception pex = pendingException;
@@ -261,7 +261,7 @@ public final class EventLoop {
         processEvent(event.getName(), event.getCallback(), event.getContext(), event.getArgs());
     }
 
-    private void processEvent(final String name, final Callback callback, 
+    private void processEvent(final String name, final Callback callback,
             final AccessControlContext context, final Object... args) throws Exception {
         assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
         assert callback != null : "callback is null for event " + name;
@@ -473,7 +473,7 @@ public final class EventLoop {
             }
         }, new CallbackHandler() {
             @Override
-            public void handle(final ProcessCallback cb, final Object[] args) {
+            public void handleProcessCallback(final ProcessCallback cb, final Object[] args) {
                 Callback wrapper = new Callback() {
                     @Override
                     public void call(String name, Object[] a) throws Exception {
@@ -484,7 +484,7 @@ public final class EventLoop {
             }
 
             @Override
-            public void handle(final SignalCallback cb, final int signum) {
+            public void handleSignalCallback(final SignalCallback cb, final int signum) {
                 Callback wrapper = new Callback() {
                     @Override
                     public void call(String name, Object[] a) throws Exception {
@@ -495,7 +495,7 @@ public final class EventLoop {
             }
 
             @Override
-            public void handle(final StreamCallback cb, final Object[] args) {
+            public void handleStreamCallback(final StreamCallback cb, final Object[] args) {
                 Callback wrapper = new Callback() {
                     @Override
                     public void call(String name, Object[] a) throws Exception {
@@ -506,7 +506,7 @@ public final class EventLoop {
             }
 
             @Override
-            public void handle(final FileCallback cb, final int id, final Object[] args) {
+            public void handleFileCallback(final FileCallback cb, final int id, final Object[] args) {
                 Callback wrapper = new Callback() {
                     @Override
                     public void call(final String name, final Object[] a) throws Exception {
@@ -517,7 +517,7 @@ public final class EventLoop {
             }
 
             @Override
-            public void handle(final UDPCallback cb, final Object[] args) {
+            public void handleUDPCallback(final UDPCallback cb, final Object[] args) {
                 Callback wrapper = new Callback() {
                     @Override
                     public void call(final String name, final Object[] a) throws Exception {
@@ -534,7 +534,7 @@ public final class EventLoop {
         LOG = logger("eventloop");
         closed = false;
     }
-    
+
     private void processCallback(Callback cb) {
         // Processing a callback means that the current app
         // is not Idle. Makes the EventLoop to run fast.
