@@ -474,57 +474,52 @@ public final class EventLoop {
         }, new CallbackHandler() {
             @Override
             public void handleProcessCallback(final ProcessCallback cb, final Object[] args) {
-                Callback wrapper = new Callback() {
-                    @Override
-                    public void call(String name, Object[] a) throws Exception {
-                        cb.call(args);
-                    }
-                };
-                processCallback(wrapper);
+                maybeIdle.set(false);
+                try {
+                    cb.call(args);
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
             }
 
             @Override
             public void handleSignalCallback(final SignalCallback cb, final int signum) {
-                Callback wrapper = new Callback() {
-                    @Override
-                    public void call(String name, Object[] a) throws Exception {
-                        cb.call(signum);
-                    }
-                };
-                processCallback(wrapper);
+                maybeIdle.set(false);
+                try {
+                    cb.call(signum);
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
             }
 
             @Override
             public void handleStreamCallback(final StreamCallback cb, final Object[] args) {
-                Callback wrapper = new Callback() {
-                    @Override
-                    public void call(String name, Object[] a) throws Exception {
-                        cb.call(args);
-                    }
-                };
-                processCallback(wrapper);
+                maybeIdle.set(false);
+                try {
+                    cb.call(args);
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
             }
 
             @Override
             public void handleFileCallback(final FileCallback cb, final int id, final Object[] args) {
-                Callback wrapper = new Callback() {
-                    @Override
-                    public void call(final String name, final Object[] a) throws Exception {
-                        cb.call(id, args);
-                    }
-                };
-                processCallback(wrapper);
+                maybeIdle.set(false);
+                try {
+                    cb.call(id, args);
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
             }
 
             @Override
             public void handleUDPCallback(final UDPCallback cb, final Object[] args) {
-                Callback wrapper = new Callback() {
-                    @Override
-                    public void call(final String name, final Object[] a) throws Exception {
-                        cb.call(args);
-                    }
-                };
-                processCallback(wrapper);
+                maybeIdle.set(false);
+                try {
+                    cb.call(args);
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
             }
         });
 
@@ -533,17 +528,6 @@ public final class EventLoop {
         LibUV.chdir(workDir);
         LOG = logger("eventloop");
         closed = false;
-    }
-
-    private void processCallback(Callback cb) {
-        // Processing a callback means that the current app
-        // is not Idle. Makes the EventLoop to run fast.
-        maybeIdle.set(false);
-        try {
-            processEvent(new Event(null, cb));
-        } catch(Exception ex) {
-            throw new RuntimeException(ex);
-        }
     }
 
     public String version() {
