@@ -59,7 +59,13 @@ import net.java.avatar.js.timers.Timers;
 
 import net.java.libuv.Callback;
 import net.java.libuv.CallbackExceptionHandler;
+import net.java.libuv.CallbackHandler;
+import net.java.libuv.FileCallback;
 import net.java.libuv.LibUV;
+import net.java.libuv.ProcessCallback;
+import net.java.libuv.SignalCallback;
+import net.java.libuv.StreamCallback;
+import net.java.libuv.UDPCallback;
 import net.java.libuv.handles.LoopHandle;
 
 public final class EventLoop {
@@ -69,6 +75,8 @@ public final class EventLoop {
     private static final int DEFAULT_MAX_THREADS = Integer.MAX_VALUE;
     private static final long DEFAULT_THREAD_TIMEOUT_SECONDS = 15;
     private static final long MAX_IDLE_PAUSE_INTERVAL_MILLISECONDS = 100;
+    // Should be configurable, seems a good trade-off between perf and cpu consumption.
+    private static final long NUM_ITERATIONS_BEFORE_INC_DELAY = 100;
 
     private static final String PACKAGE = EventLoop.class.getPackage().getName() + ".";
     private static final String QUEUE_SIZE_PROPERTY = PACKAGE + "queueSize";
@@ -195,7 +203,7 @@ public final class EventLoop {
                 // do this last to avoid unnecessary iteration
                 tasks.peek() != null ||
                 eventQueue.peek() != null)) {
-
+            
             // throw pending exception, if any
             if (pendingException != null) {
                 final Exception pex = pendingException;
@@ -206,8 +214,10 @@ public final class EventLoop {
             // pause until an event arrives to avoid spinning on idle
             if (maybeIdle.get()) {
                 // increase delay as long as idle on consecutive polls
-                delay = Math.min(nativeIdleCount++, MAX_IDLE_PAUSE_INTERVAL_MILLISECONDS);
-                idleWait.tryAcquire(delay, TimeUnit.MILLISECONDS);
+               delay = Math.min(nativeIdleCount++ / NUM_ITERATIONS_BEFORE_INC_DELAY, MAX_IDLE_PAUSE_INTERVAL_MILLISECONDS);
+               if (delay > 1) {
+                    idleWait.tryAcquire(delay, TimeUnit.MILLISECONDS);
+               }
             } else {
                 nativeIdleCount = 0;
             }
@@ -461,6 +471,61 @@ public final class EventLoop {
                     }
                 }
             }
+        }, new CallbackHandler() {
+            @Override
+            public void handle(final ProcessCallback cb, final Object[] args) {
+                Callback wrapper = new Callback() {
+                    @Override
+                    public void call(String name, Object[] a) throws Exception {
+                        cb.call(args);
+                    }
+                };
+                processCallback(wrapper);
+            }
+
+            @Override
+            public void handle(final SignalCallback cb, final int signum) {
+                Callback wrapper = new Callback() {
+                    @Override
+                    public void call(String name, Object[] a) throws Exception {
+                        cb.call(signum);
+                    }
+                };
+                processCallback(wrapper);
+            }
+
+            @Override
+            public void handle(final StreamCallback cb, final Object[] args) {
+                Callback wrapper = new Callback() {
+                    @Override
+                    public void call(String name, Object[] a) throws Exception {
+                        cb.call(args);
+                    }
+                };
+                processCallback(wrapper);
+            }
+
+            @Override
+            public void handle(final FileCallback cb, final int id, final Object[] args) {
+                Callback wrapper = new Callback() {
+                    @Override
+                    public void call(final String name, final Object[] a) throws Exception {
+                        cb.call(id, args);
+                    }
+                };
+                processCallback(wrapper);
+            }
+
+            @Override
+            public void handle(final UDPCallback cb, final Object[] args) {
+                Callback wrapper = new Callback() {
+                    @Override
+                    public void call(final String name, final Object[] a) throws Exception {
+                        cb.call(args);
+                    }
+                };
+                processCallback(wrapper);
+            }
         });
 
         this.instanceNumber = instanceNumber;
@@ -468,6 +533,17 @@ public final class EventLoop {
         LibUV.chdir(workDir);
         LOG = logger("eventloop");
         closed = false;
+    }
+    
+    private void processCallback(Callback cb) {
+        // Processing a callback means that the current app
+        // is not Idle. Makes the EventLoop to run fast.
+        maybeIdle.set(false);
+        try {
+            processEvent(new Event(null, cb));
+        } catch(Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     public String version() {
