@@ -60,6 +60,7 @@ import net.java.avatar.js.timers.Timers;
 import net.java.libuv.Callback;
 import net.java.libuv.CallbackExceptionHandler;
 import net.java.libuv.CallbackHandler;
+import net.java.libuv.CheckCallback;
 import net.java.libuv.FileCallback;
 import net.java.libuv.LibUV;
 import net.java.libuv.ProcessCallback;
@@ -473,6 +474,16 @@ public final class EventLoop {
                 }
             }
         }, new CallbackHandler() {
+            @Override
+            public void handleCheckCallback(final CheckCallback cb, final int status) {
+                maybeIdle.set(false);
+                try {
+                    cb.call(status);
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
+            }
+
             @Override
             public void handleProcessCallback(final ProcessCallback cb, final Object[] args) {
                 maybeIdle.set(false);
