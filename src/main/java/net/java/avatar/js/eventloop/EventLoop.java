@@ -65,6 +65,7 @@ import net.java.libuv.LibUV;
 import net.java.libuv.ProcessCallback;
 import net.java.libuv.SignalCallback;
 import net.java.libuv.StreamCallback;
+import net.java.libuv.TimerCallback;
 import net.java.libuv.UDPCallback;
 import net.java.libuv.handles.LoopHandle;
 
@@ -507,6 +508,16 @@ public final class EventLoop {
                 maybeIdle.set(false);
                 try {
                     cb.call(id, args);
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
+            }
+
+            @Override
+            public void handleTimerCallback(final TimerCallback cb, final int status) {
+                maybeIdle.set(false);
+                try {
+                    cb.call(status);
                 } catch (Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);
                 }
