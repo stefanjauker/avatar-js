@@ -25,7 +25,7 @@
 
 (function(exports) {
 
-    var Files = Packages.net.java.libuv.handles.Files;
+    var Files = Packages.net.java.libuv.Files;
     var PendingOperations = Packages.net.java.libuv.handles.PendingOperations;
     var JavaBuffer = Packages.net.java.avatar.js.buffer.Buffer;
     var loop = __avatar.eventloop.loop();
