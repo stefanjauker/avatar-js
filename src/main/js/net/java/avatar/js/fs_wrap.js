@@ -25,11 +25,11 @@
 
 (function(exports) {
 
-    var FileHandle = Packages.net.java.libuv.handles.FileHandle;
+    var Files = Packages.net.java.libuv.handles.Files;
     var PendingOperations = Packages.net.java.libuv.handles.PendingOperations;
     var JavaBuffer = Packages.net.java.avatar.js.buffer.Buffer;
     var loop = __avatar.eventloop.loop();
-    var fs = new FileHandle(loop);
+    var fs = new Files(loop);
 
     Object.defineProperty(exports, '_closeCallback', { value: new PendingOperations() });
 
