@@ -1,0 +1,11 @@
+--- ../node/test/simple/test-http-default-encoding.js	2013-09-23 13:54:04.000000000 +0200
++++ test/simple/test-http-default-encoding.js	2013-10-24 14:18:45.000000000 +0200
+@@ -37,7 +37,7 @@
+ 
+   var timeout = setTimeout(function() {
+     process.exit(1);
+-  }, 100);
++  }, 1000);
+ 
+   res.writeHead(200);
+   res.end('hello world\n');

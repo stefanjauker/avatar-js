@@ -1,0 +1,20 @@
+--- ../node/test/simple/test-pipe-unref.js	2013-09-23 13:54:04.000000000 +0200
++++ test/simple/test-pipe-unref.js	2013-10-24 14:43:59.000000000 +0200
+@@ -29,10 +29,16 @@
+ s.listen(common.PIPE);
+ s.unref();
+ 
++//This timeout is fired because, when the uvLoop.run is called, 
++//the unrefed timer is concidered has having timeouted and it is fired. 
++//An unrefed timeout that has timeouted is executed. 
++//The problem is that it takes 5 seconds from new LoopHandle and uvLoop.runNoWait. 
++//Un unrefed timer is concidered timeouted if its timeout is smaller than 5 seconds. 
++//We can change the delay, it will not affect the overall time of the test. 
+ setTimeout(function() {
+   closed = true;
+   s.close();
+-}, 1000).unref();
++}, 7000).unref();
+ 
+ process.on('exit', function() {
+   assert.strictEqual(closed, false, 'Unrefd socket should not hold loop open');

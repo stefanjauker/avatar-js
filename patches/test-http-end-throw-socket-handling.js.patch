@@ -1,5 +1,5 @@
---- //Users/jfdenise/workspaces/latest/node/test/simple/test-http-end-throw-socket-handling.js	2013-08-05 09:41:31.000000000 +0200
-+++ node/test/simple/test-http-end-throw-socket-handling.js	2013-08-07 16:47:57.000000000 +0200
+--- ../node/test/simple/test-http-end-throw-socket-handling.js	2013-09-23 13:54:04.000000000 +0200
++++ test/simple/test-http-end-throw-socket-handling.js	2013-10-24 13:52:31.000000000 +0200
 @@ -50,10 +50,11 @@
    }
  });

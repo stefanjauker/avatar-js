@@ -1,0 +1,8 @@
+--- ../node/test/simple/test-dgram-udp4.js	2013-09-23 13:54:04.000000000 +0200
++++ test/simple/test-dgram-udp4.js	2013-10-24 14:16:22.000000000 +0200
+@@ -78,4 +78,4 @@
+ 
+ timer = setTimeout(function() {
+   throw new Error('Timeout');
+-}, 200);
++}, 2000);

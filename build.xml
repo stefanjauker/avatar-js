@@ -287,10 +287,13 @@
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-child-process-fork-exec-argv.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-dgram-address.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-dgram-ref.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-dgram-udp4.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-dgram-unref.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-error-reporting.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-fs-readfile-pipe.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-client-timeout-agent.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-default-encoding.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-end-throw-socket-handling.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-head-request.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-many-ended-pipelines.js"/>
@@ -299,14 +302,17 @@
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-module-loading.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-pingpong.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-server-address.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-server-unref.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-settimeout.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-write-slow.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-next-tick.js"/>
-        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-next-tick-starvation.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-os.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-process-exec-argv.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-pipe-head.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-pipe-unref.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-readline-interface.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-script-context.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-stream2-push.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-stream2-read-sync-stack.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-string-decoder.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-timers-unref.js"/>
@@ -345,10 +351,13 @@
         <apply-patch-file target="${test.dir}/simple" name="test-child-process-fork-exec-argv.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-dgram-address.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-dgram-ref.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-dgram-udp4.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-dgram-unref.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-error-reporting.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-fs-readfile-pipe.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-http.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-http-client-timeout-agent.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-http-default-encoding.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-http-end-throw-socket-handling.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-http-head-request.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-http-many-ended-pipelines.js"/>
@@ -357,14 +366,17 @@
         <apply-patch-file target="${test.dir}/simple" name="test-module-loading.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-net-pingpong.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-net-server-address.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-net-server-unref.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-net-settimeout.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-net-write-slow.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-next-tick.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-next-tick-starvation.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-os.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-process-exec-argv.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-pipe-head.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-pipe-unref.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-readline-interface.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-script-context.js"/>
+        <apply-patch-file target="${test.dir}/simple" name="test-stream2-push.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-stream2-read-sync-stack.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-string-decoder.js"/>
         <apply-patch-file target="${test.dir}/simple" name="test-timers-unref.js"/>

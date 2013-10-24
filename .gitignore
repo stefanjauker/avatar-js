@@ -30,6 +30,7 @@ atlassian-ide-plugin.xml
 *.vcxproj
 *.vcxproj.filters
 
+src/main/js/lib/_linklist.js
 src/main/js/lib/_stream_duplex.js
 src/main/js/lib/_stream_passthrough.js
 src/main/js/lib/_stream_readable.js
@@ -56,6 +57,7 @@ src/main/js/lib/querystring.js
 src/main/js/lib/readline.js
 src/main/js/lib/stream.js
 src/main/js/lib/string_decoder.js
+src/main/js/lib/timers.js
 src/main/js/lib/tls.js
 src/main/js/lib/tty.js
 src/main/js/lib/url.js

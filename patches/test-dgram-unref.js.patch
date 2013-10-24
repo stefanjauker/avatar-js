@@ -1,0 +1,21 @@
+--- ../node/test/simple/test-dgram-unref.js	2013-10-24 14:37:12.000000000 +0200
++++ test/simple/test-dgram-unref.js	2013-10-24 14:38:34.000000000 +0200
+@@ -28,11 +28,16 @@
+ var s = dgram.createSocket('udp4');
+ s.bind();
+ s.unref();
+-
++//This timeout is fired because, when the uvLoop.run is called, 
++//the unrefed timer is concidered has having timeouted and it is fired. 
++//An unrefed timeout that has timeouted is executed. 
++//The problem is that it takes 5 seconds from new LoopHandle and uvLoop.runNoWait. 
++//Un unrefed timer is concidered timeouted if its timeout is smaller than 5 seconds. 
++//We can change the delay, it will not affect the overall time of the test. 
+ setTimeout(function() {
+   closed = true;
+   s.close();
+-}, 1000).unref();
++}, 7000).unref();
+ 
+ process.on('exit', function() {
+   assert.strictEqual(closed, false, 'Unrefd socket should not hold loop open');
