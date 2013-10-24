@@ -55,13 +55,13 @@ import javax.script.ScriptException;
 import net.java.avatar.js.dns.DNS;
 import net.java.avatar.js.log.Logger;
 import net.java.avatar.js.log.Logging;
-import net.java.avatar.js.timers.Timers;
 
 import net.java.libuv.Callback;
 import net.java.libuv.CallbackExceptionHandler;
 import net.java.libuv.CallbackHandler;
 import net.java.libuv.CheckCallback;
 import net.java.libuv.FileCallback;
+import net.java.libuv.IdleCallback;
 import net.java.libuv.LibUV;
 import net.java.libuv.ProcessCallback;
 import net.java.libuv.SignalCallback;
@@ -94,7 +94,6 @@ public final class EventLoop {
     private final String version;
     private final String uvVersion;
     private final Logging logging;
-    private final Timers timer;
     private final DNS dns;
     private final LoopHandle uvLoop;
     private final int instanceNumber;
@@ -140,7 +139,7 @@ public final class EventLoop {
     private Thread mainThread = null;
     private Exception pendingException = null;
     private volatile boolean closed;
-
+    
     public static final class Handle implements AutoCloseable {
 
         private final AtomicInteger hooks;
@@ -199,13 +198,12 @@ public final class EventLoop {
                 hooks.get() != 0 ||
                 !maybeIdle.get() ||
                 activeTasks.get() != 0 ||
-                timer.isPending() ||
                 // LinkedBlockingQueue.isEmpty() is quick but not always accurate
                 // peek first element to make sure the queues are really empty
                 // do this last to avoid unnecessary iteration
                 tasks.peek() != null ||
                 eventQueue.peek() != null)) {
-
+            
             // throw pending exception, if any
             if (pendingException != null) {
                 final Exception pex = pendingException;
@@ -319,7 +317,6 @@ public final class EventLoop {
 
     public void release() {
         hooks.set(0);
-        timer.clearAll();
         tasks.clear();
     }
 
@@ -459,7 +456,6 @@ public final class EventLoop {
         this.version = version;
         this.uvVersion = uvVersion;
         this.logging = logging;
-        this.timer = new Timers(this);
         this.dns = new DNS(this);
         this.uvLoop = new LoopHandle(new CallbackExceptionHandler() {
             @Override
@@ -543,8 +539,18 @@ public final class EventLoop {
                     uvLoop.getExceptionHandler().handle(ex);
                 }
             }
-        });
 
+            @Override
+            public void handleIdleCallback(IdleCallback cb, int status) {
+                maybeIdle.set(false);
+                try {
+                    cb.call(status);
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
+            }
+        });
+        
         this.instanceNumber = instanceNumber;
 
         LibUV.chdir(workDir);
@@ -566,10 +572,6 @@ public final class EventLoop {
 
     public Logger logger(final String name) {
         return logging.get(name);
-    }
-
-    public Timers timer() {
-        return timer;
     }
 
     public DNS dns() {

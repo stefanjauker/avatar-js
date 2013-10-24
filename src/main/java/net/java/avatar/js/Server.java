@@ -151,7 +151,6 @@ public final class Server {
                 throw ex;
             }
         } finally {
-            eventLoop.timer().clearAll();
             eventLoop.stop();
             logging.shutdown();
         }

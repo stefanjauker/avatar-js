@@ -158,115 +158,36 @@ var gc = global.gc;
 
     global.Buffer = Buffer;
 
-    // timer functions
-    var timer = __avatar.eventloop.timer();
-
-    var _setTimeout = function() {
-        var repeated = arguments[0];
-        var callargs = arguments[1];
-
-        var len = callargs.length;
-        if (len < 1) {
-            throw new Error('timer callback not specified');
-        }
-        var after = callargs[1];
-        if (len < 2) {
-            after = 1; // default to 1ms if not specified
-        }
-
-        var callback = callargs[0];
-        if (typeof callback !== 'function') {
-            throw new Error('timer callback is not a function (' + (typeof callback) + ')');
-        }
-
-        after *= 1; // coalesce to number or NaN
-        if (!(after >= 1 && after <= java.lang.Integer.MAX_VALUE)) {
-            after = 1;
-        }
-
-        var callbackargs = [];
-        for (var i = 2; i < len; i++) {
-            callbackargs.push(callargs[i]);
-        }
-        var id = timer.setTimeout(repeated, after, function(name, args) {
-              callback.apply(id, callbackargs);
-        });
-        // defer starting the timer until the next tick
-        process.nextTick(function() {
-            timer.start(id);
-        });
-        return id;
+    global.setTimeout = function() {
+        var t = NativeModule.require('timers');
+        return t.setTimeout.apply(this, arguments);
     };
 
-    Object.defineProperty(global, 'setTimeout', {
-        enumerable : true,
-        value : function() {
-            return _setTimeout(false, arguments);
-        }
-    });
+    global.setInterval = function() {
+        var t = NativeModule.require('timers');
+        return t.setInterval.apply(this, arguments);
+    };
 
-    Object.defineProperty(global, 'clearTimeout', {
-        enumerable : true,
-        value : function() {
-            if (arguments.length > 0) {
-                if (arguments[0]) {
-                    timer.clearTimeout(arguments[0]);
-                }
-            } else {
-                timer.clearAll();
-            }
-        }
-    });
+    global.clearTimeout = function() {
+        var t = NativeModule.require('timers');
+        return t.clearTimeout.apply(this, arguments);
+    };
 
-    Object.defineProperty(global, 'setInterval', {
-        enumerable : true,
-        value : function() {
-            return _setTimeout(true, arguments);
-        }
-    });
+    global.clearInterval = function() {
+        var t = NativeModule.require('timers');
+        return t.clearInterval.apply(this, arguments);
+    };
 
-    Object.defineProperty(global, 'clearInterval', {
-        enumerable : true,
-        value : function() {
-            if (arguments.length > 0) {
-                if (arguments[0]) {
-                    timer.clearTimeout(arguments[0]);
-                }
-            } else {
-                timer.clearAll();
-            }
-        }
-    });
+    global.setImmediate = function() {
+        var t = NativeModule.require('timers');
+        return t.setImmediate.apply(this, arguments);
+    };
 
-    Object.defineProperty(global, 'setImmediate', {
-        enumerable : true,
-        value : function() {
-            var cb = arguments[0]
-            var callbackargs = [];
-            for (var i = 1; i < arguments.length; i++) {
-                callbackargs.push(arguments[i]);
-            }
-            var ctx = {};
-            var wrapper = function() {
-                cb.apply(ctx, callbackargs);
-            }
-
-            ctx.id = timer.setImmediate(wrapper);
-            return ctx;
-        }
-    });
-
-    Object.defineProperty(global, 'clearImmediate', {
-        enumerable : true,
-        value : function() {
-            if (arguments.length > 0) {
-                if (arguments[0]) {
-                    timer.clearImmediate(arguments[0].id);
-                }
-            }
-        }
-    });
-
+    global.clearImmediate = function() {
+        var t = NativeModule.require('timers');
+        return t.clearImmediate.apply(this, arguments);
+    };
+    
     // console require timers that require setTimeout.
     var console = NativeModule.require('console');
     global.console = console;

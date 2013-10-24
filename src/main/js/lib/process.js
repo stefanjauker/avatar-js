@@ -563,6 +563,45 @@ exports.openStdin = function() {
     return process.stdin;
 }
 
+var Check = Packages.net.java.libuv.handles.CheckHandle;
+var Idle = Packages.net.java.libuv.handles.IdleHandle;
+var checkHandle = new Check(eventloop.loop());
+checkHandle.setCheckCallback(checkImmediate);
+// this handle should not keep the event loop from terminating
+checkHandle.unref();
+
+// During the lifetime of an immediate callback, we want to keep the loop running.
+// This is why an Idle is started/stopped when the unrefed Check is started/stopped
+// Nodejs core.cc 
+var idleHandle = new Idle(eventloop.loop());
+idleHandle.setIdleCallback(IdleImmediateDummy);
+
+function checkImmediate() {
+    // This needs to be treated as a callback, all ticked events need to be handled.
+    if (exports._immediateCallback) {
+        exports._immediateCallback();
+    }
+}
+
+function IdleImmediateDummy() {
+    // Just to keep the loop running.
+}
+
+Object.defineProperty(exports, '_needImmediateCallback', {
+    enumerable : true,
+    set : function(need) {
+        if (checkHandle) {
+            if (need) {
+                checkHandle.start();
+                idleHandle.start();
+            } else {
+                checkHandle.stop();
+                idleHandle.stop();
+            }
+        }
+    }
+});
+    
 var signalHandle = new Signals(eventloop.loop());
 // this handle should not keep the event loop from terminating
 signalHandle.unref();
