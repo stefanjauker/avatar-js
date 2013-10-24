@@ -222,6 +222,7 @@ public class PermissionTest {
         // exePath
         Permissions permissions = new Permissions();
         permissions.add(new PropertyPermission("java.class.path", "read"));
+        permissions.add(new PropertyPermission("java.library.path", "read"));
         // parent env
         permissions.add(new RuntimePermission("getenv.*"));
         doFail(bindings, f, permissions);
@@ -232,6 +233,7 @@ public class PermissionTest {
     public void testSpawnAuth() throws Exception {
         Permissions permissions = new Permissions();
         permissions.add(new PropertyPermission("java.class.path", "read"));
+        permissions.add(new PropertyPermission("java.library.path", "read"));
         // parent env
         permissions.add(new RuntimePermission("getenv.*"));
         // execute
