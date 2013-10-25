@@ -33,19 +33,20 @@
 
     Object.defineProperty(exports, '_closeCallback', { value: new PendingOperations() });
 
+    fs.setCloseCallback(function(id, args) {
+        var cb = exports._closeCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb();
+        }
+    });
+
     exports.close = function(fd, callback) {
         if (typeof callback === 'function') {
             var id = exports._closeCallback.push(callback);
-            fs.setCloseCallback(function(id, args) {
-                var cb = exports._closeCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb();
-                }
-            });
             return fs.close(fd, id);
         } else {
             try {
@@ -58,21 +59,21 @@
 
     Object.defineProperty(exports, '_openCallback', { value: new PendingOperations() });
 
+    fs.setOpenCallback(function(id, args) {
+        var cb = exports._openCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            var fd = args[0];
+            cb(undefined, args[0]);
+        }
+    });
+
     exports.open = function(path, flags, mode, callback) {
         if (typeof callback === 'function') {
             var id = exports._openCallback.push(callback);
-            var cb = callback;
-            fs.setOpenCallback(function(id, args) {
-                var cb = exports._openCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    var fd = args[0];
-                    cb(undefined, args[0]);
-                }
-            });
             return fs.open(path, flags, mode, id);
         } else {
             try {
@@ -85,24 +86,25 @@
 
     Object.defineProperty(exports, '_readCallback', { value: new PendingOperations() });
 
+    fs.setReadCallback(function(id, args) {
+        var cb = exports._readCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException), undefined, -1);
+        } else {
+            var bytesRead = args[0];
+            var data = new Buffer(new JavaBuffer(args[1]));
+            cb(undefined, bytesRead, data);
+        }
+    });
+
     exports.read = function(fd, buffer, offset, length, position, callback) {
         if (position == null || position == undefined) {
             position = -1;
         }
         if (typeof callback === 'function') {
             var id = exports._readCallback.push(callback);
-            fs.setReadCallback(function(id, args) {
-                var cb = exports._readCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException), undefined, -1);
-                } else {
-                    var bytesRead = args[0];
-                    var data = new Buffer(new JavaBuffer(args[1]));
-                    cb(undefined, bytesRead, data);
-                }
-            });
             return fs.read(fd, buffer._impl.array(), offset, length, position, id);
         } else {
             try {
@@ -115,19 +117,20 @@
 
     Object.defineProperty(exports, '_unlinkCallback', { value: new PendingOperations() });
 
+    fs.setUnlinkCallback(function(id, args) {
+        var cb = exports._unlinkCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb();
+        }
+    });
+
     exports.unlink = function(path, callback) {
         if (typeof callback === 'function') {
             var id = exports._unlinkCallback.push(callback);
-            fs.setUnlinkCallback(function(id, args) {
-                var cb = exports._unlinkCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb();
-                }
-            });
             return fs.unlink(path, id);
         } else {
             try {
@@ -140,24 +143,25 @@
 
     Object.defineProperty(exports, '_writeCallback', { value: new PendingOperations() });
 
+    fs.setWriteCallback(function(id, args) {
+        var cb = exports._writeCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException), -1, undefined);
+        } else {
+            var bytesWritten = args[0];
+            cb(undefined, bytesWritten);
+        }
+    });
+
     exports.write = function(fd, buffer, offset, length, position, callback) {
         if (position == null || position == undefined) {
             position = -1;
         }
         if (typeof callback === 'function') {
             var id = exports._writeCallback.push(callback);
-            fs.setWriteCallback(function(id, args) {
-                var cb = exports._writeCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException), -1, undefined);
-                } else {
-                    var bytesWritten = args[0];
-                    cb(undefined, bytesWritten, buffer);
-                }
-            });
-            return fs.write(fd, buffer._impl.array(), offset, length, position, id);
+            var r = fs.write(fd, buffer._impl.array(), offset, length, position, id);
         } else {
             try {
                 return fs.write(fd, buffer._impl.array(), offset, length, position);
@@ -169,19 +173,20 @@
 
     Object.defineProperty(exports, '_mkdirCallback', { value: new PendingOperations() });
 
+    fs.setMkdirCallback(function(id, args) {
+        var cb = exports._mkdirCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb();
+        }
+    });
+
     exports.mkdir = function(path, mode, callback) {
         if (typeof callback === 'function') {
             var id = exports._mkdirCallback.push(callback);
-            fs.setMkdirCallback(function(id, args) {
-                var cb = exports._mkdirCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb();
-                }
-            });
             return fs.mkdir(path, mode, id);
         } else {
             try {
@@ -194,19 +199,20 @@
 
     Object.defineProperty(exports, '_rmdirCallback', { value: new PendingOperations() });
 
+    fs.setRmdirCallback(function(id, args) {
+        var cb = exports._rmdirCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb();
+        }
+    });
+
     exports.rmdir = function(path, callback) {
         if (typeof callback === 'function') {
             var id = exports._rmdirCallback.push(callback);
-            fs.setRmdirCallback(function(id, args) {
-                var cb = exports._rmdirCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb();
-                }
-            });
             return fs.rmdir(path, id);
         } else {
             try {
@@ -219,23 +225,24 @@
 
     Object.defineProperty(exports, '_readdirCallback', { value: new PendingOperations() });
 
+    fs.setReaddirCallback(function(id, args) {
+        var cb = exports._readdirCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException), undefined);
+        } else {
+            var dirs = [];
+            for (var i = 0; i < args.length; i++) {
+                dirs.push(args[i]);
+            }
+            cb(undefined, dirs);
+        }
+    });
+
     exports.readdir = function(path, callback) {
         if (typeof callback === 'function') {
             var id = exports._readdirCallback.push(callback);
-            fs.setReaddirCallback(function(id, args) {
-                var cb = exports._readdirCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException), undefined);
-                } else {
-                    var dirs = [];
-                    for (var i = 0; i < args.length; i++) {
-                        dirs.push(args[i]);
-                    }
-                    cb(undefined, dirs);
-                }
-            });
             return fs.readdir(path, 0, id);
         } else {
             try {
@@ -253,19 +260,20 @@
 
     Object.defineProperty(exports, '_statCallback', { value: new PendingOperations() });
 
+    fs.setStatCallback(function(id, args) {
+        var cb = exports._statCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb(undefined, new exports.Stats(args[0]));
+        }
+    });
+
     exports.stat = function(path, callback) {
         if (typeof callback === 'function') {
             var id = exports._statCallback.push(callback);
-            fs.setStatCallback(function(id, args) {
-                var cb = exports._statCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb(undefined, new exports.Stats(args[0]));
-                }
-            });
             return fs.stat(path, id);
         } else {
             try {
@@ -279,19 +287,20 @@
 
     Object.defineProperty(exports, '_fstatCallback', { value: new PendingOperations() });
 
+    fs.setFStatCallback(function(id, args) {
+        var cb = exports._fstatCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb(undefined, new exports.Stats(args[0]));
+        }
+    });
+
     exports.fstat = function(fd, callback) {
         if (typeof callback === 'function') {
             var id = exports._fstatCallback.push(callback);
-            fs.setFStatCallback(function(id, args) {
-                var cb = exports._fstatCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb(undefined, new exports.Stats(args[0]));
-                }
-            });
             return fs.fstat(fd, id);
         } else {
             try {
@@ -305,19 +314,20 @@
 
     Object.defineProperty(exports, '_renameCallback', { value: new PendingOperations() });
 
+    fs.setRenameCallback(function(id, args) {
+        var cb = exports._renameCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb();
+        }
+    });
+
     exports.rename = function(oldPath, newPath, callback) {
         if (typeof callback === 'function') {
             var id = exports._renameCallback.push(callback);
-            fs.setRenameCallback(function(id, args) {
-                var cb = exports._renameCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb();
-                }
-            });
             return fs.rename(oldPath, newPath, id);
         } else {
             try {
@@ -330,19 +340,20 @@
 
     Object.defineProperty(exports, '_fsyncCallback', { value: new PendingOperations() });
 
+    fs.setFSyncCallback(function(id, args) {
+        var cb = exports._fsyncCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb();
+        }
+    });
+
     exports.fsync = function(fd, callback) {
         if (typeof callback === 'function') {
             var id = exports._fsyncCallback.push(callback);
-            fs.setFSyncCallback(function(id, args) {
-                var cb = exports._fsyncCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb();
-                }
-            });
             return fs.fsync(fd, id);
         } else {
             try {
@@ -355,19 +366,20 @@
 
     Object.defineProperty(exports, '_fdatasyncCallback', { value: new PendingOperations() });
 
+    fs.setFDatasyncCallback(function(id, args) {
+        var cb = exports._fdatasyncCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb();
+        }
+    });
+
     exports.fdatasync = function(fd, callback) {
         if (typeof callback === 'function') {
             var id = exports._fdatasyncCallback.push(callback);
-            fs.setFDatasyncCallback(function(id, args) {
-                var cb = exports._fdatasyncCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb();
-                }
-            });
             return fs.fdatasync(fd, id);
         } else {
             try {
@@ -380,19 +392,20 @@
 
     Object.defineProperty(exports, '_ftruncateCallback', { value: new PendingOperations() });
 
+    fs.setFTruncateCallback(function(id, args) {
+        var cb = exports._ftruncateCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb();
+        }
+    });
+
     exports.ftruncate = function(fd, length, callback) {
         if (typeof callback === 'function') {
             var id = exports._ftruncateCallback.push(callback);
-            fs.setFTuncateCallback(function(id, args) {
-                var cb = exports._ftruncateCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb();
-                }
-            });
             return fs.ftruncate(fd, length, id);
         } else {
             try {
@@ -405,19 +418,20 @@
 
     Object.defineProperty(exports, '_chmodCallback', { value: new PendingOperations() });
 
+    fs.setChmodCallback(function(id, args) {
+        var cb = exports._chmodCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb();
+        }
+    });
+
     exports.chmod = function(path, mode, callback) {
         if (typeof callback === 'function') {
             var id = exports._chmodCallback.push(callback);
-            fs.setChmodCallback(function(id, args) {
-                var cb = exports._chmodCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb();
-                }
-            });
             return fs.chmod(path, mode, id);
         } else {
             try {
@@ -430,19 +444,20 @@
 
     Object.defineProperty(exports, '_utimeCallback', { value: new PendingOperations() });
 
+    fs.setUtimeCallback(function(id, args) {
+        var cb = exports._utimeCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb(undefined, args[0]);
+        }
+    });
+
     exports.utimes = function(path, atime, mtime, callback) {
         if (typeof callback === 'function') {
             var id = exports._utimeCallback.push(callback);
-            fs.setUtimeCallback(function(id, args) {
-                var cb = exports._utimeCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb(undefined, args[0]);
-                }
-            });
             return fs.utime(path, atime, mtime, id);
         } else {
             try {
@@ -455,19 +470,20 @@
 
     Object.defineProperty(exports, '_futimeCallback', { value: new PendingOperations() });
 
+    fs.setFUtimeCallback(function(id, args) {
+        var cb = exports._futimeCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb(undefined, args[0]);
+        }
+    });
+
     exports.futimes = function(fd, atime, mtime, callback) {
         if (typeof callback === 'function') {
             var id = exports._futimeCallback.push(callback);
-            fs.setFUtimeCallback(function(id, args) {
-                var cb = exports._futimeCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb(undefined, args[0]);
-                }
-            });
             return fs.futime(fd, atime, mtime, id);
         } else {
             try {
@@ -480,19 +496,20 @@
 
     Object.defineProperty(exports, '_lstatCallback', { value: new PendingOperations() });
 
+    fs.setLStatCallback(function(id, args) {
+        var cb = exports._lstatCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb(undefined, new exports.Stats(args[0]));
+        }
+    });
+
     exports.lstat = function(path, callback) {
         if (typeof callback === 'function') {
             var id = exports._lstatCallback.push(callback);
-            fs.setLStatCallback(function(id, args) {
-                var cb = exports._lstatCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb(undefined, new exports.Stats(args[0]));
-                }
-            });
             return fs.lstat(path, id);
         } else {
             try {
@@ -506,19 +523,20 @@
 
     Object.defineProperty(exports, '_linkCallback', { value: new PendingOperations() });
 
+    fs.setLinkCallback(function(id, args) {
+        var cb = exports._linkCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb();
+        }
+    });
+
     exports.link = function(srcpath, dstpath, callback) {
         if (typeof callback === 'function') {
             var id = exports._linkCallback.push(callback);
-            fs.setLinkCallback(function(id, args) {
-                var cb = exports._linkCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb();
-                }
-            });
             return fs.link(srcpath, dstpath, id);
         } else {
             try {
@@ -530,6 +548,17 @@
     }
 
     Object.defineProperty(exports, '_symlinkCallback', { value: new PendingOperations() });
+
+    fs.setSymlinkCallback(function(id, args) {
+        var cb = exports._symlinkCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb(undefined, args[0]);
+        }
+    });
 
     exports.symlink = function(destination, path, type, callback) {
         var flags = 0;
@@ -546,16 +575,6 @@
 
         if (typeof callback === 'function') {
             var id = exports._symlinkCallback.push(callback);
-            fs.setSymlinkCallback(function(id, args) {
-                var cb = exports._symlinkCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb(undefined, args[0]);
-                }
-            });
             return fs.symlink(destination, path, flags, id);
         } else {
             try {
@@ -568,19 +587,20 @@
 
     Object.defineProperty(exports, '_readlinkCallback', { value: new PendingOperations() });
 
+    fs.setReadlinkCallback(function(id, args) {
+        var cb = exports._readlinkCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb(undefined, args[0]);
+        }
+    });
+
     exports.readlink = function(path, callback) {
         if (typeof callback === 'function') {
             var id = exports._readlinkCallback.push(callback);
-            fs.setReadlinkCallback(function(id, args) {
-                var cb = exports._readlinkCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb(undefined, args[0]);
-                }
-            });
             return fs.readlink(path, id);
         } else {
             try {
@@ -593,19 +613,20 @@
 
     Object.defineProperty(exports, '_fchmodCallback', { value: new PendingOperations() });
 
+    fs.setFChmodCallback(function(id, args) {
+        var cb = exports._fchmodCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb();
+        }
+    });
+
     exports.fchmod = function(fd, mode, callback) {
         if (typeof callback === 'function') {
             var id = exports._fchmodCallback.push(callback);
-            fs.setFChmodCallback(function(id, args) {
-                var cb = exports._fchmodCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb();
-                }
-            });
             return fs.fchmod(fd, mode, id);
         } else {
             try {
@@ -618,19 +639,20 @@
 
     Object.defineProperty(exports, '_chownCallback', { value: new PendingOperations() });
 
+    fs.setChownCallback(function(id, args) {
+        var cb = exports._chownCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb();
+        }
+    });
+
     exports.chown = function(path, uid, gid, callback) {
         if (typeof callback === 'function') {
             var id = exports._chownCallback.push(callback);
-            fs.setChownCallback(function(id, args) {
-                var cb = exports._chownCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb();
-                }
-            });
             return fs.chown(path, uid, gid, id);
         } else {
             try {
@@ -643,19 +665,20 @@
 
     Object.defineProperty(exports, '_fchownCallback', { value: new PendingOperations() });
 
+    fs.setFChownCallback(function(id, args) {
+        var cb = exports._fchownCallback.shift(id);
+        var status = args[0];
+        if (status == -1) {
+            var nativeException = args[1];
+            cb(exports._error(nativeException));
+        } else {
+            cb();
+        }
+    });
+
     exports.fchown = function(fd, uid, gid, callback) {
         if (typeof callback === 'function') {
             var id = exports._fchownCallback.push(callback);
-            fs.setFChownCallback(function(id, args) {
-                var cb = exports._fchownCallback.shift(id);
-                var status = args[0];
-                if (status == -1) {
-                    var nativeException = args[1];
-                    cb(exports._error(nativeException));
-                } else {
-                    cb();
-                }
-            });
             return fs.fchown(path, uid, gid, id);
         } else {
             try {
