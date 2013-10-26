@@ -25,22 +25,35 @@
 
 package net.java.avatar.js.fs;
 
+import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
 
+// used only in JavaScript, so not synchronized
+// values are FIFO, duplicates allowed
+@SuppressWarnings("unused")
 public final class PendingOperations {
 
-    private final HashMap<Integer, Object> map = new HashMap<Integer, Object>();
+    // multimap
+    private final Map<Integer, Queue<Object>> map = new HashMap<>();
 
-    public PendingOperations() {
-    }
-
-    public int push(Object callback) {
-        int id = callback.hashCode();
-        map.put(id, callback);
+    public int push(final Object callback) {
+        final int id = callback.hashCode();
+        Queue<Object> bucket = map.get(id);
+        if (bucket == null) {
+            bucket = new ArrayDeque<>();
+            map.put(id, bucket);
+        }
+        bucket.offer(callback);
         return id;
     }
 
-    public Object shift(int id) {
-        return map.remove(id);
+    public Object shift(final int id) {
+        final Queue<Object> bucket = map.get(id);
+        assert bucket.size() > 0;
+        final Object callback = bucket.poll();
+        assert callback != null;
+        return callback;
     }
 }
