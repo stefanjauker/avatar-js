@@ -364,10 +364,11 @@ Object.defineProperty(exports, 'chdir', {
 Object.defineProperty(exports, '_exiting', { writable: true, value: false });
 exports.exit = function(status) {
     var code = status ? status : 0;
-    // permission is required to stop the eventloop.
-    __avatar.eventloop.drain();
     if (!exports._exiting) {
         exports._exiting = true;
+        // drain can fire events that could in turn call exit creating an stack overflow.
+        __avatar.eventloop.drain();
+        // permission is required to stop the eventloop.
         exports.emit('exit', code);
     }
     __avatar.eventloop.stop();

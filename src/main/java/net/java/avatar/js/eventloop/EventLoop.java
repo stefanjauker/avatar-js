@@ -86,11 +86,6 @@ public final class EventLoop {
     private static final String MAX_THREADS_PROPERTY = PACKAGE + "maxThreads";
     private static final String THREAD_TIMEOUT_PROPERTY = PACKAGE + "threadTimeout";
 
-    // a marker event that indicates the end of the current tick
-    // a tick is one cycle that processes queued events as of this moment
-    // a call to nextTick() starts a new cycle
-    private static final Event TICK_MARKER = new Event("tick.marker", null);
-
     private final String version;
     private final String uvVersion;
     private final Logging logging;
@@ -99,6 +94,7 @@ public final class EventLoop {
     private final int instanceNumber;
 
     private final Logger LOG;
+    // The Eventqueue is accessed from main loop and background thread.
     private final BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
 
     private final Semaphore idleWait = new Semaphore(1);
@@ -170,7 +166,6 @@ public final class EventLoop {
     }
 
     public void nextTick(final Event event) {
-        eventQueue.add(TICK_MARKER);
         postEvent(event, eventQueue);
     }
 
@@ -223,8 +218,10 @@ public final class EventLoop {
             }
 
             // process pending events in this cycle
+            // This should be not needed but background tasks
+            // can post in the queue.
             for (Event event = eventQueue.poll();
-                 event != null && event != TICK_MARKER;
+                 event != null;
                  event = eventQueue.poll()) {
                 processEvent(event);
             }
@@ -235,14 +232,8 @@ public final class EventLoop {
     }
 
     /**
-     * This is called once the main module has been loaded
+     * This is called after each native callback and once the main module has been loaded
      * (module.js runMain, process._tickCallback();).
-     * All posted events are processed until the event queue is empty.
-     * With the native binding, IO callbacks (eg: connect, connection, ...)
-     * are processed when runNoWait is called. runNoWait is called in each iteration
-     * and before the eventQueue is polled. So processing all nextTicks added during main
-     * module loading before calling runNoWait guarantees that ticked events are
-     * called prior any IO events are fired.
      */
     public void processQueuedEvents() throws Exception {
         if (eventQueue.size() != 0) {
@@ -250,9 +241,7 @@ public final class EventLoop {
             for (Event event = eventQueue.poll();
                  event != null;
                  event = eventQueue.poll()) {
-                if (event != TICK_MARKER) {
-                    processEvent(event);
-                }
+                processEvent(event);
             }
         }
     }
@@ -288,6 +277,8 @@ public final class EventLoop {
     }
 
     public void drain() throws Exception {
+        // XXX with a blocking uvLoop we should get ridoff this code
+        // To remove when calling into uvLoop.run();
         assert Thread.currentThread() == mainThread : "drain called from non-event thread " + Thread.currentThread().getName();
         // don't spin forever in case there is a large backlog of native events
         final long start = System.currentTimeMillis();
@@ -475,6 +466,7 @@ public final class EventLoop {
                 maybeIdle.set(false);
                 try {
                     cb.call(status);
+                    processQueuedEvents();
                 } catch (Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);
                 }
@@ -485,6 +477,7 @@ public final class EventLoop {
                 maybeIdle.set(false);
                 try {
                     cb.call(args);
+                    processQueuedEvents();
                 } catch (Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);
                 }
@@ -495,6 +488,7 @@ public final class EventLoop {
                 maybeIdle.set(false);
                 try {
                     cb.call(signum);
+                    processQueuedEvents();
                 } catch (Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);
                 }
@@ -505,6 +499,7 @@ public final class EventLoop {
                 maybeIdle.set(false);
                 try {
                     cb.call(args);
+                    processQueuedEvents();
                 } catch (Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);
                 }
@@ -515,6 +510,7 @@ public final class EventLoop {
                 maybeIdle.set(false);
                 try {
                     cb.call(id, args);
+                    processQueuedEvents();
                 } catch (Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);
                 }
@@ -525,6 +521,7 @@ public final class EventLoop {
                 maybeIdle.set(false);
                 try {
                     cb.call(status);
+                    processQueuedEvents();
                 } catch (Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);
                 }
@@ -535,6 +532,7 @@ public final class EventLoop {
                 maybeIdle.set(false);
                 try {
                     cb.call(args);
+                    processQueuedEvents();
                 } catch (Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);
                 }
@@ -545,6 +543,7 @@ public final class EventLoop {
                 maybeIdle.set(false);
                 try {
                     cb.call(status);
+                    processQueuedEvents();
                 } catch (Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);
                 }
