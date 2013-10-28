@@ -706,7 +706,7 @@ public class SecureConnection {
         } else {
             try {
                 if (shutingdown) {
-                    if (!sslEngine.isOutboundDone()) {
+                    if (!sslEngine.isOutboundDone() && !sslEngine.isInboundDone()) {
                         wrote = wrapClose(pool, offset, length);
                     }
                 } else {
