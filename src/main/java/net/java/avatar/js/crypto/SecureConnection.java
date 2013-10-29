@@ -701,7 +701,14 @@ public class SecureConnection {
         if (localNetDataForPeer.position() != 0) {
             LOG.log("encOut, encrypted data length " + localNetDataForPeer.position());
             wrote = fillBuffer(localNetDataForPeer, pool);
-            localNetDataForPeer = ByteBuffer.allocate(sslEngine.getSession().getPacketBufferSize());
+            // wrote is the min between localNetDataForPeer.limit() and pool.remaining()
+            // can't be greater than the localNetDataForPeer.limit().
+            if (wrote == localNetDataForPeer.limit()) {
+                localNetDataForPeer = ByteBuffer.allocate(sslEngine.getSession().getPacketBufferSize());
+            } else {
+                LOG.log("encOut, provided buffer is too small.");
+                localNetDataForPeer.compact();
+            }
 
         } else {
             try {
@@ -764,8 +771,15 @@ public class SecureConnection {
         int ret = 0;
         if (decryptedAppData.position() != 0) {
             ret = fillBuffer(decryptedAppData, pool);
-            decryptedAppData =
+            // wrote is the min between decryptedAppData.limit() and pool.remaining()
+            // can't be greater than the decryptedAppData.limit().
+            if (ret == decryptedAppData.limit()) {
+                decryptedAppData =
                     ByteBuffer.allocate(sslEngine.getSession().getApplicationBufferSize());
+            } else {
+                LOG.log("clearOut, provided buffer is too small.");
+                decryptedAppData.compact();
+            }
             LOG.log("clearOut produced " + ret + " bytes for application");
         }
         return ret;
