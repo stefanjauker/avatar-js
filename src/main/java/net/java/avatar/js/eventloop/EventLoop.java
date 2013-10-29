@@ -61,6 +61,7 @@ import net.java.libuv.CallbackExceptionHandler;
 import net.java.libuv.CallbackHandler;
 import net.java.libuv.CheckCallback;
 import net.java.libuv.FileCallback;
+import net.java.libuv.FileEventCallback;
 import net.java.libuv.IdleCallback;
 import net.java.libuv.LibUV;
 import net.java.libuv.ProcessCallback;
@@ -510,6 +511,16 @@ public final class EventLoop {
                 maybeIdle.set(false);
                 try {
                     cb.call(id, args);
+                    processQueuedEvents();
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
+            }
+
+            @Override
+            public void handleFileEventCallback(FileEventCallback cb, int status, String event, String filename) {
+                try {
+                    cb.call(status, event, filename);
                     processQueuedEvents();
                 } catch (Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);

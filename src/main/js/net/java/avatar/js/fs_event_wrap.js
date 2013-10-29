@@ -25,48 +25,34 @@
 
 (function(exports) {
 
-    var fileSystem = __avatar.eventloop.fs();
-
-    function FSEvent() {
-    }
-
-    FSEvent.prototype.start = function(filename, persistent, interval) {
-        var that = this;
-        try {
-            this._watchKey = fileSystem.watch(filename, function(name, args) {
-                that.onchange(null, 'change', filename);
-            });
-            if (persistent) {
-                this._handle = __avatar.eventloop.grab();
-            }
-        } catch (e) {
-            return setGlobalErrno(e);
-        }
-        return null;
-    }
-
-    FSEvent.prototype.close = function() {
-        if (this._handle != null) {
-            this._handle.close();
-        }
-        if (this._watchKey) {
-            fileSystem.unwatch(this._watchKey);
-        }
-    }
+    var FileEventWatchHandle = Packages.net.java.libuv.handles.FileEventWatchHandle;
+    var loop = __avatar.eventloop.loop();
 
     exports.FSEvent = FSEvent;
 
-    var setGlobalErrno = function(e) {
-        if (e instanceof java.nio.file.NoSuchFileException ||
-            e instanceof java.io.FileNotFoundException) {
-            process._errno = 'ENOENT';
-        } else if (e instanceof java.nio.file.NotDirectoryException) {
-            process._errno = 'ENOTDIR';
-        } else {
-            // fall-through to generic IO error
-            process._errno = 'EIO';
+    function FSEvent() {
+        var that = this;
+        this._fsEvent = new FileEventWatchHandle(loop);
+        this._fsEvent.setFileEventCallback(function(status, event, filename) {
+            if (that.onchange) {
+                that.onchange(status, event, filename);
+            }
+        });
+    }
+
+    FSEvent.prototype.start = function(filename, persistent) {
+        try {
+            var status = this._fsEvent.start(filename, persistent);
+        } catch (err) {
+            if(!err.errnoString) {
+                throw err;
+            }
+            process._errno = err.errnoString();
         }
-        __avatar.eventloop.logger().log(e);
-        return errno;
+        return status;
+    }
+
+    FSEvent.prototype.close = function() {
+        this._fsEvent.stop();
     }
 });
