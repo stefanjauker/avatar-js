@@ -128,15 +128,12 @@ public final class EventLoop {
         }
     };
 
-    private final EventLoopStatsMBean STATS_MBEAN =
-            new EventLoopStats(eventQueue, hooks, tasks, activeTasks, executor);
-
     private Callback isHandlerRegistered = null;
     private Callback uncaughtExceptionHandler = null;
     private Thread mainThread = null;
     private Exception pendingException = null;
     private volatile boolean closed;
-    
+
     public static final class Handle implements AutoCloseable {
 
         private final AtomicInteger hooks;
@@ -184,7 +181,6 @@ public final class EventLoop {
     public void run() throws Exception {
         mainThread = Thread.currentThread();
         executor.allowCoreThreadTimeOut(true);
-        registerStatsMBean();
 
         boolean idle = false;
         long delay = 0;
@@ -199,7 +195,7 @@ public final class EventLoop {
                 // do this last to avoid unnecessary iteration
                 tasks.peek() != null ||
                 eventQueue.peek() != null)) {
-            
+
             // throw pending exception, if any
             if (pendingException != null) {
                 final Exception pex = pendingException;
@@ -293,18 +289,6 @@ public final class EventLoop {
         closed = true;
         executor.shutdown();
         uvLoop.stop();
-    }
-
-    private synchronized void registerStatsMBean()
-            throws MalformedObjectNameException, InstanceAlreadyExistsException,
-            MBeanRegistrationException, NotCompliantMBeanException {
-        final String value = instanceNumber == 0 ? "stats" : ("stats." + instanceNumber);
-        final ObjectName STATS_MBEAN_NAME =
-                new ObjectName("net.java.avatar.js.eventloop.EventLoop", "key", value);
-        final MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-        if (!mBeanServer.isRegistered(STATS_MBEAN_NAME)) {
-            mBeanServer.registerMBean(STATS_MBEAN, STATS_MBEAN_NAME);
-        }
     }
 
     public void release() {
@@ -560,7 +544,7 @@ public final class EventLoop {
                 }
             }
         });
-        
+
         this.instanceNumber = instanceNumber;
 
         LibUV.chdir(workDir);
