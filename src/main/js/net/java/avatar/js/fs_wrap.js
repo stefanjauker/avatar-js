@@ -158,7 +158,10 @@
     exports.write = function(fd, buffer, offset, length, position, callback) {
         if (position == null || position == undefined) {
             position = -1;
+        } else if (!isInt(position)) {
+            throw new TypeError("Not an integer");
         }
+
         if (typeof callback === 'function') {
             var id = _writeCallbacks.push(callback);
             var r = fs.write(fd, buffer._impl.array(), offset, length, position, id);
@@ -715,4 +718,7 @@
         return error;
     }
 
+    var isInt = function(value) {
+        return value % 1 == 0;
+    }
 });
