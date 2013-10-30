@@ -158,7 +158,7 @@
     exports.write = function(fd, buffer, offset, length, position, callback) {
         if (position == null || position == undefined) {
             position = -1;
-        } else if (!isInt(position)) {
+        } else if (position % 1 != 0) {
             throw new TypeError("Not an integer");
         }
 
@@ -716,9 +716,5 @@
         error.path = exception.path();
         process._errno = error.code;
         return error;
-    }
-
-    var isInt = function(value) {
-        return value % 1 == 0;
     }
 });
