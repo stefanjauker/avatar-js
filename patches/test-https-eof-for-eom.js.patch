@@ -1,0 +1,11 @@
+--- ../node/test/simple/test-https-eof-for-eom.js	2013-09-23 13:54:04.000000000 +0200
++++ test/simple/test-https-eof-for-eom.js	2013-10-30 10:43:31.000000000 +0100
+@@ -61,7 +61,7 @@
+   setTimeout(function() {
+     socket.end('hello world\n');
+     console.log('4) Server finished response');
+-  }, 100);
++  }, 1000);
+ });
+ 
+ 

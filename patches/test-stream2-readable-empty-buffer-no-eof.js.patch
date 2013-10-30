@@ -1,0 +1,21 @@
+--- ../node/test/simple/test-stream2-readable-empty-buffer-no-eof.js	2013-09-23 13:54:04.000000000 +0200
++++ test/simple/test-stream2-readable-empty-buffer-no-eof.js	2013-10-29 12:04:33.000000000 +0100
+@@ -50,15 +50,15 @@
+       case 1:
+         return r.push(buf);
+       case 2:
+-        setTimeout(r.read.bind(r, 0), 10);
++        setTimeout(r.read.bind(r, 0), 100);
+         return r.push(new Buffer(0)); // Not-EOF!
+       case 3:
+-        setTimeout(r.read.bind(r, 0), 10);
++        setTimeout(r.read.bind(r, 0), 100);
+         return process.nextTick(function() {
+           return r.push(new Buffer(0));
+         });
+       case 4:
+-        setTimeout(r.read.bind(r, 0), 10);
++        setTimeout(r.read.bind(r, 0), 100);
+         return setTimeout(function() {
+           return r.push(new Buffer(0));
+         });

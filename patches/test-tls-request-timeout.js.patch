@@ -1,0 +1,11 @@
+--- ../node/test/simple/test-tls-request-timeout.js	2013-09-23 13:54:05.000000000 +0200
++++ test/simple/test-tls-request-timeout.js	2013-10-29 12:05:55.000000000 +0100
+@@ -32,7 +32,7 @@
+ };
+ 
+ var server = tls.Server(options, function(socket) {
+-  socket.setTimeout(100);
++  socket.setTimeout(1000);
+ 
+   socket.on('timeout', function(err) {
+     hadTimeout = true;

@@ -1,0 +1,20 @@
+--- ../node/test/simple/test-net-socket-timeout.js	2013-09-23 13:54:04.000000000 +0200
++++ test/simple/test-net-socket-timeout.js	2013-10-29 12:02:24.000000000 +0100
+@@ -28,7 +28,7 @@
+ var server = net.Server();
+ server.listen(common.PORT, function() {
+   var socket = net.createConnection(common.PORT);
+-  socket.setTimeout(100, function() {
++  socket.setTimeout(1000, function() {
+     timedout = true;
+     socket.destroy();
+     server.close();
+@@ -36,7 +36,7 @@
+   });
+   var timer = setTimeout(function() {
+     process.exit(1);
+-  }, 200);
++  }, 2000);
+ });
+ 
+ process.on('exit', function() {

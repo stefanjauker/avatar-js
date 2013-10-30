@@ -243,6 +243,6 @@ var gc = global.gc;
         return current.apply(this, args);
     }
 
-    process.nextTick(NativeModule.require('module').runMain);
+    NativeModule.require('module').runMain();
 
 } )();

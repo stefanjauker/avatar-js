@@ -214,7 +214,7 @@ public abstract class Writer {
                     + availInAfter + " remainingOutput " + availOutAfter);
         }
         final Object[] args = {availInAfter, availOutAfter};
-        callback.call(null, args);
+        eventLoop.post(new Event("zlib.callback", callback, args));
     }
 
     void checkWriteParameters(final int flush,

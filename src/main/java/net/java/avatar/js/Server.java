@@ -217,8 +217,6 @@ public final class Server {
             throw ex;
         } finally {
             if (args != null && args.length > 0) {
-                // drain pending events, if any
-                eventLoop.drain();
                 // emit the process.exit event
                 runSystemScript(SYSTEM_FINALIZATION_SCRIPTS);
             }

@@ -28,7 +28,6 @@ package net.java.avatar.js.eventloop;
 import jdk.nashorn.api.scripting.NashornException;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -38,18 +37,11 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
 import javax.script.ScriptException;
 
 import net.java.avatar.js.dns.DNS;
@@ -69,6 +61,7 @@ import net.java.libuv.SignalCallback;
 import net.java.libuv.StreamCallback;
 import net.java.libuv.TimerCallback;
 import net.java.libuv.UDPCallback;
+import net.java.libuv.handles.IdleHandle;
 import net.java.libuv.handles.LoopHandle;
 
 public final class EventLoop {
@@ -77,9 +70,6 @@ public final class EventLoop {
     private static final int DEFAULT_CORE_THREADS = Runtime.getRuntime().availableProcessors() * 2;
     private static final int DEFAULT_MAX_THREADS = Integer.MAX_VALUE;
     private static final long DEFAULT_THREAD_TIMEOUT_SECONDS = 15;
-    private static final long MAX_IDLE_PAUSE_INTERVAL_MILLISECONDS = 100;
-    // Should be configurable, seems a good trade-off between perf and cpu consumption.
-    private static final long NUM_ITERATIONS_BEFORE_INC_DELAY = 100;
 
     private static final String PACKAGE = EventLoop.class.getPackage().getName() + ".";
     private static final String QUEUE_SIZE_PROPERTY = PACKAGE + "queueSize";
@@ -98,14 +88,10 @@ public final class EventLoop {
     // The Eventqueue is accessed from main loop and background thread.
     private final BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
 
-    private final Semaphore idleWait = new Semaphore(1);
     private final AtomicInteger hooks = new AtomicInteger(0);
-    private final AtomicBoolean maybeIdle = new AtomicBoolean(true);
 
     private final BlockingQueue<Runnable> tasks = new LinkedBlockingQueue<>(
             Integer.getInteger(QUEUE_SIZE_PROPERTY, DEFAULT_QUEUE_SIZE));
-
-    private final AtomicInteger activeTasks = new AtomicInteger(0);
 
     private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
             Integer.getInteger(CORE_THREAD_PROPERTY, DEFAULT_CORE_THREADS),
@@ -113,26 +99,14 @@ public final class EventLoop {
             Long.getLong(THREAD_TIMEOUT_PROPERTY, DEFAULT_THREAD_TIMEOUT_SECONDS), TimeUnit.SECONDS,
             tasks,
             new DaemonThreadFactory("avatar-js.bg.task"),
-            new ThreadPoolExecutor.CallerRunsPolicy()) {
-
-        @Override
-        protected void beforeExecute(final Thread t, final Runnable r) {
-            activeTasks.incrementAndGet();
-            super.beforeExecute(t, r);
-        }
-
-        @Override
-        protected void afterExecute(final Runnable r, final Throwable t) {
-            super.afterExecute(r, t);
-            activeTasks.decrementAndGet();
-        }
-    };
+            new ThreadPoolExecutor.CallerRunsPolicy());
 
     private Callback isHandlerRegistered = null;
     private Callback uncaughtExceptionHandler = null;
-    private Thread mainThread = null;
+    private final Thread mainThread;
     private Exception pendingException = null;
-    private volatile boolean closed;
+    private final IdleHandle idleHandle;
+    private AtomicBoolean idleHandleStarted = new AtomicBoolean(false);
 
     public static final class Handle implements AutoCloseable {
 
@@ -164,73 +138,34 @@ public final class EventLoop {
     }
 
     public void nextTick(final Event event) {
+        assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
         postEvent(event, eventQueue);
     }
 
     public void post(final Event event) {
+        assert Thread.currentThread() != mainThread : "posting from event thread, need to useNextTick " + Thread.currentThread().getName();
         postEvent(event, eventQueue);
     }
 
     private void postEvent(final Event event, final BlockingQueue<Event> queue) {
-        maybeIdle.set(false);
         queue.add(event);
-        idleWait.drainPermits();
-        idleWait.release();
     }
 
     public void run() throws Exception {
-        mainThread = Thread.currentThread();
+        assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
         executor.allowCoreThreadTimeOut(true);
-
-        boolean idle = false;
-        long delay = 0;
-        long nativeIdleCount = 0;
-        while (!closed &&
-               (uvLoop.runNoWait() ||
-                hooks.get() != 0 ||
-                !maybeIdle.get() ||
-                activeTasks.get() != 0 ||
-                // LinkedBlockingQueue.isEmpty() is quick but not always accurate
-                // peek first element to make sure the queues are really empty
-                // do this last to avoid unnecessary iteration
-                tasks.peek() != null ||
-                eventQueue.peek() != null)) {
-
-            // throw pending exception, if any
-            if (pendingException != null) {
-                final Exception pex = pendingException;
-                pendingException = null;
-                throw pex;
-            }
-
-            // pause until an event arrives to avoid spinning on idle
-            if (maybeIdle.get()) {
-                // increase delay as long as idle on consecutive polls
-               delay = Math.min(nativeIdleCount++ / NUM_ITERATIONS_BEFORE_INC_DELAY, MAX_IDLE_PAUSE_INTERVAL_MILLISECONDS);
-               if (delay > 1) {
-                    idleWait.tryAcquire(delay, TimeUnit.MILLISECONDS);
-               }
-            } else {
-                nativeIdleCount = 0;
-            }
-
-            // process pending events in this cycle
-            // This should be not needed but background tasks
-            // can post in the queue.
-            for (Event event = eventQueue.poll();
-                 event != null;
-                 event = eventQueue.poll()) {
-                processEvent(event);
-            }
-
-            idle = eventQueue.peek() == null;
-            maybeIdle.set(idle);
+        uvLoop.run();
+        // throw pending exception, if any
+        if (pendingException != null) {
+            final Exception pex = pendingException;
+            pendingException = null;
+            throw pex;
         }
     }
 
     /**
-     * This is called after each native callback and once the main module has been loaded
-     * (module.js runMain, process._tickCallback();).
+     * This is called after the main module has been loaded, after each native callback and
+     * when background threads have posted events.
      */
     public void processQueuedEvents() throws Exception {
         if (eventQueue.size() != 0) {
@@ -273,20 +208,7 @@ public final class EventLoop {
         }
     }
 
-    public void drain() throws Exception {
-        // XXX with a blocking uvLoop we should get ridoff this code
-        // To remove when calling into uvLoop.run();
-        assert Thread.currentThread() == mainThread : "drain called from non-event thread " + Thread.currentThread().getName();
-        // don't spin forever in case there is a large backlog of native events
-        final long start = System.currentTimeMillis();
-        final long timeout = 1000;
-        int times = 1000;
-        while (uvLoop.runNoWait() && --times > 0 && System.currentTimeMillis() - start < timeout) {
-        }
-    }
-
     public void stop() {
-        closed = true;
         executor.shutdown();
         uvLoop.stop();
     }
@@ -391,6 +313,15 @@ public final class EventLoop {
                 }
             };
         }
+        // If submit is not called from main thread, there is no guarantee that idleHandle.start()
+        // will be taken into account by uv loop.
+        if (Thread.currentThread() != mainThread) {
+            assert idleHandleStarted.get() : "idleHandle not started although called "
+                    + "from non-event thread " + Thread.currentThread().getName();
+        }
+        if (idleHandleStarted.compareAndSet(false, true)) {
+            idleHandle.start();
+        }
         return executor.submit(toSubmit);
     }
 
@@ -406,10 +337,10 @@ public final class EventLoop {
                "hooks: " + hooks.get() + ", " +
                "events: " + eventQueue.size() + ", " +
                "tasks: " + tasks.size() + ", " +
-               "activeTasks: " + activeTasks.get() + ", " +
                "activeThreads: " + executor.getActiveCount() + ", " +
                "threads: " + executor.getPoolSize() + ", " +
                "pending: " + eventQueue.size() + ", " +
+               "idlHandleStarted: " + idleHandleStarted.get() +
                "}}";
     }
 
@@ -422,6 +353,7 @@ public final class EventLoop {
                      final Logging logging,
                      final String workDir,
                      final int instanceNumber) throws IOException {
+        mainThread = Thread.currentThread();
         final String uv = LibUV.version();
         if (!uvVersion.equals(uv)) {
             throw new LinkageError(String.format("libuv version mismatch: expected '%s', found '%s'",
@@ -448,7 +380,6 @@ public final class EventLoop {
         }, new CallbackHandler() {
             @Override
             public void handleCheckCallback(final CheckCallback cb, final int status) {
-                maybeIdle.set(false);
                 try {
                     cb.call(status);
                     processQueuedEvents();
@@ -459,7 +390,6 @@ public final class EventLoop {
 
             @Override
             public void handleProcessCallback(final ProcessCallback cb, final Object[] args) {
-                maybeIdle.set(false);
                 try {
                     cb.call(args);
                     processQueuedEvents();
@@ -470,7 +400,6 @@ public final class EventLoop {
 
             @Override
             public void handleSignalCallback(final SignalCallback cb, final int signum) {
-                maybeIdle.set(false);
                 try {
                     cb.call(signum);
                     processQueuedEvents();
@@ -481,7 +410,6 @@ public final class EventLoop {
 
             @Override
             public void handleStreamCallback(final StreamCallback cb, final Object[] args) {
-                maybeIdle.set(false);
                 try {
                     cb.call(args);
                     processQueuedEvents();
@@ -492,7 +420,6 @@ public final class EventLoop {
 
             @Override
             public void handleFileCallback(final FileCallback cb, final int id, final Object[] args) {
-                maybeIdle.set(false);
                 try {
                     cb.call(id, args);
                     processQueuedEvents();
@@ -513,7 +440,6 @@ public final class EventLoop {
 
             @Override
             public void handleTimerCallback(final TimerCallback cb, final int status) {
-                maybeIdle.set(false);
                 try {
                     cb.call(status);
                     processQueuedEvents();
@@ -524,7 +450,6 @@ public final class EventLoop {
 
             @Override
             public void handleUDPCallback(final UDPCallback cb, final Object[] args) {
-                maybeIdle.set(false);
                 try {
                     cb.call(args);
                     processQueuedEvents();
@@ -535,7 +460,6 @@ public final class EventLoop {
 
             @Override
             public void handleIdleCallback(IdleCallback cb, int status) {
-                maybeIdle.set(false);
                 try {
                     cb.call(status);
                     processQueuedEvents();
@@ -549,7 +473,21 @@ public final class EventLoop {
 
         LibUV.chdir(workDir);
         LOG = logger("eventloop");
-        closed = false;
+        idleHandle = new IdleHandle(uvLoop);
+        idleHandle.setIdleCallback(new IdleCallback() {
+            @Override
+            public void call(int status) throws Exception {
+                // process pending events in this cycle
+                // have been posted by background threads
+                processQueuedEvents();
+                // No more bg task and no more Events to process, stop idleHandle
+                if (hooks.get() == 0 && eventQueue.peek() != null) {
+                    idleHandle.stop();
+                    idleHandleStarted.set(false);
+                }
+            }
+        });
+
     }
 
     public String version() {

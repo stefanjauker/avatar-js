@@ -366,9 +366,6 @@ exports.exit = function(status) {
     var code = status ? status : 0;
     if (!exports._exiting) {
         exports._exiting = true;
-        // drain can fire events that could in turn call exit creating an stack overflow.
-        __avatar.eventloop.drain();
-        // permission is required to stop the eventloop.
         exports.emit('exit', code);
     }
     __avatar.eventloop.stop();
@@ -411,6 +408,9 @@ Object.defineProperty(exports, 'hrtime', {
 Object.defineProperty(exports, 'nextTick', {
     enumerable: true,
     value: function(callback) {
+        if (this._exiting) {
+            return;
+        }
         eventloop.nextTick(
             new Event('nextTick', function(name, args) {
                     callback();
