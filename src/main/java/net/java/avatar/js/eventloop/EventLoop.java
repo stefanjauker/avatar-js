@@ -85,9 +85,7 @@ public final class EventLoop {
     private final int instanceNumber;
 
     private final Logger LOG;
-    // The Eventqueue is accessed from main loop and background thread.
     private final BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
-
     private final AtomicInteger hooks = new AtomicInteger(0);
 
     private final BlockingQueue<Runnable> tasks = new LinkedBlockingQueue<>(
@@ -106,7 +104,7 @@ public final class EventLoop {
     private final Thread mainThread;
     private Exception pendingException = null;
     private final IdleHandle idleHandle;
-    private AtomicBoolean idleHandleStarted = new AtomicBoolean(false);
+    private final AtomicBoolean idleHandleStarted = new AtomicBoolean(false);
 
     public static final class Handle implements AutoCloseable {
 
@@ -139,16 +137,11 @@ public final class EventLoop {
 
     public void nextTick(final Event event) {
         assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
-        postEvent(event, eventQueue);
+        eventQueue.add(event);
     }
 
     public void post(final Event event) {
-        assert Thread.currentThread() != mainThread : "posting from event thread, need to useNextTick " + Thread.currentThread().getName();
-        postEvent(event, eventQueue);
-    }
-
-    private void postEvent(final Event event, final BlockingQueue<Event> queue) {
-        queue.add(event);
+        eventQueue.add(event);
     }
 
     public void run() throws Exception {
@@ -168,7 +161,7 @@ public final class EventLoop {
      * when background threads have posted events.
      */
     public void processQueuedEvents() throws Exception {
-        if (eventQueue.size() != 0) {
+        if (eventQueue.peek() != null) {
             // process current events and all events added by processed events
             for (Event event = eventQueue.poll();
                  event != null;
@@ -202,7 +195,7 @@ public final class EventLoop {
             }
         } catch (final Exception ex) {
             if (!handleCallbackException(ex)) {
-                executor.shutdown();
+                stop();
                 throw ex;
             }
         }
@@ -340,7 +333,7 @@ public final class EventLoop {
                "activeThreads: " + executor.getActiveCount() + ", " +
                "threads: " + executor.getPoolSize() + ", " +
                "pending: " + eventQueue.size() + ", " +
-               "idlHandleStarted: " + idleHandleStarted.get() +
+               "idleHandleStarted: " + idleHandleStarted.get() +
                "}}";
     }
 
@@ -369,12 +362,12 @@ public final class EventLoop {
             @Override
             public void handle(final Exception ex) {
                 if (!handleCallbackException(ex)) {
-                    executor.shutdown();
                     if (pendingException == null) {
                         pendingException = ex;
                     } else {
                         pendingException.addSuppressed(ex);
                     }
+                    stop();
                 }
             }
         }, new CallbackHandler() {
@@ -481,7 +474,7 @@ public final class EventLoop {
                 // have been posted by background threads
                 processQueuedEvents();
                 // No more bg task and no more Events to process, stop idleHandle
-                if (hooks.get() == 0 && eventQueue.peek() != null) {
+                if (hooks.get() == 0 && eventQueue.peek() == null) {
                     idleHandle.stop();
                     idleHandleStarted.set(false);
                 }
