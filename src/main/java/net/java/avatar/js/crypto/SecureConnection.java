@@ -771,7 +771,7 @@ public class SecureConnection {
         int ret = 0;
         if (decryptedAppData.position() != 0) {
             ret = fillBuffer(decryptedAppData, pool);
-            // wrote is the min between decryptedAppData.limit() and pool.remaining()
+            // ret is the min between decryptedAppData.limit() and pool.remaining()
             // can't be greater than the decryptedAppData.limit().
             if (ret == decryptedAppData.limit()) {
                 decryptedAppData =
