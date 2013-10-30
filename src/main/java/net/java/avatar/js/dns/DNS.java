@@ -29,16 +29,6 @@ import net.java.libuv.Callback;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Hashtable;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.InitialDirContext;
-import javax.naming.directory.NoSuchAttributeException;
 
 import net.java.avatar.js.eventloop.Event;
 import net.java.avatar.js.eventloop.EventLoop;
@@ -46,61 +36,9 @@ import net.java.avatar.js.eventloop.EventLoop;
 public final class DNS {
 
     private final EventLoop eventLoop;
-    private final AtomicBoolean initialized = new AtomicBoolean(false);
-    private DirContext provider;
 
     public DNS(final EventLoop eventLoop) {
         this.eventLoop = eventLoop;
-    }
-
-    private String[] resolve(final String domain, final String record) throws NamingException {
-        // initialize lazily on the very first request
-        if (!initialized.get()) {
-            synchronized (initialized) {
-                @SuppressWarnings("UseOfObsoleteCollectionType")
-                final Hashtable<String,String> env = new Hashtable<String, String>();
-                env.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
-                provider = new InitialDirContext(env);
-                initialized.set(true);
-            }
-        }
-        final Attributes query = provider.getAttributes(domain, new String[] { record });
-        final Attribute records = query.get(record);
-        if (records == null) {
-            throw new NoSuchAttributeException("No attributes found");
-        }
-        @SuppressWarnings("rawtypes")
-        final NamingEnumeration recordData = records.getAll();
-        final int size = records.size();
-        final String[] data = new String[size];
-        for (int i = 0; i < size; i++) {
-            data[i] = recordData.next().toString();
-        }
-        return data;
-    }
-
-    public void query(final String address,
-                      final String type,
-                      final Callback callback) {
-        final EventLoop.Handle handle = eventLoop.grab();
-        eventLoop.submit(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    final String[] addresses = resolve(address, type);
-                    for (int i = 0; i < addresses.length; i++) {
-                        if (addresses[i].startsWith("\"") && addresses[i].endsWith("\"")) {
-                            addresses[i] = addresses[i].substring(1, addresses[i].length() - 2);
-                        }
-                    }
-                    eventLoop.post(new Event("dns.resolve.query." + type, callback, null, addresses));
-                } catch (final NamingException e ) {
-                    eventLoop.post(new Event("dns.resolve.query." + type + ".error", callback, e, null));
-                } finally {
-                    handle.close();
-                }
-            }
-        });
     }
 
     public void getHostByAddress(final String address,
