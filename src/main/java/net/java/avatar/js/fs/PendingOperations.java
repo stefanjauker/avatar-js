@@ -54,6 +54,9 @@ public final class PendingOperations {
         assert bucket.size() > 0;
         final Object callback = bucket.poll();
         assert callback != null;
+        if (bucket.size() == 0) {
+            map.remove(id);
+        }
         return callback;
     }
 }
