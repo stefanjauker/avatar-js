@@ -25,14 +25,14 @@
 
 (function(exports) {
 
-    var FileEventWatchHandle = Packages.net.java.libuv.handles.FileEventWatchHandle;
+    var FileEventHandle = Packages.net.java.libuv.handles.FileEventHandle;
     var loop = __avatar.eventloop.loop();
 
     exports.FSEvent = FSEvent;
 
     function FSEvent() {
         var that = this;
-        this._fsEvent = new FileEventWatchHandle(loop);
+        this._fsEvent = new FileEventHandle(loop);
         this._fsEvent.setFileEventCallback(function(status, event, filename) {
             if (that.onchange) {
                 that.onchange(status, event, filename);
