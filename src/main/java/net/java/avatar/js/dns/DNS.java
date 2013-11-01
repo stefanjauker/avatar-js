@@ -25,7 +25,7 @@
 
 package net.java.avatar.js.dns;
 
-import net.java.libuv.Callback;
+import net.java.libuv.cb.Callback;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

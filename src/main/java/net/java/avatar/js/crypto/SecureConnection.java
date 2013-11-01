@@ -25,7 +25,7 @@
 
 package net.java.avatar.js.crypto;
 
-import net.java.libuv.Callback;
+import net.java.libuv.cb.Callback;
 
 import java.nio.ByteBuffer;
 import java.security.cert.Certificate;

@@ -27,7 +27,7 @@ package net.java.avatar.js.eventloop;
 
 import java.security.AccessControlContext;
 import java.security.AccessController;
-import net.java.libuv.Callback;
+import net.java.libuv.cb.Callback;
 
 import net.java.avatar.js.Server;
 
@@ -63,11 +63,11 @@ public final class Event {
             this.ctx = null;
         }
     }
-    
+
     AccessControlContext getContext() {
             return ctx;
     }
-    
+
     String getName() {
         return name;
     }

@@ -25,7 +25,7 @@
 
 package net.java.avatar.js.zlib;
 
-import net.java.libuv.Callback;
+import net.java.libuv.cb.Callback;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
