@@ -35,7 +35,7 @@
     var LibUVPermission = Packages.net.java.libuv.LibUVPermission;
     // From this context, only the libuv.handle permission will be granted.
     var avatarContext = __avatar.controlContext;
-    
+
     exports.TTY = TTY;
 
     exports.isTTY = function(fd) {
@@ -51,14 +51,14 @@
         var that = this;
         AccessController.doPrivileged(new PrivilegedAction() {
             run: function() {
-                Object.defineProperty(that, '_tty', 
+                Object.defineProperty(that, '_tty',
                     { value: new TTYHandle(loop, fd, readable) });
             }
         }, avatarContext, LibUVPermission.HANDLE);
-        
-        this._tty.readCallback = function(args) {
-            if (args && args.length > 0 && args[0]) {
-                var buffer = new Buffer(new JavaBuffer(args[0]));
+
+        this._tty.readCallback = function(byteBuffer) {
+            if (byteBuffer) {
+                var buffer = new Buffer(new JavaBuffer(byteBuffer));
                 that.onread(buffer, 0, buffer.length);
             } else {
                 var errno = loop.getLastError().errnoString();
@@ -67,10 +67,8 @@
             }
         }
 
-        this._tty.writeCallback = function(args) {
-            var status = args[0];
+        this._tty.writeCallback = function(status, nativeException) {
             if (status == -1) {
-                var nativeException = args[1];
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }

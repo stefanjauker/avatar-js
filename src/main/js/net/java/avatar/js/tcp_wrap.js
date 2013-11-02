@@ -37,16 +37,16 @@
     var LibUVPermission = Packages.net.java.libuv.LibUVPermission;
     // From this context, only the libuv.handle permission will be granted.
     var avatarContext = __avatar.controlContext;
-    
+
     exports.TCP = TCP;
 
     function TCP(socket) {
-        
+
         Object.defineProperty(this, '_writeWrappers', { value: [] });
-        
+
         // User context, used to check accept permission.
         Object.defineProperty(this, '_callerContext', { value: AccessController.getContext() });
-        
+
         var that = this;
         Object.defineProperty(this, 'writeQueueSize', { enumerable: true,
             get : function() { return that._connection ? that._connection.writeQueueSize() : 0 } });
@@ -56,7 +56,7 @@
                 Object.defineProperty(that, '_connection', { value: socket ? socket : new TCPHandle(loop) });
             }
         }, avatarContext, LibUVPermission.HANDLE);
-        
+
         this._connection.connectionCallback = function(args) {
             var status = args[0];
             if (status == -1) {
@@ -70,7 +70,7 @@
                     that._connection.accept(clientHandle._connection);
                 }
             }, that._callerContext);
-            
+
             Object.defineProperty(clientHandle, '_connected', {value: true});
             clientHandle._connection.readStart();
             that.onconnection(status == -1 ? undefined : clientHandle);
@@ -89,9 +89,9 @@
             that._connectWrapper.oncomplete(status, that, that._connectWrapper, true, true);
         }
 
-        this._connection.readCallback = function(args) {
-            if (args && args.length > 0 && args[0]) {
-                var buffer = new Buffer(new JavaBuffer(args[0]));
+        this._connection.readCallback = function(byteBuffer) {
+            if (byteBuffer) {
+                var buffer = new Buffer(new JavaBuffer(byteBuffer));
                 that.onread(buffer, 0, buffer.length);
             } else {
                 var errno = loop.getLastError().errnoString();
@@ -100,10 +100,8 @@
             }
         }
 
-        this._connection.writeCallback = function(args) {
-            var status = args[0];
+        this._connection.writeCallback = function(status, nativeException) {
             if (status == -1) {
-                var nativeException = args[1];
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }

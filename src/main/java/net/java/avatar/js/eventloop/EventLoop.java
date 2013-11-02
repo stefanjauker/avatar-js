@@ -28,6 +28,7 @@ package net.java.avatar.js.eventloop;
 import jdk.nashorn.api.scripting.NashornException;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -59,6 +60,9 @@ import net.java.libuv.cb.IdleCallback;
 import net.java.libuv.cb.ProcessCallback;
 import net.java.libuv.cb.SignalCallback;
 import net.java.libuv.cb.StreamCallback;
+import net.java.libuv.cb.StreamRead2Callback;
+import net.java.libuv.cb.StreamReadCallback;
+import net.java.libuv.cb.StreamWriteCallback;
 import net.java.libuv.cb.TimerCallback;
 import net.java.libuv.cb.UDPCallback;
 import net.java.libuv.handles.IdleHandle;
@@ -405,6 +409,36 @@ public final class EventLoop {
             public void handleStreamCallback(final StreamCallback cb, final Object[] args) {
                 try {
                     cb.call(args);
+                    processQueuedEvents();
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
+            }
+
+            @Override
+            public void handleStreamReadCallback(final StreamReadCallback cb, final ByteBuffer data) {
+                try {
+                    cb.onRead(data);
+                    processQueuedEvents();
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
+            }
+
+            @Override
+            public void handleStreamRead2Callback(final StreamRead2Callback cb, final ByteBuffer data, final long handle, final int type) {
+                try {
+                    cb.onRead2(data, handle, type);
+                    processQueuedEvents();
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
+            }
+
+            @Override
+            public void handleStreamWriteCallback(final StreamWriteCallback cb, final int status, final Exception error) {
+                try {
+                    cb.onWrite(status, error);
                     processQueuedEvents();
                 } catch (Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);

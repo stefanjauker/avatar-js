@@ -42,59 +42,67 @@
     var LibUVPermission = Packages.net.java.libuv.LibUVPermission;
     // From this context, only the libuv.handle permission will be granted.
     var avatarContext = __avatar.controlContext;
-    
+
     exports.Pipe = Pipe;
 
     function Pipe(ipc, pipe) {
         events.EventEmitter.call(this);
         var that = this;
-        
+
         // User context, used to check accept permission.
         Object.defineProperty(this, '_callerContext', { value: AccessController.getContext() });
-        
+
         AccessController.doPrivileged(new PrivilegedAction() {
             run: function() {
-                Object.defineProperty(that, '_pipe', 
+                Object.defineProperty(that, '_pipe',
                     { value: pipe ? pipe : new PipeHandle(loop, ipc) });
             }
         }, avatarContext, LibUVPermission.HANDLE);
 
-        this._pipe.readCallback = function(args) {
-            if (args && args.length > 0 && args[0]) {
+        this._pipe.readCallback = function(byteBuffer) {
+            if (byteBuffer) {
                process._errno = undefined;
-               var data = new Buffer(new JavaBuffer(args[0]));
-               if (args.length == 3) {
-                   // Defined in uv.h
-                   var UV_NAMED_PIPE = 7
-                   var UV_TCP = 12;
-                   var UV_UDP = 15;
-                   if (args[2] == UV_NAMED_PIPE) {
-                       var pipeHandle = AccessController.doPrivileged(new PrivilegedAction() {
-                            run: function() {
-                                return new PipeHandle(loop, args[1], true);
-                            }
-                        }, avatarContext, LibUVPermission.HANDLE);
-                       var p = new Pipe(pipeHandle);
-                       that.onread(data, 0, data.length, p);
-                   } else if (args[2] == UV_TCP) {
-                       var socket = AccessController.doPrivileged(new PrivilegedAction() {
-                            run: function() {
-                                return new TCPHandle(loop, args[1]);
-                            }
-                        }, avatarContext, LibUVPermission.HANDLE);
-                       var tcp = new TCP(socket);
-                       that.onread(data, 0, data.length, tcp);
-                   } else if (args[2] == UV_UDP) {
-                       var datagram = AccessController.doPrivileged(new PrivilegedAction() {
-                            run: function() {
-                                return new UDPHandle();
-                            }
-                        }, avatarContext, LibUVPermission.HANDLE);
-                       var udp = new dgram.UDP(datagram);
-                       that.onread(data, 0, data.length, udp);
-                   } else {
-                       that.onread(data, 0, data.length);
-                   }
+               var data = new Buffer(new JavaBuffer(byteBuffer));
+               that.onread(data, 0, data.length);
+            } else {
+                var errno = 'EOF';
+                process._errno = errno;
+                that.onread(undefined, 0, 0);
+            }
+        }
+
+        this._pipe.read2Callback = function(byteBuffer, handle, type) {
+            if (byteBuffer) {
+               process._errno = undefined;
+               var data = new Buffer(new JavaBuffer(byteBuffer));
+               // Defined in uv.h
+               var UV_NAMED_PIPE = 7
+               var UV_TCP = 12;
+               var UV_UDP = 15;
+               if (type == UV_NAMED_PIPE) {
+                   var pipeHandle = AccessController.doPrivileged(new PrivilegedAction() {
+                        run: function() {
+                            return new PipeHandle(loop, handle, true);
+                        }
+                    }, avatarContext, LibUVPermission.HANDLE);
+                   var p = new Pipe(pipeHandle);
+                   that.onread(data, 0, data.length, p);
+               } else if (type == UV_TCP) {
+                   var socket = AccessController.doPrivileged(new PrivilegedAction() {
+                        run: function() {
+                            return new TCPHandle(loop, handle);
+                        }
+                    }, avatarContext, LibUVPermission.HANDLE);
+                   var tcp = new TCP(socket);
+                   that.onread(data, 0, data.length, tcp);
+               } else if (type == UV_UDP) {
+                   var datagram = AccessController.doPrivileged(new PrivilegedAction() {
+                        run: function() {
+                            return new UDPHandle();
+                        }
+                    }, avatarContext, LibUVPermission.HANDLE);
+                   var udp = new dgram.UDP(datagram);
+                   that.onread(data, 0, data.length, udp);
                } else {
                    that.onread(data, 0, data.length);
                }
@@ -105,10 +113,8 @@
             }
         }
 
-        this._pipe.writeCallback = function(args) {
-            var status = args[0];
+        this._pipe.writeCallback = function(status, nativeException) {
             if (status == -1) {
-                var nativeException = args[1];
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
