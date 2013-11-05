@@ -25,8 +25,6 @@
 
 package net.java.avatar.js.eventloop;
 
-import jdk.nashorn.api.scripting.NashornException;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.AccessControlContext;
@@ -38,17 +36,14 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.script.ScriptException;
 
+import jdk.nashorn.api.scripting.NashornException;
 import net.java.avatar.js.dns.DNS;
 import net.java.avatar.js.log.Logger;
 import net.java.avatar.js.log.Logging;
-
 import net.java.libuv.LibUV;
 import net.java.libuv.cb.Callback;
 import net.java.libuv.cb.CallbackExceptionHandler;
@@ -70,45 +65,23 @@ import net.java.libuv.handles.LoopHandle;
 
 public final class EventLoop {
 
-    private static final int DEFAULT_QUEUE_SIZE = Integer.MAX_VALUE;
-    private static final int DEFAULT_CORE_THREADS = Runtime.getRuntime().availableProcessors() * 2;
-    private static final int DEFAULT_MAX_THREADS = Integer.MAX_VALUE;
-    private static final long DEFAULT_THREAD_TIMEOUT_SECONDS = 15;
-
-    private static final String PACKAGE = EventLoop.class.getPackage().getName() + ".";
-    private static final String QUEUE_SIZE_PROPERTY = PACKAGE + "queueSize";
-    private static final String CORE_THREAD_PROPERTY = PACKAGE + "coreThreads";
-    private static final String MAX_THREADS_PROPERTY = PACKAGE + "maxThreads";
-    private static final String THREAD_TIMEOUT_PROPERTY = PACKAGE + "threadTimeout";
-
     private final String version;
     private final String uvVersion;
     private final Logging logging;
     private final DNS dns;
     private final LoopHandle uvLoop;
     private final int instanceNumber;
-
+    private final ThreadPool executor;
     private final Logger LOG;
     private final BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
     private final AtomicInteger hooks = new AtomicInteger(0);
-
-    private final BlockingQueue<Runnable> tasks = new LinkedBlockingQueue<>(
-            Integer.getInteger(QUEUE_SIZE_PROPERTY, DEFAULT_QUEUE_SIZE));
-
-    private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
-            Integer.getInteger(CORE_THREAD_PROPERTY, DEFAULT_CORE_THREADS),
-            Integer.getInteger(MAX_THREADS_PROPERTY, DEFAULT_MAX_THREADS),
-            Long.getLong(THREAD_TIMEOUT_PROPERTY, DEFAULT_THREAD_TIMEOUT_SECONDS), TimeUnit.SECONDS,
-            tasks,
-            new DaemonThreadFactory("avatar-js.bg.task"),
-            new ThreadPoolExecutor.CallerRunsPolicy());
+    private final IdleHandle idleHandle;
+    private final AtomicBoolean idleHandleStarted = new AtomicBoolean(false);
+    private final Thread mainThread;
 
     private Callback isHandlerRegistered = null;
     private Callback uncaughtExceptionHandler = null;
-    private final Thread mainThread;
     private Exception pendingException = null;
-    private final IdleHandle idleHandle;
-    private final AtomicBoolean idleHandleStarted = new AtomicBoolean(false);
 
     public static final class Handle implements AutoCloseable {
 
@@ -212,7 +185,7 @@ public final class EventLoop {
 
     public void release() {
         hooks.set(0);
-        tasks.clear();
+        executor.clearQueuedTasks();
     }
 
     // filename, line, column, name, message
@@ -324,16 +297,11 @@ public final class EventLoop {
 
     @Override
     public String toString() {
-        return "EventLoop." + instanceNumber + " " +
-                "{config: {" +
-                QUEUE_SIZE_PROPERTY + "=" + tasks.remainingCapacity() + ", " +
-                CORE_THREAD_PROPERTY + "=" + executor.getCorePoolSize() + ", " +
-                MAX_THREADS_PROPERTY + "=" + executor.getMaximumPoolSize() +
-               "}, runtime: {" +
+        return "EventLoop." + instanceNumber + " " + "}, runtime: {" +
                "executor: " + executor + ", " +
                "hooks: " + hooks.get() + ", " +
                "events: " + eventQueue.size() + ", " +
-               "tasks: " + tasks.size() + ", " +
+               "tasks: " + executor.queuedTasksCount() + ", " +
                "activeThreads: " + executor.getActiveCount() + ", " +
                "threads: " + executor.getPoolSize() + ", " +
                "pending: " + eventQueue.size() + ", " +
@@ -349,7 +317,8 @@ public final class EventLoop {
                      final String uvVersion,
                      final Logging logging,
                      final String workDir,
-                     final int instanceNumber) throws IOException {
+                     final int instanceNumber,
+                     final ThreadPool executor) throws IOException {
         mainThread = Thread.currentThread();
         final String uv = LibUV.version();
         if (!uvVersion.equals(uv)) {
@@ -497,6 +466,7 @@ public final class EventLoop {
         });
 
         this.instanceNumber = instanceNumber;
+        this.executor = executor;
 
         LibUV.chdir(workDir);
         LOG = logger("eventloop");
@@ -548,5 +518,4 @@ public final class EventLoop {
     public LoopHandle loop() {
         return uvLoop;
     }
-
 }

@@ -45,6 +45,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import net.java.avatar.js.eventloop.EventLoop;
+import net.java.avatar.js.eventloop.ThreadPool;
 import net.java.avatar.js.log.Logger;
 import net.java.avatar.js.log.Logging;
 
@@ -117,7 +118,7 @@ public final class Server {
                   final Loader loader,
                   final Logging logging,
                   final String workDir) throws Exception {
-        this(engine, loader, logging, workDir, engine.getContext(), 0);
+        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.newInstance());
     }
 
     public Server(final ScriptEngine engine,
@@ -125,7 +126,8 @@ public final class Server {
                   final Logging logging,
                   final String workDir,
                   final ScriptContext context,
-                  final int instanceNumber) throws Exception {
+                  final int instanceNumber,
+                  final ThreadPool threadPool) throws Exception {
         this.engine = engine;
         this.context = context;
         this.bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
@@ -135,7 +137,7 @@ public final class Server {
         assert version != null;
         uvVersion = loader.getBuildProperty(LIBUV_VERSION_BUILD_PROPERTY);
         assert uvVersion != null;
-        this.eventLoop = new EventLoop(version, uvVersion, logging, workDir, instanceNumber);
+        this.eventLoop = new EventLoop(version, uvVersion, logging, workDir, instanceNumber, threadPool);
         this.holder = new SecureHolder(eventLoop, loader, (Invocable) engine);
     }
 
