@@ -26,6 +26,7 @@
 (function(exports) {
 
     var Files = Packages.net.java.libuv.Files;
+    var FilePollHandle = Packages.net.java.libuv.handles.FilePollHandle;
     var PendingOperations = Packages.net.java.avatar.js.fs.PendingOperations;
     var JavaBuffer = Packages.net.java.avatar.js.buffer.Buffer;
     var loop = __avatar.eventloop.loop();
@@ -690,6 +691,41 @@
                 throw newError(e);
             }
         }
+    }
+
+    exports.StatWatcher = StatWatcher;
+
+    function StatWatcher() {
+        var that = this;
+        this._fsPoll = new FilePollHandle(loop);
+
+        this._fsPoll.setFilePollCallback(function(status, previous, current) {
+            if (that.onchange) {
+                that.onchange(current, previous, status);
+            }
+        });
+
+        this._fsPoll.setStopCallback(function() {
+            if (that.onstop) {
+                that.onstop();
+            }
+        });
+    }
+
+    StatWatcher.prototype.start = function(filename, persistent, interval) {
+        try {
+            var status = this._fsPoll.start(filename, persistent, interval);
+        } catch (err) {
+            if(!err.errnoString) {
+                throw err;
+            }
+            process._errno = err.errnoString();
+        }
+        return status;
+    }
+
+    StatWatcher.prototype.stop = function() {
+        this._fsPoll.stop();
     }
 
     exports.Stats = function(stats) {

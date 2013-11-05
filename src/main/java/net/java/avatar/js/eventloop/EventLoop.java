@@ -45,12 +45,15 @@ import net.java.avatar.js.dns.DNS;
 import net.java.avatar.js.log.Logger;
 import net.java.avatar.js.log.Logging;
 import net.java.libuv.LibUV;
+import net.java.libuv.Stats;
 import net.java.libuv.cb.Callback;
 import net.java.libuv.cb.CallbackExceptionHandler;
 import net.java.libuv.cb.CallbackHandler;
 import net.java.libuv.cb.CheckCallback;
 import net.java.libuv.cb.FileCallback;
 import net.java.libuv.cb.FileEventCallback;
+import net.java.libuv.cb.FilePollCallback;
+import net.java.libuv.cb.FilePollStopCallback;
 import net.java.libuv.cb.IdleCallback;
 import net.java.libuv.cb.ProcessCallback;
 import net.java.libuv.cb.SignalCallback;
@@ -429,6 +432,25 @@ public final class EventLoop {
                 try {
                     cb.call(status, event, filename);
                     processQueuedEvents();
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
+            }
+
+
+            @Override
+            public void handleFilePollCallback(FilePollCallback cb, int status, Stats previous, Stats current) {
+                try {
+                    cb.onPoll(status, previous, current);
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
+            }
+
+            @Override
+            public void handleFilePollStopCallback(FilePollStopCallback cb) {
+                try {
+                    cb.onStop();
                 } catch (Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);
                 }
