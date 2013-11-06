@@ -54,6 +54,8 @@ import net.java.libuv.cb.FileCallback;
 import net.java.libuv.cb.FileEventCallback;
 import net.java.libuv.cb.FilePollCallback;
 import net.java.libuv.cb.FilePollStopCallback;
+import net.java.libuv.cb.FileReadCallback;
+import net.java.libuv.cb.FileWriteCallback;
 import net.java.libuv.cb.IdleCallback;
 import net.java.libuv.cb.ProcessCallback;
 import net.java.libuv.cb.SignalCallback;
@@ -423,6 +425,26 @@ public final class EventLoop {
                     cb.call(id, args);
                     processQueuedEvents();
                 } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
+            }
+
+            @Override
+            public void handleFileReadCallback(final FileReadCallback cb, final int callbackId, final int bytesRead, final byte[] data, final Exception error) {
+                try {
+                    cb.onRead(callbackId, bytesRead, data, error);
+                    processQueuedEvents();
+                } catch (final Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
+            }
+
+            @Override
+            public void handleFileWriteCallback(final FileWriteCallback cb, final int callbackId, final int bytesWritten, final Exception error) {
+                try {
+                    cb.onWrite(callbackId, bytesWritten, error);
+                    processQueuedEvents();
+                } catch (final Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);
                 }
             }

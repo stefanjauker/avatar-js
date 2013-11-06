@@ -87,16 +87,12 @@
 
     Object.defineProperty(this, '_readCallbacks', { value: new PendingOperations() });
 
-    fs.setReadCallback(function(id, args) {
+    fs.setReadCallback(function(id, bytesRead, data, nativeException) {
         var cb = _readCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
-            cb(newError(nativeException), undefined, -1);
+        if (nativeException) {
+            cb(newError(nativeException), bytesRead, data);
         } else {
-            var bytesRead = args[0];
-            var data = new Buffer(new JavaBuffer(args[1]));
-            cb(undefined, bytesRead, data);
+            cb(undefined, bytesRead, new Buffer(new JavaBuffer(data)));
         }
     });
 
@@ -144,14 +140,11 @@
 
     Object.defineProperty(this, '_writeCallbacks', { value: new PendingOperations() });
 
-    fs.setWriteCallback(function(id, args) {
+    fs.setWriteCallback(function(id, bytesWritten, nativeException) {
         var cb = _writeCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
-            cb(newError(nativeException), -1, undefined);
+        if (nativeException) {
+            cb(newError(nativeException), bytesWritten);
         } else {
-            var bytesWritten = args[0];
             cb(undefined, bytesWritten);
         }
     });
