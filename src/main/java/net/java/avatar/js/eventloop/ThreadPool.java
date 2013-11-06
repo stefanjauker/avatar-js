@@ -50,6 +50,8 @@ public final class ThreadPool extends ThreadPoolExecutor {
     private final BlockingQueue<Runnable> taskQueue;
     private final AtomicInteger activeTasks;
 
+    private static ThreadPool instance;
+
     /**
      * Returns a new default instance.
      *
@@ -78,6 +80,18 @@ public final class ThreadPool extends ThreadPoolExecutor {
                                          final int taskQueueSize) {
         final BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>(taskQueueSize);
         return new ThreadPool(poolSize, maximumPoolSize, keepAliveTime, taskQueueSize, taskQueue);
+    }
+
+    /**
+     * Returns the singleton instance.
+     *
+     * @return The singleton instance.
+     */
+    public static synchronized ThreadPool getInstance() {
+        if (instance == null) {
+            instance = newInstance();
+        }
+        return instance;
     }
 
     private ThreadPool(final int corePoolSize,

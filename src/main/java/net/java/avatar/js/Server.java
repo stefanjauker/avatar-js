@@ -118,7 +118,7 @@ public final class Server {
                   final Loader loader,
                   final Logging logging,
                   final String workDir) throws Exception {
-        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.newInstance());
+        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.getInstance());
     }
 
     public Server(final ScriptEngine engine,
@@ -332,7 +332,7 @@ public final class Server {
             checkPermission();
             return ctx;
         }
-        
+
         public EventLoop getEventloop() {
             checkPermission();
             return evtloop;
@@ -376,15 +376,15 @@ public final class Server {
         public boolean getTraceDeprecation() {
             return traceDeprecation;
         }
-        
+
         private void setExitCode(int exitCode) {
             this.exitCode = exitCode;
         }
-        
+
         public int getExitCode() {
             return exitCode;
         }
-        
+
         public void installNativeModule(Object nativeModule) {
             checkPermission();
             if(this.nativeModule != null) {
@@ -392,9 +392,9 @@ public final class Server {
             }
             this.nativeModule = nativeModule;
         }
-        
+
         /**
-         * This is an equivalent of javascript require("<native module name>") 
+         * This is an equivalent of javascript require("<native module name>")
          * targeted for Java code.
          */
         public Object require(String moduleName) throws Exception {
