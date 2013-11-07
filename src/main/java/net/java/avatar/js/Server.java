@@ -209,12 +209,14 @@ public final class Server {
         holder.setArgs(avatarArgs.toArray(new String[avatarArgs.size()]),
                 userArgs.toArray(new String[userArgs.size()]),
                 userFiles);
-
-        runSystemScript(SYSTEM_INIT_SCRIPTS);
-        // run the main event loop
         try {
+            runSystemScript(SYSTEM_INIT_SCRIPTS);
+            // run the main event loop
             eventLoop.run();
         } catch(Exception ex) {
+            if (!eventLoop.handleCallbackException(ex)) {
+                eventLoop.stop();
+            }
             holder.setExitCode(1);
             throw ex;
         } finally {
