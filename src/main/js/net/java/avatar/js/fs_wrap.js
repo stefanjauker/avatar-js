@@ -230,8 +230,9 @@
             cb(newError(nativeException), undefined);
         } else {
             var dirs = [];
-            for (var i = 0; i < args.length; i++) {
-                dirs.push(args[i]);
+            var names = args[1];
+            for (var i = 0; i < names.length; i++) {
+                dirs.push(names[i]);
             }
             cb(undefined, dirs);
         }
@@ -264,7 +265,7 @@
             var nativeException = args[1];
             cb(newError(nativeException));
         } else {
-            cb(undefined, new exports.Stats(args[0]));
+            cb(undefined, new exports.Stats(args[1]));
         }
     });
 
@@ -291,7 +292,7 @@
             var nativeException = args[1];
             cb(newError(nativeException));
         } else {
-            cb(undefined, new exports.Stats(args[0]));
+            cb(undefined, new exports.Stats(args[1]));
         }
     });
 
@@ -500,7 +501,7 @@
             var nativeException = args[1];
             cb(newError(nativeException));
         } else {
-            cb(undefined, new exports.Stats(args[0]));
+            cb(undefined, new exports.Stats(args[1]));
         }
     });
 
@@ -591,7 +592,7 @@
             var nativeException = args[1];
             cb(newError(nativeException));
         } else {
-            cb(undefined, args[0]);
+            cb(undefined, args[1]);
         }
     });
 
