@@ -44,6 +44,7 @@ import jdk.nashorn.api.scripting.NashornException;
 import net.java.avatar.js.dns.DNS;
 import net.java.avatar.js.log.Logger;
 import net.java.avatar.js.log.Logging;
+import net.java.libuv.Address;
 import net.java.libuv.LibUV;
 import net.java.libuv.Stats;
 import net.java.libuv.cb.Callback;
@@ -64,7 +65,9 @@ import net.java.libuv.cb.StreamRead2Callback;
 import net.java.libuv.cb.StreamReadCallback;
 import net.java.libuv.cb.StreamWriteCallback;
 import net.java.libuv.cb.TimerCallback;
-import net.java.libuv.cb.UDPCallback;
+import net.java.libuv.cb.UDPCloseCallback;
+import net.java.libuv.cb.UDPRecvCallback;
+import net.java.libuv.cb.UDPSendCallback;
 import net.java.libuv.handles.IdleHandle;
 import net.java.libuv.handles.LoopHandle;
 
@@ -489,9 +492,29 @@ public final class EventLoop {
             }
 
             @Override
-            public void handleUDPCallback(final UDPCallback cb, final Object[] args) {
+            public void handleUDPRecvCallback(final UDPRecvCallback cb, final int nread, final ByteBuffer data, final Address address) {
                 try {
-                    cb.call(args);
+                    cb.onRecv(nread, data, address);
+                    processQueuedEvents();
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
+            }
+
+            @Override
+            public void handleUDPSendCallback(final UDPSendCallback cb, final int status, final Exception error) {
+                try {
+                    cb.onSend(status, error);
+                    processQueuedEvents();
+                } catch (Exception ex) {
+                    uvLoop.getExceptionHandler().handle(ex);
+                }
+            }
+
+            @Override
+            public void handleUDPCloseCallback(final UDPCloseCallback cb) {
+                try {
+                    cb.onClose();
                     processQueuedEvents();
                 } catch (Exception ex) {
                     uvLoop.getExceptionHandler().handle(ex);

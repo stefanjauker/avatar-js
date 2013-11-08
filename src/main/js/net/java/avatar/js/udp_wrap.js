@@ -33,32 +33,28 @@
     var LibUVPermission = Packages.net.java.libuv.LibUVPermission;
     // From this context, only the libuv.handle permission will be granted.
     var avatarContext = __avatar.controlContext;
-    
+
     exports.UDP = UDP;
 
     function UDP(dgram) {
         var that = this;
-        
+
         Object.defineProperty(this, '_writeWrappers', { value: [] });
         AccessController.doPrivileged(new PrivilegedAction() {
             run: function() {
-                Object.defineProperty(that, '_udp', 
+                Object.defineProperty(that, '_udp',
                 { value: dgram ? dgram : new UDPHandle(loop) });
             }
         }, avatarContext, LibUVPermission.HANDLE);
-        
 
-        this._udp.recvCallback = function(args) {
-            var nread = args[0];
-            var buffer = new Buffer(new JavaBuffer(args[1]));
-            var rinfo = args[2];
+
+        this._udp.recvCallback = function(nread, data, rinfo) {
+            var buffer = new Buffer(new JavaBuffer(data));
             that.onmessage(that, buffer, 0, buffer.length, { address: rinfo.getIp(), port: rinfo.getPort() })
         }
 
-        this._udp.sendCallback = function(args) {
-            var status = args[0];
+        this._udp.sendCallback = function(status, nativeException) {
             if (status == -1) {
-                var nativeException = args[1];
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
