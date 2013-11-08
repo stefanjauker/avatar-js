@@ -26,7 +26,6 @@
 package net.java.avatar.js.eventloop;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -44,30 +43,10 @@ import jdk.nashorn.api.scripting.NashornException;
 import net.java.avatar.js.dns.DNS;
 import net.java.avatar.js.log.Logger;
 import net.java.avatar.js.log.Logging;
-import net.java.libuv.Address;
 import net.java.libuv.LibUV;
-import net.java.libuv.Stats;
 import net.java.libuv.cb.Callback;
 import net.java.libuv.cb.CallbackExceptionHandler;
-import net.java.libuv.cb.CallbackHandler;
-import net.java.libuv.cb.CheckCallback;
-import net.java.libuv.cb.FileCallback;
-import net.java.libuv.cb.FileEventCallback;
-import net.java.libuv.cb.FilePollCallback;
-import net.java.libuv.cb.FilePollStopCallback;
-import net.java.libuv.cb.FileReadCallback;
-import net.java.libuv.cb.FileWriteCallback;
 import net.java.libuv.cb.IdleCallback;
-import net.java.libuv.cb.ProcessCallback;
-import net.java.libuv.cb.SignalCallback;
-import net.java.libuv.cb.StreamCallback;
-import net.java.libuv.cb.StreamRead2Callback;
-import net.java.libuv.cb.StreamReadCallback;
-import net.java.libuv.cb.StreamWriteCallback;
-import net.java.libuv.cb.TimerCallback;
-import net.java.libuv.cb.UDPCloseCallback;
-import net.java.libuv.cb.UDPRecvCallback;
-import net.java.libuv.cb.UDPSendCallback;
 import net.java.libuv.handles.IdleHandle;
 import net.java.libuv.handles.LoopHandle;
 
@@ -351,186 +330,7 @@ public final class EventLoop {
                     stop();
                 }
             }
-        }, new CallbackHandler() {
-            @Override
-            public void handleCheckCallback(final CheckCallback cb, final int status) {
-                try {
-                    cb.call(status);
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleProcessCallback(final ProcessCallback cb, final Object[] args) {
-                try {
-                    cb.call(args);
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleSignalCallback(final SignalCallback cb, final int signum) {
-                try {
-                    cb.call(signum);
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleStreamCallback(final StreamCallback cb, final Object[] args) {
-                try {
-                    cb.call(args);
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleStreamReadCallback(final StreamReadCallback cb, final ByteBuffer data) {
-                try {
-                    cb.onRead(data);
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleStreamRead2Callback(final StreamRead2Callback cb, final ByteBuffer data, final long handle, final int type) {
-                try {
-                    cb.onRead2(data, handle, type);
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleStreamWriteCallback(final StreamWriteCallback cb, final int status, final Exception error) {
-                try {
-                    cb.onWrite(status, error);
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleFileCallback(final FileCallback cb, final int id, final Object[] args) {
-                try {
-                    cb.call(id, args);
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleFileReadCallback(final FileReadCallback cb, final int callbackId, final int bytesRead, final byte[] data, final Exception error) {
-                try {
-                    cb.onRead(callbackId, bytesRead, data, error);
-                    processQueuedEvents();
-                } catch (final Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleFileWriteCallback(final FileWriteCallback cb, final int callbackId, final int bytesWritten, final Exception error) {
-                try {
-                    cb.onWrite(callbackId, bytesWritten, error);
-                    processQueuedEvents();
-                } catch (final Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleFileEventCallback(FileEventCallback cb, int status, String event, String filename) {
-                try {
-                    cb.call(status, event, filename);
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-
-            @Override
-            public void handleFilePollCallback(FilePollCallback cb, int status, Stats previous, Stats current) {
-                try {
-                    cb.onPoll(status, previous, current);
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleFilePollStopCallback(FilePollStopCallback cb) {
-                try {
-                    cb.onStop();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleTimerCallback(final TimerCallback cb, final int status) {
-                try {
-                    cb.call(status);
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleUDPRecvCallback(final UDPRecvCallback cb, final int nread, final ByteBuffer data, final Address address) {
-                try {
-                    cb.onRecv(nread, data, address);
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleUDPSendCallback(final UDPSendCallback cb, final int status, final Exception error) {
-                try {
-                    cb.onSend(status, error);
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleUDPCloseCallback(final UDPCloseCallback cb) {
-                try {
-                    cb.onClose();
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-
-            @Override
-            public void handleIdleCallback(IdleCallback cb, int status) {
-                try {
-                    cb.call(status);
-                    processQueuedEvents();
-                } catch (Exception ex) {
-                    uvLoop.getExceptionHandler().handle(ex);
-                }
-            }
-        });
+        }, new LoopCallbackHandler(this));
 
         this.instanceNumber = instanceNumber;
         this.executor = executor;
@@ -585,4 +385,5 @@ public final class EventLoop {
     public LoopHandle loop() {
         return uvLoop;
     }
+
 }
