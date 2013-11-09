@@ -158,7 +158,7 @@
             }
         }
 
-        this._pipe.shutdownCallback = function(args) {
+        this._pipe.shutdownCallback = function(status, nativeException) {
             if (status == -1) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
