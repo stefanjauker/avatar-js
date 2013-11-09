@@ -46,9 +46,12 @@ import net.java.libuv.cb.FileWriteCallback;
 import net.java.libuv.cb.IdleCallback;
 import net.java.libuv.cb.ProcessCallback;
 import net.java.libuv.cb.SignalCallback;
-import net.java.libuv.cb.StreamCallback;
+import net.java.libuv.cb.StreamCloseCallback;
+import net.java.libuv.cb.StreamConnectCallback;
+import net.java.libuv.cb.StreamConnectionCallback;
 import net.java.libuv.cb.StreamRead2Callback;
 import net.java.libuv.cb.StreamReadCallback;
+import net.java.libuv.cb.StreamShutdownCallback;
 import net.java.libuv.cb.StreamWriteCallback;
 import net.java.libuv.cb.TimerCallback;
 import net.java.libuv.cb.UDPCloseCallback;
@@ -94,16 +97,6 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleStreamCallback(final StreamCallback cb, final Object[] args) {
-        try {
-            cb.call(args);
-            eventLoop.processQueuedEvents();
-        } catch (Exception ex) {
-            eventLoop.loop().getExceptionHandler().handle(ex);
-        }
-    }
-
-    @Override
     public void handleStreamReadCallback(final StreamReadCallback cb, final ByteBuffer data) {
         try {
             cb.onRead(data);
@@ -127,6 +120,46 @@ final class LoopCallbackHandler implements CallbackHandler {
     public void handleStreamWriteCallback(final StreamWriteCallback cb, final int status, final Exception error) {
         try {
             cb.onWrite(status, error);
+            eventLoop.processQueuedEvents();
+        } catch (Exception ex) {
+            eventLoop.loop().getExceptionHandler().handle(ex);
+        }
+    }
+
+    @Override
+    public void handleStreamConnectCallback(final StreamConnectCallback cb, final int status, final Exception error) {
+        try {
+            cb.onConnect(status, error);
+            eventLoop.processQueuedEvents();
+        } catch (Exception ex) {
+            eventLoop.loop().getExceptionHandler().handle(ex);
+        }
+    }
+
+    @Override
+    public void handleStreamConnectionCallback(final StreamConnectionCallback cb, final int status, final Exception error) {
+        try {
+            cb.onConnection(status, error);
+            eventLoop.processQueuedEvents();
+        } catch (Exception ex) {
+            eventLoop.loop().getExceptionHandler().handle(ex);
+        }
+    }
+
+    @Override
+    public void handleStreamCloseCallback(final StreamCloseCallback cb) {
+        try {
+            cb.onClose();
+            eventLoop.processQueuedEvents();
+        } catch (Exception ex) {
+            eventLoop.loop().getExceptionHandler().handle(ex);
+        }
+    }
+
+    @Override
+    public void handleStreamShutdownCallback(final StreamShutdownCallback cb, final int status, final Exception error) {
+        try {
+            cb.onShutdown(status, error);
             eventLoop.processQueuedEvents();
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);

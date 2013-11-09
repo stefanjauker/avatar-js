@@ -124,10 +124,8 @@
             }
         }
 
-        this._pipe.connectCallback = function(args) {
-            var status = args[0];
+        this._pipe.connectCallback = function(status, nativeException) {
             if (status == -1) {
-                var nativeException = args[1];
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             } else {
@@ -137,9 +135,7 @@
         }
 
         this._pipe.connectionCallback = function(args) {
-            var status = args[0];
             if (status == -1) {
-                var nativeException = args[1];
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
@@ -153,7 +149,7 @@
             that.onconnection(status == -1 ? undefined : clientHandle);
         }
 
-        this._pipe.closeCallback = function(args) {
+        this._pipe.closeCallback = function() {
             if (that._closeCallback) {
                 // net.js, line 422, fireErrorCallbacks uses nextTick to do
                 // error handling. error handling MUST be handled before this close callback is called
@@ -163,9 +159,7 @@
         }
 
         this._pipe.shutdownCallback = function(args) {
-            var status = args[0];
             if (status == -1) {
-                var nativeException = args[1];
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
