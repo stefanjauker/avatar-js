@@ -134,7 +134,7 @@
             that._connectWrapper.oncomplete(status, that, that, true, true);
         }
 
-        this._pipe.connectionCallback = function(args) {
+        this._pipe.connectionCallback = function(status, nativeException) {
             if (status == -1) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
