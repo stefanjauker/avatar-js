@@ -34,11 +34,9 @@
 
     Object.defineProperty(this, '_closeCallbacks', { value: new PendingOperations() });
 
-    fs.setCloseCallback(function(id, args) {
+    fs.setCloseCallback(function(id, fd, nativeException) {
         var cb = _closeCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
             cb();
@@ -60,15 +58,12 @@
 
     Object.defineProperty(this, '_openCallbacks', { value: new PendingOperations() });
 
-    fs.setOpenCallback(function(id, args) {
+    fs.setOpenCallback(function(id, fd, nativeException) {
         var cb = _openCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
-            var fd = args[0];
-            cb(undefined, args[0]);
+            cb(undefined, fd);
         }
     });
 
@@ -114,11 +109,9 @@
 
     Object.defineProperty(this, '_unlinkCallbacks', { value: new PendingOperations() });
 
-    fs.setUnlinkCallback(function(id, args) {
+    fs.setUnlinkCallback(function(id, nativeException) {
         var cb = _unlinkCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if(nativeException) {
             cb(newError(nativeException));
         } else {
             cb();
@@ -170,11 +163,9 @@
 
     Object.defineProperty(this, '_mkdirCallbacks', { value: new PendingOperations() });
 
-    fs.setMkdirCallback(function(id, args) {
+    fs.setMkDirCallback(function(id, nativeException) {
         var cb = _mkdirCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
             cb();
@@ -196,11 +187,9 @@
 
     Object.defineProperty(this, '_rmdirCallbacks', { value: new PendingOperations() });
 
-    fs.setRmdirCallback(function(id, args) {
+    fs.setRmDirCallback(function(id, nativeException) {
         var cb = _rmdirCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
             cb();
@@ -222,17 +211,15 @@
 
     Object.defineProperty(this, '_readdirCallbacks', { value: new PendingOperations() });
 
-    fs.setReaddirCallback(function(id, args) {
+    fs.setReadDirCallback(function(id, names, nativeException) {
         var cb = _readdirCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
-            cb(newError(nativeException), undefined);
+        if (nativeException) {
+            cb(newError(nativeException));
         } else {
             var dirs = [];
-            var names = args[1];
-            for (var i = 0; i < names.length; i++) {
-                dirs.push(names[i]);
+            var files = names;
+            for (var i = 0; i < files.length; i++) {
+                dirs.push(files[i]);
             }
             cb(undefined, dirs);
         }
@@ -258,14 +245,12 @@
 
     Object.defineProperty(this, '_statCallbacks', { value: new PendingOperations() });
 
-    fs.setStatCallback(function(id, args) {
+    fs.setStatCallback(function(id, stats, nativeException) {
         var cb = _statCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
-            cb(undefined, new exports.Stats(args[1]));
+            cb(undefined, new exports.Stats(stats));
         }
     });
 
@@ -285,14 +270,12 @@
 
     Object.defineProperty(this, '_fstatCallbacks', { value: new PendingOperations() });
 
-    fs.setFStatCallback(function(id, args) {
+    fs.setFStatCallback(function(id, stats, nativeException) {
         var cb = _fstatCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
-            cb(undefined, new exports.Stats(args[1]));
+            cb(undefined, new exports.Stats(stats));
         }
     });
 
@@ -312,11 +295,9 @@
 
     Object.defineProperty(this, '_renameCallbacks', { value: new PendingOperations() });
 
-    fs.setRenameCallback(function(id, args) {
+    fs.setRenameCallback(function(id, nativeException) {
         var cb = _renameCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
             cb();
@@ -338,11 +319,9 @@
 
     Object.defineProperty(this, '_fsyncCallbacks', { value: new PendingOperations() });
 
-    fs.setFSyncCallback(function(id, args) {
+    fs.setFSyncCallback(function(id, nativeException) {
         var cb = _fsyncCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
             cb();
@@ -364,11 +343,9 @@
 
     Object.defineProperty(this, '_fdatasyncCallbacks', { value: new PendingOperations() });
 
-    fs.setFDatasyncCallback(function(id, args) {
+    fs.setFDatasyncCallback(function(id, nativeException) {
         var cb = _fdatasyncCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
             cb();
@@ -390,11 +367,9 @@
 
     Object.defineProperty(this, '_ftruncateCallbacks', { value: new PendingOperations() });
 
-    fs.setFTruncateCallback(function(id, args) {
+    fs.setFTruncateCallback(function(id, nativeException) {
         var cb = _ftruncateCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
             cb();
@@ -416,11 +391,9 @@
 
     Object.defineProperty(this, '_chmodCallbacks', { value: new PendingOperations() });
 
-    fs.setChmodCallback(function(id, args) {
+    fs.setChmodCallback(function(id, nativeException) {
         var cb = _chmodCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
             cb();
@@ -442,14 +415,12 @@
 
     Object.defineProperty(this, '_utimeCallbacks', { value: new PendingOperations() });
 
-    fs.setUtimeCallback(function(id, args) {
+    fs.setUTimeCallback(function(id, time, nativeException) {
         var cb = _utimeCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
-            cb(undefined, args[0]);
+            cb(undefined, time);
         }
     });
 
@@ -468,14 +439,12 @@
 
     Object.defineProperty(this, '_futimeCallbacks', { value: new PendingOperations() });
 
-    fs.setFUtimeCallback(function(id, args) {
+    fs.setFUTimeCallback(function(id, time, nativeException) {
         var cb = _futimeCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
-            cb(undefined, args[0]);
+            cb(undefined, time);
         }
     });
 
@@ -494,14 +463,12 @@
 
     Object.defineProperty(this, '_lstatCallbacks', { value: new PendingOperations() });
 
-    fs.setLStatCallback(function(id, args) {
+    fs.setLStatCallback(function(id, stats, nativeException) {
         var cb = _lstatCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
-            cb(undefined, new exports.Stats(args[1]));
+            cb(undefined, new exports.Stats(stats));
         }
     });
 
@@ -521,11 +488,9 @@
 
     Object.defineProperty(this, '_linkCallbacks', { value: new PendingOperations() });
 
-    fs.setLinkCallback(function(id, args) {
+    fs.setLinkCallback(function(id, nativeException) {
         var cb = _linkCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
             cb();
@@ -547,14 +512,12 @@
 
     Object.defineProperty(this, '_symlinkCallbacks', { value: new PendingOperations() });
 
-    fs.setSymlinkCallback(function(id, args) {
+    fs.setSymLinkCallback(function(id, nativeException) {
         var cb = _symlinkCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
-            cb(undefined, args[0]);
+            cb();
         }
     });
 
@@ -585,14 +548,12 @@
 
     Object.defineProperty(this, '_readlinkCallbacks', { value: new PendingOperations() });
 
-    fs.setReadlinkCallback(function(id, args) {
+    fs.setReadLinkCallback(function(id, name, nativeException) {
         var cb = _readlinkCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
-            cb(undefined, args[1]);
+            cb(undefined, name);
         }
     });
 
@@ -611,11 +572,9 @@
 
     Object.defineProperty(this, '_fchmodCallbacks', { value: new PendingOperations() });
 
-    fs.setFChmodCallback(function(id, args) {
+    fs.setFChmodCallback(function(id, nativeException) {
         var cb = _fchmodCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
             cb();
@@ -637,11 +596,9 @@
 
     Object.defineProperty(this, '_chownCallbacks', { value: new PendingOperations() });
 
-    fs.setChownCallback(function(id, args) {
+    fs.setChownCallback(function(id, nativeException) {
         var cb = _chownCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
             cb();
@@ -663,11 +620,9 @@
 
     Object.defineProperty(this, '_fchownCallbacks', { value: new PendingOperations() });
 
-    fs.setFChownCallback(function(id, args) {
+    fs.setFChownCallback(function(id, nativeException) {
         var cb = _fchownCallbacks.shift(id);
-        var status = args[0];
-        if (status == -1) {
-            var nativeException = args[1];
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
             cb();

@@ -35,7 +35,13 @@ import net.java.libuv.cb.FileCallback;
 import net.java.libuv.cb.FileEventCallback;
 import net.java.libuv.cb.FilePollCallback;
 import net.java.libuv.cb.FilePollStopCallback;
+import net.java.libuv.cb.FileCloseCallback;
+import net.java.libuv.cb.FileOpenCallback;
 import net.java.libuv.cb.FileReadCallback;
+import net.java.libuv.cb.FileReadDirCallback;
+import net.java.libuv.cb.FileReadLinkCallback;
+import net.java.libuv.cb.FileStatsCallback;
+import net.java.libuv.cb.FileUTimeCallback;
 import net.java.libuv.cb.FileWriteCallback;
 import net.java.libuv.cb.IdleCallback;
 import net.java.libuv.cb.ProcessCallback;
@@ -128,11 +134,32 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleFileCallback(final FileCallback cb, final int id, final Object[] args) {
+    public void handleFileCallback(final FileCallback cb, final int id, final Exception error) {
         try {
-            cb.call(id, args);
+            cb.call(id, error);
             eventLoop.processQueuedEvents();
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
+            eventLoop.loop().getExceptionHandler().handle(ex);
+        }
+    }
+
+
+    @Override
+    public void handleFileCloseCallback(final FileCloseCallback cb, final int callbackId, final int fd, final Exception error) {
+        try {
+            cb.onClose(callbackId, fd, error);
+            eventLoop.processQueuedEvents();
+        } catch (final Exception ex) {
+            eventLoop.loop().getExceptionHandler().handle(ex);
+        }
+    }
+
+    @Override
+    public void handleFileOpenCallback(final FileOpenCallback cb, final int callbackId, final int fd, final Exception error) {
+        try {
+            cb.onOpen(callbackId, fd, error);
+            eventLoop.processQueuedEvents();
+        } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
     }
@@ -141,6 +168,46 @@ final class LoopCallbackHandler implements CallbackHandler {
     public void handleFileReadCallback(final FileReadCallback cb, final int callbackId, final int bytesRead, final byte[] data, final Exception error) {
         try {
             cb.onRead(callbackId, bytesRead, data, error);
+            eventLoop.processQueuedEvents();
+        } catch (final Exception ex) {
+            eventLoop.loop().getExceptionHandler().handle(ex);
+        }
+    }
+
+    @Override
+    public void handleFileReadDirCallback(final FileReadDirCallback cb, final int callbackId, final String[] names, final Exception error) {
+        try {
+            cb.onReadDir(callbackId, names, error);
+            eventLoop.processQueuedEvents();
+        } catch (final Exception ex) {
+            eventLoop.loop().getExceptionHandler().handle(ex);
+        }
+    }
+
+    @Override
+    public void handleFileReadLinkCallback(final FileReadLinkCallback cb, final int callbackId, final String name, final Exception error) {
+        try {
+            cb.onReadLink(callbackId, name, error);
+            eventLoop.processQueuedEvents();
+        } catch (final Exception ex) {
+            eventLoop.loop().getExceptionHandler().handle(ex);
+        }
+    }
+
+    @Override
+    public void handleFileStatsCallback(final FileStatsCallback cb, final int callbackId, final Stats stats, final Exception error) {
+        try {
+            cb.onStats(callbackId, stats, error);
+            eventLoop.processQueuedEvents();
+        } catch (final Exception ex) {
+            eventLoop.loop().getExceptionHandler().handle(ex);
+        }
+    }
+
+    @Override
+    public void handleFileUTimeCallback(final FileUTimeCallback cb, final int callbackId, final long time, final Exception error) {
+        try {
+            cb.onUTime(callbackId, time, error);
             eventLoop.processQueuedEvents();
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
