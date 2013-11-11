@@ -44,6 +44,7 @@ src/main/js/lib/constants.js
 src/main/js/lib/crypto.js
 src/main/js/lib/dgram.js
 src/main/js/lib/dns.js
+src/main/js/lib/domain.js
 src/main/js/lib/events.js
 src/main/js/lib/freelist.js
 src/main/js/lib/fs.js
