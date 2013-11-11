@@ -100,8 +100,9 @@
         <copy todir="${test.dir}/simple" overwrite="true">
             <filelist dir="${source.test.simple.dir}" files="${source.test.simple.list}"/>
         </copy>
+        <!-- copy pummel tests that are known to work -->
         <copy todir="${test.dir}/pummel" overwrite="true">
-            <fileset dir="${source.home}/test/pummel"/>
+            <filelist dir="${source.test.pummel.dir}" files="${source.test.pummel.list}"/>
         </copy>
         <copy todir="${test.dir}/fixtures" overwrite="true">
             <fileset dir="${source.home}/test/fixtures"/>
