@@ -25,11 +25,10 @@
 
 package net.java.avatar.js.dns;
 
-import net.java.libuv.cb.Callback;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import net.java.avatar.js.eventloop.Callback;
 import net.java.avatar.js.eventloop.Event;
 import net.java.avatar.js.eventloop.EventLoop;
 

@@ -27,8 +27,8 @@ package net.java.avatar.js.eventloop;
 
 import java.security.AccessControlContext;
 import java.security.AccessController;
-import net.java.libuv.cb.Callback;
 
+import net.java.avatar.js.eventloop.Callback;
 import net.java.avatar.js.Server;
 
 public final class Event {

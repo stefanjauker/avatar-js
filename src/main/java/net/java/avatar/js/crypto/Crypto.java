@@ -25,8 +25,6 @@
 
 package net.java.avatar.js.crypto;
 
-import net.java.libuv.cb.Callback;
-
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -67,6 +65,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import net.java.avatar.js.buffer.Buffer;
 import net.java.avatar.js.buffer.Base64Decoder;
+import net.java.avatar.js.eventloop.Callback;
 import net.java.avatar.js.eventloop.Event;
 import net.java.avatar.js.eventloop.EventLoop;
 import java.util.Arrays;

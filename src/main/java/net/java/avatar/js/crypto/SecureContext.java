@@ -25,8 +25,6 @@
 
 package net.java.avatar.js.crypto;
 
-import net.java.libuv.cb.Callback;
-
 import java.io.ByteArrayInputStream;
 import java.security.Key;
 import java.security.KeyFactory;
@@ -63,6 +61,7 @@ import javax.net.ssl.X509TrustManager;
 
 import net.java.avatar.js.buffer.Base64Decoder;
 import net.java.avatar.js.buffer.Buffer;
+import net.java.avatar.js.eventloop.Callback;
 import net.java.avatar.js.log.Logger;
 import java.util.Random;
 

@@ -41,10 +41,10 @@ import javax.script.ScriptException;
 
 import jdk.nashorn.api.scripting.NashornException;
 import net.java.avatar.js.dns.DNS;
+import net.java.avatar.js.eventloop.Callback;
 import net.java.avatar.js.log.Logger;
 import net.java.avatar.js.log.Logging;
 import net.java.libuv.LibUV;
-import net.java.libuv.cb.Callback;
 import net.java.libuv.cb.CallbackExceptionHandler;
 import net.java.libuv.cb.IdleCallback;
 import net.java.libuv.handles.IdleHandle;

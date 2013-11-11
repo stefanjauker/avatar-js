@@ -25,8 +25,6 @@
 
 package net.java.avatar.js.crypto;
 
-import net.java.libuv.cb.Callback;
-
 import java.nio.ByteBuffer;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
@@ -51,6 +49,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.ExtendedSSLSession;
 
 import net.java.avatar.js.buffer.Buffer;
+import net.java.avatar.js.eventloop.Callback;
 import net.java.avatar.js.buffer.HexUtils;
 import net.java.avatar.js.eventloop.EventLoop;
 import net.java.avatar.js.log.Logger;

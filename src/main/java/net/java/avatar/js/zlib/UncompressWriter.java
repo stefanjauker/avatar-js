@@ -25,8 +25,6 @@
 
 package net.java.avatar.js.zlib;
 
-import net.java.libuv.cb.Callback;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
@@ -35,6 +33,7 @@ import java.io.InputStream;
 import java.util.concurrent.Callable;
 
 import net.java.avatar.js.buffer.Buffer;
+import net.java.avatar.js.eventloop.Callback;
 import net.java.avatar.js.eventloop.EventLoop;
 
 /**

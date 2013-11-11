@@ -25,14 +25,13 @@
 
 package net.java.avatar.js.zlib;
 
-import net.java.libuv.cb.Callback;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.Callable;
 
 import net.java.avatar.js.buffer.Buffer;
+import net.java.avatar.js.eventloop.Callback;
 import net.java.avatar.js.eventloop.Event;
 import net.java.avatar.js.eventloop.EventLoop;
 
