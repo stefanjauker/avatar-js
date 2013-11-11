@@ -564,6 +564,9 @@ exports.openStdin = function() {
     return process.stdin;
 }
 
+exports._usingDomains = function() {
+}
+
 var Check = Packages.net.java.libuv.handles.CheckHandle;
 var Idle = Packages.net.java.libuv.handles.IdleHandle;
 var checkHandle = new Check(eventloop.loop());
@@ -573,7 +576,7 @@ checkHandle.unref();
 
 // During the lifetime of an immediate callback, we want to keep the loop running.
 // This is why an Idle is started/stopped when the unrefed Check is started/stopped
-// Nodejs core.cc 
+// Nodejs core.cc
 var idleHandle = new Idle(eventloop.loop());
 idleHandle.setIdleCallback(IdleImmediateDummy);
 
@@ -602,7 +605,7 @@ Object.defineProperty(exports, '_needImmediateCallback', {
         }
     }
 });
-    
+
 var signalHandle = new Signals(eventloop.loop());
 // this handle should not keep the event loop from terminating
 signalHandle.unref();
