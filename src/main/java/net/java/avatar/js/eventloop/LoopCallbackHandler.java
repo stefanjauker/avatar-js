@@ -44,7 +44,8 @@ import net.java.libuv.cb.FileStatsCallback;
 import net.java.libuv.cb.FileUTimeCallback;
 import net.java.libuv.cb.FileWriteCallback;
 import net.java.libuv.cb.IdleCallback;
-import net.java.libuv.cb.ProcessCallback;
+import net.java.libuv.cb.ProcessCloseCallback;
+import net.java.libuv.cb.ProcessExitCallback;
 import net.java.libuv.cb.SignalCallback;
 import net.java.libuv.cb.StreamCloseCallback;
 import net.java.libuv.cb.StreamConnectCallback;
@@ -70,16 +71,6 @@ final class LoopCallbackHandler implements CallbackHandler {
     public void handleCheckCallback(final CheckCallback cb, final int status) {
         try {
             cb.call(status);
-            eventLoop.processQueuedEvents();
-        } catch (Exception ex) {
-            eventLoop.loop().getExceptionHandler().handle(ex);
-        }
-    }
-
-    @Override
-    public void handleProcessCallback(final ProcessCallback cb, final Object[] args) {
-        try {
-            cb.call(args);
             eventLoop.processQueuedEvents();
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -281,6 +272,24 @@ final class LoopCallbackHandler implements CallbackHandler {
     public void handleFilePollStopCallback(FilePollStopCallback cb) {
         try {
             cb.onStop();
+        } catch (Exception ex) {
+            eventLoop.loop().getExceptionHandler().handle(ex);
+        }
+    }
+
+    @Override
+    public void handleProcessCloseCallback(ProcessCloseCallback cb) {
+        try {
+            cb.onClose();
+        } catch (Exception ex) {
+            eventLoop.loop().getExceptionHandler().handle(ex);
+        }
+    }
+
+    @Override
+    public void handleProcessExitCallback(ProcessExitCallback cb, int status, int signal, Exception error) {
+        try {
+            cb.onExit(status, signal, error);
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }

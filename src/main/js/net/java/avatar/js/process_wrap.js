@@ -52,14 +52,11 @@
             }
         }, avatarContext, LibUVPermission.HANDLE);
         
-        this.process.exitCallback = function(args) {
-            var status = args[0];
-            var signal = args[1];
+        this.process.exitCallback = function(status, signal, nativeException) {
             if (typeof signal == 'number' && signal > 0) {
                 signal = Constants.getConstantsString().get(signal);
             }
-            if (status == -1) {
-                var nativeException = args[2];
+            if (nativeException) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
