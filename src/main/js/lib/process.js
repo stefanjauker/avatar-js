@@ -65,6 +65,9 @@ var Event = Packages.net.java.avatar.js.eventloop.Event
 var Constants = Packages.net.java.avatar.js.constants.Constants;
 var Signals = Packages.net.java.libuv.handles.SignalHandle;
 
+var separator = exports.platform === 'win32' ? ';' : ':';
+var pathSeparator = exports.platform === 'win32' ? '\\' : '/';
+
 Object.defineProperty(exports, 'throwDeprecation', {
     enumerable: true,
     value: __avatar.throwDeprecation
@@ -236,34 +239,33 @@ Object.defineProperty(exports, 'stderr', {
     }
 });
 
+var _execPath;
+(function() {
+    var libPath = java.lang.System.getProperty('java.library.path').split(separator);
+    var libs = "";
+
+    for (var i = 0; i < libPath.length; i++) {
+        if (libPath[i].endsWith(pathSeparator)) {
+            libPath[i] = libPath[i].substr(0, libPath[i].length - 1);
+        }
+        if (libPath[i].indexOf(' ') >= 0 && libPath[i].indexOf('\"') == -1) {
+            libs += '\"' + libPath[i] + '\"' ;
+        } else {
+            libs += libPath[i];
+        }
+        libs += (i != libPath.length - 1) ? separator : '';
+    }
+
+    _execPath = 'java ' +
+       (libs ? '-Djava.library.path=' + libs : '') + ' ' +
+       '-cp ' +
+       java.lang.System.getProperty('java.class.path') + ' ' +
+       Server.class.getName();
+}());
+
 Object.defineProperty(exports, 'execPath', {
     enumerable: true,
-    get: function() {
-        var separator = process.platform === 'win32' ? ';' : ':';
-        var pathSeparator = process.platform === 'win32' ? '\\' : '/';
-        var libPath = java.lang.System.getProperty('java.library.path');
-        var path = libPath.split(separator);
-
-        var libs = "";
-        for (var i = 0; i < path.length; i++) {
-            if (path[i].endsWith(pathSeparator)) {
-                path[i] = path[i].substr(0, path[i].length - 1);
-            }
-            if (path[i].indexOf(' ') >= 0) {
-                libs += '\"' + path[i] + '\"' ;
-            } else {
-                libs += path[i];
-            }
-            libs += (i != path.length - 1) ? separator : '';
-        }
-        libPath = libs;
-
-        return 'java ' +
-               (libPath ? '-Djava.library.path=' + libPath : '') + ' ' +
-               '-cp ' +
-               java.lang.System.getProperty('java.class.path') + ' ' +
-               Server.class.getName();
-    }
+    value: _execPath
 });
 
 var _argv;
