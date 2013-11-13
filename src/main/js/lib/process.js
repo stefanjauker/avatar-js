@@ -239,7 +239,25 @@ Object.defineProperty(exports, 'stderr', {
 Object.defineProperty(exports, 'execPath', {
     enumerable: true,
     get: function() {
+        var separator = process.platform === 'win32' ? ';' : ':';
+        var pathSeparator = process.platform === 'win32' ? '\\' : '/';
         var libPath = java.lang.System.getProperty('java.library.path');
+        var path = libPath.split(separator);
+
+        var libs = "";
+        for (var i = 0; i < path.length; i++) {
+            if (path[i].endsWith(pathSeparator)) {
+                path[i] = path[i].substr(0, path[i].length - 1);
+            }
+            if (path[i].indexOf(' ') >= 0) {
+                libs += '\"' + path[i] + '\"' ;
+            } else {
+                libs += path[i];
+            }
+            libs += (i != path.length - 1) ? separator : '';
+        }
+        libPath = libs;
+
         return 'java ' +
                (libPath ? '-Djava.library.path=' + libPath : '') + ' ' +
                '-cp ' +
