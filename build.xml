@@ -242,7 +242,7 @@
         <attribute name="name"/>
         <sequential>
             <echo>diff ${diff.options} ${source.home}/@{src}/@{name} @{mod}/@{name}</echo>
-            <exec executable="diff" output="${patches.dir}/@{name}.patch">
+            <exec executable="diff" output="${patches.dir}/@{src}/@{name}.patch">
                 <arg value="${diff.options}"/>
                 <arg value="${source.home}/@{src}/@{name}"/>
                 <arg value="@{mod}/@{name}"/>
@@ -251,20 +251,22 @@
     </macrodef>
 
     <macrodef name="apply-patch-dir" description="patch dir wrapper">
+        <attribute name="dir"/>
         <attribute name="name"/>
         <sequential>
             <echo>applying ${patches.dir}/@{name}.patch</echo>
-            <patch patchfile="${patches.dir}/@{name}.patch"
+            <patch patchfile="${patches.dir}/@{dir}/@{name}.patch"
                    ignorewhitespace="true" reverse="false" strip="0" quiet="false"/>
         </sequential>
     </macrodef>
 
     <macrodef name="apply-patch-file" description="patch file wrapper">
+        <attribute name="dir"/>
         <attribute name="name"/>
         <attribute name="target"/>
         <sequential>
-            <echo>applying ${patches.dir}/@{name}.patch to @{target}</echo>
-            <patch patchfile="${patches.dir}/@{name}.patch" originalfile="@{target}/@{name}"
+            <echo>applying ${patches.dir}/@src/@{name}.patch to @{target}</echo>
+            <patch patchfile="${patches.dir}/@{dir}/@{name}.patch" originalfile="@{target}/@{name}"
                    ignorewhitespace="true" reverse="false" strip="0" quiet="false"/>
         </sequential>
     </macrodef>
@@ -338,65 +340,65 @@
     <!-- keep sorted and synchronized with diff-source-files -->
     <target name="patch-source-files" depends="init" description="apply patches to source files">
         <!-- modules -->
-        <apply-patch-file target="src/main/js/lib" name="fs.js"/>
-        <apply-patch-file target="src/main/js/lib" name="http.js"/>
-        <apply-patch-file target="src/main/js/lib" name="querystring.js"/>
-        <apply-patch-file target="src/main/js/lib" name="module.js"/>
-        <apply-patch-file target="src/main/js/lib" name="net.js"/>
-        <apply-patch-file target="src/main/js/lib" name="string_decoder.js"/>
-        <apply-patch-file target="src/main/js/lib" name="tls.js"/>
+        <apply-patch-file target="src/main/js/lib" dir="lib" name="fs.js"/>
+        <apply-patch-file target="src/main/js/lib" dir="lib" name="http.js"/>
+        <apply-patch-file target="src/main/js/lib" dir="lib" name="querystring.js"/>
+        <apply-patch-file target="src/main/js/lib" dir="lib" name="module.js"/>
+        <apply-patch-file target="src/main/js/lib" dir="lib" name="net.js"/>
+        <apply-patch-file target="src/main/js/lib" dir="lib" name="string_decoder.js"/>
+        <apply-patch-file target="src/main/js/lib" dir="lib" name="tls.js"/>
         <!-- tests -->
-        <apply-patch-file target="${test.dir}" name="common.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-buffer.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-chdir.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-child-process-fork-exec-argv.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-dgram-address.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-dgram-ref.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-dgram-udp4.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-dgram-unref.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-error-reporting.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-fs-readfile-pipe.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-http.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-http-client-timeout-agent.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-http-default-encoding.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-http-end-throw-socket-handling.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-http-head-request.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-http-many-ended-pipelines.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-http-many-keep-alive-connections.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-https-strict.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-module-loading.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-net-pingpong.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-net-server-address.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-net-server-unref.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-net-settimeout.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-net-write-slow.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-next-tick.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-os.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-process-exec-argv.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-pipe-head.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-pipe-unref.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-readline-interface.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-script-context.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-stream2-push.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-stream2-read-sync-stack.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-string-decoder.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-timers-unref.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-timers-zero-timeout.js"/>
+        <apply-patch-file target="${test.dir}" dir="test" name="common.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-buffer.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-chdir.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-child-process-fork-exec-argv.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-dgram-address.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-dgram-ref.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-dgram-udp4.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-dgram-unref.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-error-reporting.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-fs-readfile-pipe.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-client-timeout-agent.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-default-encoding.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-end-throw-socket-handling.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-head-request.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-many-ended-pipelines.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-many-keep-alive-connections.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-https-strict.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-module-loading.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-net-pingpong.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-net-server-address.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-net-server-unref.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-net-settimeout.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-net-write-slow.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-next-tick.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-os.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-process-exec-argv.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-pipe-head.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-pipe-unref.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-readline-interface.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-script-context.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-stream2-push.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-stream2-read-sync-stack.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-string-decoder.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-timers-unref.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-timers-zero-timeout.js"/>
         <!-- tls tests -->
-        <apply-patch-file target="${test.dir}/simple" name="test-tls-connect-pipe.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-tls-fast-writing.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-tls-over-http-tunnel.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-tls-pause.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-tls-peer-certificate.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-tls-peer-certificate-multi-keys.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-tls-server-missing-options.js"/>
-        <apply-patch-file target="${test.dir}/simple" name="test-tls-server-verify.js"/>
-        <apply-patch-file target="${test.dir}/crypto" name="test-tls-getcipher.js"/>
-        <apply-patch-file target="${test.dir}/crypto" name="test-tls-honorcipherorder.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-tls-connect-pipe.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-tls-fast-writing.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-tls-over-http-tunnel.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-tls-pause.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-tls-peer-certificate.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-tls-peer-certificate-multi-keys.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-tls-server-missing-options.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-tls-server-verify.js"/>
+        <apply-patch-file target="${test.dir}/crypto" dir="test/crypto" name="test-tls-getcipher.js"/>
+        <apply-patch-file target="${test.dir}/crypto" dir="test/crypto" name="test-tls-honorcipherorder.js"/>
         <!-- crypto tests -->
-        <apply-patch-file target="${test.dir}/crypto" name="test-crypto.js"/>
-        <apply-patch-file target="${test.dir}/crypto" name="test-crypto-binary-default.js"/>
-        <apply-patch-file target="${test.dir}/crypto" name="test-crypto-dh.js"/>
+        <apply-patch-file target="${test.dir}/crypto" dir="test/crypto" name="test-crypto.js"/>
+        <apply-patch-file target="${test.dir}/crypto" dir="test/crypto" name="test-crypto-binary-default.js"/>
+        <apply-patch-file target="${test.dir}/crypto" dir="test/crypto" name="test-crypto-dh.js"/>
     </target>
 
     <target name="generate-policy-file" depends="init">
