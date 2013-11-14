@@ -240,32 +240,33 @@ Object.defineProperty(exports, 'stderr', {
 });
 
 var _execPath;
-(function() {
-    var libPath = java.lang.System.getProperty('java.library.path').split(separator);
-    var libs = "";
-
-    for (var i = 0; i < libPath.length; i++) {
-        if (libPath[i].endsWith(pathSeparator)) {
-            libPath[i] = libPath[i].substr(0, libPath[i].length - 1);
-        }
-        if (libPath[i].indexOf(' ') >= 0 && libPath[i].indexOf('\"') == -1) {
-            libs += '\"' + libPath[i] + '\"' ;
-        } else {
-            libs += libPath[i];
-        }
-        libs += (i != libPath.length - 1) ? separator : '';
-    }
-
-    _execPath = 'java ' +
-       (libs ? '-Djava.library.path=' + libs : '') + ' ' +
-       '-cp ' +
-       java.lang.System.getProperty('java.class.path') + ' ' +
-       Server.class.getName();
-}());
-
 Object.defineProperty(exports, 'execPath', {
     enumerable: true,
-    value: _execPath
+    get: function() {
+        if (!_execPath) {
+            var libPath = java.lang.System.getProperty('java.library.path').split(separator);
+            var libs = "";
+
+            for (var i = 0; i < libPath.length; i++) {
+                if (libPath[i].endsWith(pathSeparator)) {
+                    libPath[i] = libPath[i].substr(0, libPath[i].length - 1);
+                }
+                if (libPath[i].indexOf(' ') >= 0 && libPath[i].indexOf('\"') == -1) {
+                    libs += '\"' + libPath[i] + '\"' ;
+                } else {
+                    libs += libPath[i];
+                }
+                libs += (i != libPath.length - 1) ? separator : '';
+            }
+
+            _execPath = 'java ' +
+               (libs ? '-Djava.library.path=' + libs : '') + ' ' +
+               '-cp ' +
+               java.lang.System.getProperty('java.class.path') + ' ' +
+               Server.class.getName();
+        }
+        return _execPath;
+    }
 });
 
 var _argv;
