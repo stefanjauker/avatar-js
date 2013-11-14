@@ -158,9 +158,9 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleFileCallback(final FileCallback cb, final int id, final Exception error) {
+    public void handleFileCallback(final FileCallback cb, final Object context, final Exception error) {
         try {
-            cb.call(id, error);
+            cb.call(context, error);
             eventLoop.processQueuedEvents();
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -169,9 +169,9 @@ final class LoopCallbackHandler implements CallbackHandler {
 
 
     @Override
-    public void handleFileCloseCallback(final FileCloseCallback cb, final int callbackId, final int fd, final Exception error) {
+    public void handleFileCloseCallback(final FileCloseCallback cb, final Object context, final int fd, final Exception error) {
         try {
-            cb.onClose(callbackId, fd, error);
+            cb.onClose(context, fd, error);
             eventLoop.processQueuedEvents();
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -179,9 +179,9 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleFileOpenCallback(final FileOpenCallback cb, final int callbackId, final int fd, final Exception error) {
+    public void handleFileOpenCallback(final FileOpenCallback cb, final Object context, final int fd, final Exception error) {
         try {
-            cb.onOpen(callbackId, fd, error);
+            cb.onOpen(context, fd, error);
             eventLoop.processQueuedEvents();
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -189,9 +189,9 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleFileReadCallback(final FileReadCallback cb, final int callbackId, final int bytesRead, final byte[] data, final Exception error) {
+    public void handleFileReadCallback(final FileReadCallback cb, final Object context, final int bytesRead, final byte[] data, final Exception error) {
         try {
-            cb.onRead(callbackId, bytesRead, data, error);
+            cb.onRead(context, bytesRead, data, error);
             eventLoop.processQueuedEvents();
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -199,9 +199,9 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleFileReadDirCallback(final FileReadDirCallback cb, final int callbackId, final String[] names, final Exception error) {
+    public void handleFileReadDirCallback(final FileReadDirCallback cb, final Object context, final String[] names, final Exception error) {
         try {
-            cb.onReadDir(callbackId, names, error);
+            cb.onReadDir(context, names, error);
             eventLoop.processQueuedEvents();
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -209,9 +209,9 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleFileReadLinkCallback(final FileReadLinkCallback cb, final int callbackId, final String name, final Exception error) {
+    public void handleFileReadLinkCallback(final FileReadLinkCallback cb, final Object context, final String name, final Exception error) {
         try {
-            cb.onReadLink(callbackId, name, error);
+            cb.onReadLink(context, name, error);
             eventLoop.processQueuedEvents();
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -219,9 +219,9 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleFileStatsCallback(final FileStatsCallback cb, final int callbackId, final Stats stats, final Exception error) {
+    public void handleFileStatsCallback(final FileStatsCallback cb, final Object context, final Stats stats, final Exception error) {
         try {
-            cb.onStats(callbackId, stats, error);
+            cb.onStats(context, stats, error);
             eventLoop.processQueuedEvents();
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -229,9 +229,9 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleFileUTimeCallback(final FileUTimeCallback cb, final int callbackId, final long time, final Exception error) {
+    public void handleFileUTimeCallback(final FileUTimeCallback cb, final Object context, final long time, final Exception error) {
         try {
-            cb.onUTime(callbackId, time, error);
+            cb.onUTime(context, time, error);
             eventLoop.processQueuedEvents();
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -239,9 +239,9 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleFileWriteCallback(final FileWriteCallback cb, final int callbackId, final int bytesWritten, final Exception error) {
+    public void handleFileWriteCallback(final FileWriteCallback cb, final Object context, final int bytesWritten, final Exception error) {
         try {
-            cb.onWrite(callbackId, bytesWritten, error);
+            cb.onWrite(context, bytesWritten, error);
             eventLoop.processQueuedEvents();
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
