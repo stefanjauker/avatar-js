@@ -1,0 +1,34 @@
+--- ../nodejs/benchmark/common.js	2013-09-05 16:07:32.462830000 -0700
++++ benchmark/common.js	2013-11-13 18:05:47.148644300 -0800
+@@ -1,6 +1,8 @@
+ var assert = require('assert');
+ var path = require('path');
+ var silent = +process.env.NODE_BENCH_SILENT;
++var started = false;
++var warmUp = true;
+ 
+ exports.PORT = process.env.PORT || 12346;
+ 
+@@ -21,9 +23,21 @@
+ }
+ 
+ function runBenchmarks() {
++  if (warmUp && !started) {
++    console.error("**** START WARMUP ****");
++    started = true;
++  }
+   var test = tests.shift();
+-  if (!test)
++  if (!test) {
++    if (warmUp) {
++      console.error("**** FINISH WARMUP ****");
++      warmUp = false;
++      started = false;
++      tests = fs.readdirSync(dir);
++      runBenchmarks();
++    }
+     return;
++  }
+ 
+   if (test.match(/^[\._]/))
+     return process.nextTick(runBenchmarks);

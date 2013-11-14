@@ -64,6 +64,7 @@
 
         <property name="patches.dir" location="${basedir}/patches"/>
         <property name="test.dir" location="${basedir}/test"/>
+        <property name="benchmark.dir" location="${basedir}/benchmark"/>
         <property name="build.properties.file" location="${classes.dir}/build.properties"/>
         <property name="native.build.dir" value="${basedir}/out/${build.type}/obj.target/${product.name}/"/>
 
@@ -335,6 +336,8 @@
         <apply-diff src="test/simple" mod="${test.dir}/crypto" name="test-crypto.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/crypto" name="test-crypto-binary-default.js"/>
         <apply-diff src="test/pummel" mod="${test.dir}/crypto" name="test-crypto-dh.js"/>
+        <!-- benchmark -->
+        <apply-diff src="benchmark" mod="${benchmark.dir}" name="common.js"/>
     </target>
 
     <!-- keep sorted and synchronized with diff-source-files -->
@@ -399,6 +402,8 @@
         <apply-patch-file target="${test.dir}/crypto" dir="test/crypto" name="test-crypto.js"/>
         <apply-patch-file target="${test.dir}/crypto" dir="test/crypto" name="test-crypto-binary-default.js"/>
         <apply-patch-file target="${test.dir}/crypto" dir="test/crypto" name="test-crypto-dh.js"/>
+        <!-- benchmark -->
+        <apply-patch-file target="${benchmark.dir}" dir="benchmark" name="common.js"/>
     </target>
 
     <target name="generate-policy-file" depends="init">
