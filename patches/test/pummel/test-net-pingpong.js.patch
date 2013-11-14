@@ -1,0 +1,13 @@
+--- ../nodejs/test/pummel/test-net-pingpong.js	2013-10-03 11:03:14.705835900 -0700
++++ test/pummel/test-net-pingpong.js	2013-11-14 11:22:08.384761500 -0800
+@@ -116,8 +116,8 @@
+ 
+ // This IPv6 isn't working on Solaris
+ var solaris = /sunos/i.test(process.platform);
+-if (!solaris) pingPongTest(common.PORT + 2, '::1');
++if (!solaris && common.isIPv6Enabled) pingPongTest(common.PORT + 2, '::1');
+ 
+ process.on('exit', function() {
+-  assert.equal(solaris ? 2 : 3, tests_run);
++  assert.equal(!solaris && common.isIPv6Enabled ? 3 : 2, tests_run);
+ });
