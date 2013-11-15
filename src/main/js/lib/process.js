@@ -405,11 +405,11 @@ Object.defineProperty(exports, 'memoryUsage', {
     }
 });
 
-var startTime = java.lang.System.nanoTime();
+var startTime = LibUV.getUptime();
 Object.defineProperty(exports, 'uptime', {
     enumerable: true,
     value: function() {
-        return LibUV.getUptime();
+        return LibUV.getUptime() - startTime;
     }
 });
 
