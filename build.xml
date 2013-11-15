@@ -339,8 +339,10 @@
         <!-- benchmark -->
         <apply-diff src="benchmark" mod="${benchmark.dir}" name="common.js"/>
         <!-- pummel -->
+        <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-exec.js"/>
         <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-net-pingpong.js"/>
         <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-net-throttle.js"/>
+        <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-process-uptime.js"/>
     </target>
 
     <!-- keep sorted and synchronized with diff-source-files -->
@@ -408,8 +410,10 @@
         <!-- benchmark -->
         <apply-patch-file target="${benchmark.dir}" dir="benchmark" name="common.js"/>
         <!-- pummel -->
+        <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-exec.js"/>
         <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-net-pingpong.js"/>
         <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-net-throttle.js"/>
+        <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-process-uptime.js"/>
     </target>
 
     <target name="generate-policy-file" depends="init">

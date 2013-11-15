@@ -1,0 +1,20 @@
+--- ../nodejs/test/pummel/test-exec.js	2013-11-14 15:21:39.859797900 -0800
++++ test/pummel/test-exec.js	2013-11-14 15:28:27.206661300 -0800
+@@ -37,7 +37,7 @@
+ var error_count = 0;
+ 
+ 
+-exec(process.execPath + ' -p -e process.versions',
++exec(process.execPath + ' --version',
+      function(err, stdout, stderr) {
+   if (err) {
+     error_count++;
+@@ -75,7 +75,7 @@
+ exec(SLEEP3_COMMAND, { timeout: 50 }, function(err, stdout, stderr) {
+   var diff = (new Date()) - sleeperStart;
+   console.log('\'sleep 3\' with timeout 50 took %d ms', diff);
+-  assert.ok(diff < 500);
++  assert.ok(diff < 1000);
+   assert.ok(err);
+   assert.ok(err.killed);
+   assert.equal(err.signal, 'SIGTERM');

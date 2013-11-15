@@ -1,0 +1,11 @@
+--- ../nodejs/test/pummel/test-process-uptime.js	2013-11-14 17:15:27.655719800 -0800
++++ test/pummel/test-process-uptime.js	2013-11-14 17:17:59.412903200 -0800
+@@ -26,7 +26,7 @@
+ var assert = require('assert');
+ 
+ console.error(process.uptime());
+-assert.ok(process.uptime() <= 2);
++assert.ok(process.uptime() <= 3);
+ 
+ var original = process.uptime();
+ 
