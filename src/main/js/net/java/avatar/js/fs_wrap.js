@@ -553,7 +553,7 @@
 
         this._fsPoll.setFilePollCallback(function(status, previous, current) {
             if (that.onchange) {
-                that.onchange(current, previous, status);
+                that.onchange(new exports.Stats(current), new exports.Stats(previous), status);
             }
         });
 
