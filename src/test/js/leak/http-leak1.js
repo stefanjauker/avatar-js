@@ -23,7 +23,17 @@ var perf = require("../perf/common-perf");
 
 var http = require('http');
 
-var body = 'hello world\n';
+var body = '';
+if(process.argv[2] === '-large') {
+    print('building large body...');
+    for (var i = 0; i < 1024 * 1024; i++) {
+        body += 'hello world\n';
+    }
+    print('done building body');
+} else {
+    print('building small body.');
+    body = 'hello world\n';
+}
 var PORT = 9999;
 
 var server = http.createServer(function(req, res) {
