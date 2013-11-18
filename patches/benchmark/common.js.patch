@@ -1,15 +1,40 @@
 --- ../nodejs/benchmark/common.js	2013-09-05 16:07:32.462830000 -0700
-+++ benchmark/common.js	2013-11-13 18:05:47.148644300 -0800
-@@ -1,6 +1,8 @@
++++ benchmark/common.js	2013-11-18 11:53:18.728780300 -0800
+@@ -1,35 +1,65 @@
  var assert = require('assert');
  var path = require('path');
  var silent = +process.env.NODE_BENCH_SILENT;
 +var started = false;
 +var warmUp = true;
++var runOne;
  
  exports.PORT = process.env.PORT || 12346;
  
-@@ -21,9 +23,21 @@
+ // If this is the main module, then run the benchmarks
+ if (module === require.main) {
++  var fs = require('fs');
++  var spawn = require('child_process').spawn;
++
+   var type = process.argv[2];
+   if (!type) {
+-    console.error('usage:\n ./node benchmark/common.js <type>');
++    console.error('usage:\n ./node benchmark/common.js [type] [--run-one testname]');
+     process.exit(1);
+   }
+ 
+-  var fs = require('fs');
++  var tests = [];
++  if (type == '--run-one') {
++    tests.push(process.argv[3]);
++    runOne = process.argv[3];
++  } else {
+   var dir = path.join(__dirname, type);
+-  var tests = fs.readdirSync(dir);
+-  var spawn = require('child_process').spawn;
++    tests = fs.readdirSync(dir);
++  }
+ 
+   runBenchmarks();
  }
  
  function runBenchmarks() {
@@ -17,14 +42,20 @@
 +    console.error("**** START WARMUP ****");
 +    started = true;
 +  }
++
    var test = tests.shift();
 -  if (!test)
++
 +  if (!test) {
 +    if (warmUp) {
 +      console.error("**** FINISH WARMUP ****");
 +      warmUp = false;
 +      started = false;
-+      tests = fs.readdirSync(dir);
++      if (runOne) {
++        tests.push(runOne);
++      } else {
++        tests = fs.readdirSync(dir);
++      }
 +      runBenchmarks();
 +    }
      return;
@@ -32,3 +63,11 @@
  
    if (test.match(/^[\._]/))
      return process.nextTick(runBenchmarks);
+ 
+   console.error(type + '/' + test);
++  if (!runOne) {
+   test = path.resolve(dir, test);
++  }
+ 
+   var a = (process.execArgv || []).concat(test);
+   var child = spawn(process.execPath, a, { stdio: 'inherit' });
