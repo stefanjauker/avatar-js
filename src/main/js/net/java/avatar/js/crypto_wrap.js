@@ -426,9 +426,14 @@
         if (!isServer && !reqCertOrServerName) { // null String for SNI server name.
             reqCertOrServerName = null;
         }
-
+        
+        var renegoStart = function() {
+            if (that.onhandshakestart) {
+                that.onhandshakestart();
+            }
+        }
         this.peer = new connection(__avatar.eventloop,
-                    secureContext.peer, reqCertOrServerName, rejectUnauthorized);
+                    secureContext.peer, reqCertOrServerName, rejectUnauthorized, renegoStart);
         Object.defineProperty(this, 'peer',  { writable: false,  enumerable: false });
         this.setSNICallback = function(SNICallback) {
             var cb = function(name, args) {

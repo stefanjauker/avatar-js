@@ -90,19 +90,23 @@ public class SecureConnection {
     private boolean started;
     private Exception exception;
     private final SSLContext ctx;
-
+    private final Callback onRenegoStart;
+    private boolean isRenegotiating;
+    
     public SecureConnection(final EventLoop eventLoop,
                             final SecureContext context,
                             final boolean requestCertificate,
-                            final boolean rejectUnauthorized) throws Exception {
-        this(eventLoop, true, context, requestCertificate, null, rejectUnauthorized);
+                            final boolean rejectUnauthorized,
+                            final Callback onRenegoStart) throws Exception {
+        this(eventLoop, true, context, requestCertificate, null, rejectUnauthorized, onRenegoStart);
     }
 
     public SecureConnection(final EventLoop eventLoop,
                             final SecureContext context,
                             final String serverName,
-                            final boolean rejectUnauthorized) throws Exception {
-        this(eventLoop, false, context, false, serverName, rejectUnauthorized);
+                            final boolean rejectUnauthorized,
+                            final Callback onRenegoStart) throws Exception {
+        this(eventLoop, false, context, false, serverName, rejectUnauthorized, onRenegoStart);
     }
 
     private SecureConnection(final EventLoop eventLoop,
@@ -110,7 +114,8 @@ public class SecureConnection {
                              final SecureContext context,
                              final boolean requestCertificate,
                              final String serverName,
-                             final boolean rejectUnauthorized) throws Exception {
+                             final boolean rejectUnauthorized,
+                             final Callback onRenegoStart) throws Exception {
         this.isServer = isServer;
         this.context = context;
         this.requestCertificate = requestCertificate;
@@ -118,6 +123,7 @@ public class SecureConnection {
         this.rejectUnauthorized = rejectUnauthorized;
         LOG = eventLoop.logger("tls-" + (isServer ? "server" : "client"));
         ctx = context.getContext(LOG, isServer, rejectUnauthorized);
+        this.onRenegoStart = onRenegoStart;
     }
 
     public static final class CipherSuite {
@@ -902,9 +908,16 @@ public class SecureConnection {
         initUnwrap(data, offset, length);
         do {
             do {
+                boolean before = sslEngine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING;
                 // The received packet can contain multiple HS unwrap: ChangeCipherSpec and Finished
                 res = sslEngine.unwrap(incomingFromPeer, decryptedAppData);
                 LOG.log("unwrap " + res + ", consumed " + res.bytesConsumed() + ", produced " + res.bytesProduced());
+                boolean after = sslEngine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING;
+                if(before && !after) {
+                    LOG.log("unwrap, handshake renegociation");
+                    isRenegotiating = true;
+                    onRenegoStart.call("renegotiation.start", null);
+                }
             } while (res.getStatus() == SSLEngineResult.Status.OK
                     && res.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP
                     && res.bytesProduced() == 0);
@@ -1024,7 +1037,10 @@ public class SecureConnection {
          * - if wrap is not required, then nothing happens
          * - if there is an error (eg: server used an invalid private key), an exception is
          * thrown.
+         * When SSL renegotiation 
          */
-        wrap(null, 0, 0);
+        if(!isRenegotiating) {
+            wrap(null, 0, 0);
+        }
     }
 }
