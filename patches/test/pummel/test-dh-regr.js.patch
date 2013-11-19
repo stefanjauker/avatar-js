@@ -1,0 +1,11 @@
+--- ../node/test/pummel/test-dh-regr.js	2013-09-23 13:54:04.000000000 +0200
++++ test/pummel/test-dh-regr.js	2013-11-19 15:03:32.000000000 +0100
+@@ -24,7 +24,7 @@
+ 
+ var crypto = require('crypto');
+ 
+-var p = crypto.createDiffieHellman(256).getPrime();
++var p = crypto.createDiffieHellman(512).getPrime();
+ 
+ for (var i = 0; i < 2000; i++) {
+   var a = crypto.createDiffieHellman(p),
