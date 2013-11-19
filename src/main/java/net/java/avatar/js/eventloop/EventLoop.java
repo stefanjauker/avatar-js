@@ -35,19 +35,17 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.script.ScriptException;
 
 import jdk.nashorn.api.scripting.NashornException;
 import net.java.avatar.js.dns.DNS;
-import net.java.avatar.js.eventloop.Callback;
 import net.java.avatar.js.log.Logger;
 import net.java.avatar.js.log.Logging;
 import net.java.libuv.LibUV;
+import net.java.libuv.cb.AsyncCallback;
 import net.java.libuv.cb.CallbackExceptionHandler;
-import net.java.libuv.cb.IdleCallback;
-import net.java.libuv.handles.IdleHandle;
+import net.java.libuv.handles.AsyncHandle;
 import net.java.libuv.handles.LoopHandle;
 
 public final class EventLoop {
@@ -62,8 +60,7 @@ public final class EventLoop {
     private final Logger LOG;
     private final BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
     private final AtomicInteger hooks = new AtomicInteger(0);
-    private final IdleHandle idleHandle;
-    private final AtomicBoolean idleHandleStarted = new AtomicBoolean(false);
+    private final AsyncHandle asyncHandle;
     private final Thread mainThread;
 
     private Callback isHandlerRegistered = null;
@@ -73,15 +70,23 @@ public final class EventLoop {
     public static final class Handle implements AutoCloseable {
 
         private final AtomicInteger hooks;
-
-        public Handle(final AtomicInteger hooks) {
+        private final AsyncHandle asyncHandle;
+        public Handle(final AtomicInteger hooks, final AsyncHandle asyncHandle) {
             this.hooks = hooks;
-            hooks.incrementAndGet();
+            this.asyncHandle = asyncHandle;
+            if (hooks.incrementAndGet() == 1) {
+                asyncHandle.ref();
+            }
         }
 
         @Override
         public void close() {
             hooks.decrementAndGet();
+            asyncHandle.send();
+        }
+        
+        public void release() {
+            close();
         }
 
         @Override
@@ -90,8 +95,8 @@ public final class EventLoop {
         }
     }
 
-    public Handle grab() {
-        return new Handle(hooks);
+    public Handle acquire() {
+        return new Handle(hooks, asyncHandle);
     }
 
     public void setUncaughtExceptionHandler(final Callback registered, final Callback handler) {
@@ -104,6 +109,10 @@ public final class EventLoop {
         eventQueue.add(event);
     }
 
+    public void post(final Callback cb, Object... args) {
+        eventQueue.add(new Event(null, cb, args));
+    }
+    
     public void post(final Event event) {
         eventQueue.add(event);
     }
@@ -167,6 +176,7 @@ public final class EventLoop {
 
     public void stop() {
         executor.shutdown();
+        asyncHandle.close();
         uvLoop.stop();
     }
 
@@ -270,15 +280,6 @@ public final class EventLoop {
                 }
             };
         }
-        // If submit is not called from main thread, there is no guarantee that idleHandle.start()
-        // will be taken into account by uv loop.
-        if (Thread.currentThread() != mainThread) {
-            assert idleHandleStarted.get() : "idleHandle not started although called "
-                    + "from non-event thread " + Thread.currentThread().getName();
-        }
-        if (idleHandleStarted.compareAndSet(false, true)) {
-            idleHandle.start();
-        }
         return executor.submit(toSubmit);
     }
 
@@ -291,8 +292,7 @@ public final class EventLoop {
                "tasks: " + executor.queuedTasksCount() + ", " +
                "activeThreads: " + executor.getActiveCount() + ", " +
                "threads: " + executor.getPoolSize() + ", " +
-               "pending: " + eventQueue.size() + ", " +
-               "idleHandleStarted: " + idleHandleStarted.get() +
+               "pending: " + eventQueue.size() +
                "}}";
     }
 
@@ -337,20 +337,18 @@ public final class EventLoop {
 
         LibUV.chdir(workDir);
         LOG = logger("eventloop");
-        idleHandle = new IdleHandle(uvLoop);
-        idleHandle.setIdleCallback(new IdleCallback() {
+        asyncHandle = new AsyncHandle(uvLoop);
+        asyncHandle.setAsyncCallback(new AsyncCallback() {
             @Override
-            public void call(int status) throws Exception {
-                // process pending events in this cycle
-                // have been posted by background threads
-                processQueuedEvents();
-                // No more bg task and no more Events to process, stop idleHandle
-                if (hooks.get() == 0 && eventQueue.peek() == null) {
-                    idleHandle.stop();
-                    idleHandleStarted.set(false);
+            public void onSend(int status) throws Exception {
+                // The side effect of this callback being called is that posted
+                // events have been processed.
+                if (hooks.get() <= 0) {
+                    asyncHandle.unref();
                 }
             }
         });
+        asyncHandle.unref();
 
     }
 

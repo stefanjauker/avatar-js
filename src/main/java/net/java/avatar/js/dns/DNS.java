@@ -42,7 +42,7 @@ public final class DNS {
 
     public void getHostByAddress(final String address,
                                  final Callback callback) {
-        final EventLoop.Handle handle = eventLoop.grab();
+        final EventLoop.Handle handle = eventLoop.acquire();
         eventLoop.submit(new Runnable() {
             @Override
             public void run() {
@@ -64,7 +64,7 @@ public final class DNS {
 
     public void getAddressByHost(final String hostname,
                                  final Callback callback) {
-        final EventLoop.Handle handle = eventLoop.grab();
+        final EventLoop.Handle handle = eventLoop.acquire();
         eventLoop.submit(new Runnable() {
             @Override
             public void run() {

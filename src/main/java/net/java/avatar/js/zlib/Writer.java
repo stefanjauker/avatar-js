@@ -188,7 +188,7 @@ public abstract class Writer {
     }
 
     public void submitToLoop(final Callable<?> callable, final Callback cb) {
-        final EventLoop.Handle handle = eventLoop.grab();
+        final EventLoop.Handle handle = eventLoop.acquire();
         eventLoop.submit(new Runnable() {
             @Override
             public void run() {
