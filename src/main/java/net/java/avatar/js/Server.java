@@ -209,6 +209,7 @@ public final class Server {
         holder.setArgs(avatarArgs.toArray(new String[avatarArgs.size()]),
                 userArgs.toArray(new String[userArgs.size()]),
                 userFiles);
+        Exception rootCause = null;
         try {
             runSystemScript(SYSTEM_INIT_SCRIPTS);
             // run the main event loop
@@ -218,11 +219,20 @@ public final class Server {
                 eventLoop.stop();
             }
             holder.setExitCode(1);
+            rootCause = ex;
             throw ex;
         } finally {
             if (args != null && args.length > 0) {
-                // emit the process.exit event
-                runSystemScript(SYSTEM_FINALIZATION_SCRIPTS);
+                try {
+                    // emit the process.exit event
+                    runSystemScript(SYSTEM_FINALIZATION_SCRIPTS);
+                } catch (Exception ex) {
+                    if (rootCause != null) {
+                        rootCause.addSuppressed(ex);
+                        throw rootCause;
+                    }
+                    throw ex;
+                }
             }
         }
     }
