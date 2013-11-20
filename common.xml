@@ -134,28 +134,16 @@
     </target>
 
     <target name="make" depends="configure, compile, javah, make-linux, make-macos, make-windows"
-            description="runs make to build native sources"/>
+            description="runs make to build native sources">
+        <mkdir dir="${dist.dir}"/>
+    </target>
 
     <target name="make-linux" if="isLinux" unless="product.lib.uptodate">
         <exec executable="make" failonerror="true"/>
-        <copy todir="${dist.dir}">
-            <fileset dir="out/${build.type}/lib.target">
-                <include name="*.so"/>
-            </fileset>
-            <firstmatchmapper>
-                <globmapper from="libuv.so" to="libuv.so.0.10"/>
-                <globmapper from="*" to="*"/>
-            </firstmatchmapper>
-        </copy>
     </target>
 
     <target name="make-macos" if="isMacOSX" unless="product.lib.uptodate">
         <exec executable="make" failonerror="true"/>
-        <copy todir="${dist.dir}">
-            <fileset dir="out/${build.type}">
-                <include name="*.dylib"/>
-            </fileset>
-        </copy>
     </target>
 
     <target name="make-windows" if="isWindows" unless="product.lib.uptodate">
@@ -164,15 +152,88 @@
             <arg value="/p:Platform=x64"/>
             <arg value="/p:Configuration=${build.type}"/>
         </exec>
-        <copy todir="${dist.dir}">
-            <fileset dir="${build.type}">
-                <include name="*.dll"/>
-            </fileset>
-            <firstmatchmapper>
-                <globmapper from="libuv-java.dll" to="uv-java.dll"/>
-                <globmapper from="*" to="*"/>
-            </firstmatchmapper>
-        </copy>
+    </target>
+
+
+    <target name="shlib-linux" depends="init"  if="isLinux">
+        <fileset dir="${libuv.home}/out/${build.type}" id="libuv-java" includes="**/*.o" excludes="**/test/*" erroronmissingdir="false"/>
+        <pathconvert property="libuv-java.objs" refid="libuv-java" pathsep=" "/>
+
+        <fileset dir="${http-parser.home}/out/${build.type}" id="http-parser-java" includes="**/*.o" erroronmissingdir="false"/>
+        <pathconvert property="http-parser-java.objs" refid="http-parser-java" pathsep=" " />
+
+        <fileset dir="${avatar-js.home}/out/${build.type}" id="avatar-js" includes="**/*.o" erroronmissingdir="false"/>
+        <pathconvert property="avatar-js.objs" refid="avatar-js" pathsep=" " />
+
+        <exec executable="gcc" dir="${dist.dir}" failonerror="true">
+            <arg value="-shared"/>
+            <arg value="-o"/>
+            <arg value="libavatar-js.so"/>
+            <arg line="${libuv-java.objs}"/>
+            <arg line="${http-parser-java.objs}"/>
+            <arg line="${avatar-js.objs}"/>
+            <arg value="-lm"/>
+            <arg value="-ldl"/>
+            <arg value="-lrt"/>
+            <arg value="-pthread"/>
+            <arg value="-lstdc++"/>
+        </exec>
+    </target>
+
+    <target name="shlib-macos" depends="init"  if="isMacOSX">
+        <fileset dir="${libuv.home}/out/${build.type}" id="libuv-java" includes="**/*.o" excludes="**/test/*" erroronmissingdir="false"/>
+        <pathconvert property="libuv-java.objs" refid="libuv-java" pathsep=" "/>
+
+        <fileset dir="${http-parser.home}/out/${build.type}" id="http-parser-java" includes="**/*.o" erroronmissingdir="false"/>
+        <pathconvert property="http-parser-java.objs" refid="http-parser-java" pathsep=" " />
+
+        <fileset dir="${avatar-js.home}/out/${build.type}" id="avatar-js" includes="**/*.o" erroronmissingdir="false"/>
+        <pathconvert property="avatar-js.objs" refid="avatar-js" pathsep=" " />
+
+        <exec executable="c++" dir="${dist.dir}" failonerror="true">
+            <arg value="-shared"/>
+            <arg value="-o"/>
+            <arg value="libavatar-js.dylib"/>
+            <arg line="${libuv-java.objs}"/>
+            <arg line="${http-parser-java.objs}"/>
+            <arg line="${avatar-js.objs}"/>
+            <arg value="-lm"/>
+            <arg value="-framework"/>
+            <arg value="Foundation"/>
+            <arg value="-framework"/>
+            <arg value="CoreServices"/>
+            <arg value="-framework"/>
+            <arg value="ApplicationServices"/>
+        </exec>
+    </target>
+
+    <target name="shlib-windows" depends="init"  if="isWindows">
+        <fileset dir="${source.home}/deps/uv/${build.type}" id="libuv" includes="**/*.obj" excludes="**/test/*" erroronmissingdir="false"/>
+        <pathconvert property="libuv.objs" refid="libuv" pathsep=" " />
+
+        <fileset dir="${libuv.home}/${build.type}" id="libuv-java" includes="**/*.obj" erroronmissingdir="false"/>
+        <pathconvert property="libuv-java.objs" refid="libuv-java" pathsep=" " />
+
+        <fileset dir="${http-parser.home}/${build.type}" id="http-parser-java" includes="**/*.obj" erroronmissingdir="false"/>
+        <pathconvert property="http-parser-java.objs" refid="http-parser-java" pathsep=" " />
+
+        <fileset dir="${avatar-js.home}/${build.type}" id="avatar-js" includes="**/*.obj" erroronmissingdir="false"/>
+        <pathconvert property="avatar-js.objs" refid="avatar-js" pathsep=" " />
+
+        <exec executable="link.exe" dir="${dist.dir}" failonerror="true">
+            <arg value="/NODEFAULTLIB:msvcrt"/>
+            <arg value="/OUT:avatar-js.dll"/>
+            <arg value="/DLL"/>
+            <arg value="advapi32.lib"/>
+            <arg value="iphlpapi.lib"/>
+            <arg value="psapi.lib"/>
+            <arg value="shell32.lib"/>
+            <arg value="ws2_32.lib"/>
+            <arg line="${libuv.objs}"/>
+            <arg line="${libuv-java.objs}"/>
+            <arg line="${http-parser-java.objs}"/>
+            <arg line="${avatar-js.objs}"/>
+        </exec>
     </target>
 
     <target name="clean" depends="init" description="clean output dirs">

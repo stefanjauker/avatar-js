@@ -180,7 +180,7 @@
         </javah>
     </target>
 
-    <target name="jar" depends="generate-build-properties, compile, make">
+    <target name="jar" depends="generate-build-properties, compile, make, shlib-linux, shlib-macos, shlib-windows">
         <copy todir="${classes.dir}">
             <fileset dir="${src.js.dir}">
                 <include name="**/*.js"/>
@@ -199,14 +199,6 @@
                 <attribute name="Main-Class" value="net.java.avatar.js.Server"/>
             </manifest>
         </jar>
-        <copy todir="${dist.dir}">
-            <fileset dir="${libuv.home}/dist" includes="*.so*"/>
-            <fileset dir="${libuv.home}/dist" includes="*.dll"/>
-            <fileset dir="${libuv.home}/dist" includes="*.dylib"/>
-            <fileset dir="${http-parser.home}/dist" includes="*.so*"/>
-            <fileset dir="${http-parser.home}/dist" includes="*.dll"/>
-            <fileset dir="${http-parser.home}/dist" includes="*.dylib"/>
-        </copy>
     </target>
 
     <target name="generate-build-properties" depends="init"
