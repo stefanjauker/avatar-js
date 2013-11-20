@@ -40,7 +40,7 @@ var server = http.createServer(function(req, res) {
     res.writeHead(200, {
         'content-type': 'text/plain'
     });
-    res.end(new Buffer(body));
+    res.end(body);
 });
 
 server.listen(PORT, function() {
@@ -54,7 +54,6 @@ function startClient() {
         port: PORT
     }, function(res) {
         res.on('data', function(d) {
-            console.log(d.toString());
         });
         res.on('end', function(d) {
             if (perf.canContinue()) {
