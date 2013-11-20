@@ -342,9 +342,11 @@
         <apply-diff src="test/pummel" mod="${test.dir}/crypto" name="test-crypto-dh.js"/>
         <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-dh-regr.js"/>
         <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-exec.js"/>
+        <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-https-ci-reneg-attack.js"/>
         <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-net-pingpong.js"/>
         <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-net-throttle.js"/>
         <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-process-uptime.js"/>
+        <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-tls-ci-reneg-attack.js"/>
     </target>
 
     <!-- keep sorted and synchronized with diff-source-files -->
@@ -414,9 +416,11 @@
         <!-- pummel -->
         <apply-patch-file target="${test.dir}/pummel" dir="test/crypto" name="test-crypto-dh.js"/>
         <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-dh-regr.js"/>
+        <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-https-ci-reneg-attack.js"/>
         <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-net-pingpong.js"/>
         <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-net-throttle.js"/>
         <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-process-uptime.js"/>
+        <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-tls-ci-reneg-attack.js"/>
     </target>
 
     <target name="generate-policy-file" depends="init">

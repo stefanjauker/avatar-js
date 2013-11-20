@@ -29,8 +29,18 @@ var perf = require("../perf/common-perf");
 
 var https = require('https');
 var fs = require('fs');
+var body = ""
+if(process.argv[2] === '-large') {
+    print('building large body...');
+    for (var i = 0; i < 1024 * 1024; i++) {
+        body += 'hello worldçoié\uD83D\uDC4D\n';
+    }
+    print('done building body');
+} else {
+    print('building small body.');
+    body = 'hello worldçoié\uD83D\uDC4D\n';
+}
 
-var body = 'hello world\n';
 var PORT = 9999;
 var options = {
   key: fs.readFileSync(common.fixturesDir + '/keys/agent1-key.pem'),

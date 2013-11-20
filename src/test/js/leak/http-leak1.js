@@ -27,12 +27,12 @@ var body = '';
 if(process.argv[2] === '-large') {
     print('building large body...');
     for (var i = 0; i < 1024 * 1024; i++) {
-        body += 'hello world\n';
+        body += 'hello worldçoié\uD83D\uDC4D\n';
     }
     print('done building body');
 } else {
     print('building small body.');
-    body = 'hello world\n';
+    body = 'hello worldçoié\uD83D\uDC4D\n';
 }
 var PORT = 9999;
 
@@ -40,7 +40,7 @@ var server = http.createServer(function(req, res) {
     res.writeHead(200, {
         'content-type': 'text/plain'
     });
-    res.end(body);
+    res.end(new Buffer(body));
 });
 
 server.listen(PORT, function() {
@@ -54,7 +54,7 @@ function startClient() {
         port: PORT
     }, function(res) {
         res.on('data', function(d) {
-            
+            console.log(d.toString());
         });
         res.on('end', function(d) {
             if (perf.canContinue()) {
