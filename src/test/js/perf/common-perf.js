@@ -31,7 +31,7 @@ function startPerf(fstart, time) {
         go = false;
     }, time * 1000);
     fstart();
-    print("Perf test started.");
+    console.log("Perf test started.");
 }
 exports.startPerf = startPerf;
 function round(n) {
