@@ -154,15 +154,18 @@ for(var i = 0; i < algos.length; i++){
     doTest(algos[i]);
 }
 
+function log(txt) {
+    if (!global.silent) {
+        print(txt);
+    }
+}
+
 function doTest(algo){
-    print("Algo " + algo[0] + ", key length " + (algo[1] / 8));
+    log("Algo " + algo[0] + ", key length " + (algo[1] / 8));
 
     //password based
-    var size = rand.nextInt(200);
-    var password = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, size);
-    rand.nextBytes(password);
-    var passwordString = hexutils.encode(password);
-    testCipher(passwordString, algo[0]);
+    var buf = new Buffer('01234567890abcdefghijklmnopqrstuvwxyz');
+    testCipher(buf.toString('hex'), algo[0]);
 
     //key based
     var key = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, (algo[1] / 8));
@@ -184,7 +187,7 @@ function testHashDigest(algo){
     var hasher = crypto.createHash(algo);
     hasher.update(data);
     var digest = hasher.digest('hex');
-    print("Algo " + algo + " " + digest);
+    log("Algo " + algo + " " + digest);
 }
 
 //HashMac
@@ -193,7 +196,7 @@ function testHashMacDigest(algo){
     var hasher = crypto.createHmac(algo, "key");
     hasher.update(data);
     var digest = hasher.digest('hex');
-    print("Algo " + algo + " " + digest);
+    log("Algo " + algo + " " + digest);
 }
 
 var hashAlgos = ["md5","md2","sha1","sha224","sha256","sha384","sha512"];
@@ -234,12 +237,12 @@ rsaSign.update(data);
 var rsaSignature = rsaSign.sign(privateKey, 'hex');
 rsaVerify.update(data);
 assert.strictEqual(rsaVerify.verify(publicKey, rsaSignature, 'hex'), true);
-print(algo);
+log(algo);
 }
 
 var argv = process.argv;
 if(argv[2] === '-unsupported'){
-    print("WARNING, running tests for unsupported algorithms");
+    log("WARNING, running tests for unsupported algorithms");
     // For some Algorithms we don't have a Java standard name.
     // Use the pluggability
     var CryptoBinding = Packages.com.oracle.node.crypto.Crypto;
