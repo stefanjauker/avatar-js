@@ -216,12 +216,6 @@ public final class DiffieHellman {
                 return;
             }
         }
-        // is it a group?
-        for(BigInteger bi : WELL_KNOWN_GROUPS.values()) {
-            if (bi.equals(prime)) {
-                return;
-            }
-        }
         checkSafePrimeForGenerator2(prime);
     }
 
