@@ -82,16 +82,21 @@ function dumpResults() {
 exports.dumpResults = dumpResults;
 function canContinue() {
     if (!go) {
-        dumpResults();
-        log("Ending...");
-        forceGC();
-        var memEnd = captureMemory();
-        log("Memory after gc \n" + memToString(memEnd));
-        log("Heap Diff " + diffMemory(memStart, memEnd));
-        process.exit(0);
+       doExit(); 
     }
     return true;
 }
+
+function doExit() {
+    dumpResults();
+    log("Ending...");
+    forceGC();
+    var memEnd = captureMemory();
+    log("Memory after gc \n" + memToString(memEnd));
+    log("Heap Diff " + diffMemory(memStart, memEnd));
+    process.exit(0);
+}
+
 exports.canContinue = canContinue;
 function actionStart() {
     if(count == 5) {
@@ -148,3 +153,6 @@ function run() {
         setImmediate(run);
     }
 }
+// Killing the process dumps current status
+process.signals.setSignalCallback(doExit);
+process.signals.start('SIGINT');
