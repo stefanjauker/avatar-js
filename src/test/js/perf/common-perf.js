@@ -30,12 +30,22 @@ var memStart;
 var log = console.log;
 
 function startPerf(fstart, time) {
+    var duration = time ? time : 100
+    for(var arg in process.argv) {
+        switch(process.argv[arg]) {
+            case '-duration': {
+                var i = +arg + 1 
+                duration = process.argv[i]
+                break
+            }
+        }
+    }
     start = process.hrtime();
     setTimeout(function() {
         go = false;
-    }, time * 1000);
+    }, duration * 1000);
     fstart();
-    log("Perf test started.");
+    log("Perf test started for " + duration + " seconds.");
 }
 exports.startPerf = startPerf;
 function round(n) {
@@ -89,11 +99,13 @@ function canContinue() {
 
 function doExit() {
     dumpResults();
-    log("Ending...");
-    forceGC();
-    var memEnd = captureMemory();
-    log("Memory after gc \n" + memToString(memEnd));
-    log("Heap Diff " + diffMemory(memStart, memEnd));
+    if (memStart) {
+        log("Ending...");
+        forceGC();
+        var memEnd = captureMemory();
+        log("Memory after gc \n" + memToString(memEnd));
+        log("Heap Diff " + diffMemory(memStart, memEnd));
+    }
     process.exit(0);
 }
 

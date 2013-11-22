@@ -28,16 +28,26 @@ var perf = require("../perf/common-perf");
 
 var net = require('net');
 
-var body = 'hello world\n';
-var PORT;
-
-if (process.argv[2] === '-pipe') {
-    PORT = require("../../../../test/common.js").PIPE;
-    process.on('exit', function() {
-        require('fs').unlinkSync(PORT);
-    })
-} else {
-    PORT = 9999;
+var PORT = 9999;
+var body = 'hello worldçoié\uD83D\uDC4D\n';
+for(var arg in process.argv) {
+    switch(process.argv[arg]) {
+        case '-pipe': {
+            print("pipe");
+            PORT = require("../../../../test/common.js").PIPE;
+            process.on('exit', function() {
+                require('fs').unlinkSync(PORT);
+            })
+            break
+        }
+        case '-large': {
+            print('building large body...');
+            for (var i = 0; i < 1024 * 1024; i++) {
+                body += 'hello worldçoié\uD83D\uDC4D\n';
+            }
+            print('done building body');  
+        }
+    }
 }
 
 var server = net.createServer(function(res) {
