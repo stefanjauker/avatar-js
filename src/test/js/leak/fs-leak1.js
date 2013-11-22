@@ -26,6 +26,24 @@
 
 var filename = __filename;
 var fs = require('fs');
+var path = require('path');
+if(process.argv[2] === '-large') {
+    var tmpDir = require("../../../../test/common.js").tmpDir;
+    filename = path.join(tmpDir, 'fs-leak1.txt');
+    print('building large content...');
+    var content;
+    for (var i = 0; i < 1024 * 1024; i++) {
+        content += 'hello worldçoié\uD83D\uDC4D\n';
+    }
+    print('done building content');
+    var fd = fs.openSync(filename, 'w+');
+    var buff = new Buffer(content);
+    fs.writeSync(fd, buff, 0, buff.length, 0)
+    process.on('exit', function() {
+        require('fs').unlinkSync(filename);
+    })
+}
+
 var perf = require("../perf/common-perf");
 
 perf.startPerf(readFile, 100);

@@ -25,6 +25,8 @@
 var start = 0;
 var count = 0;
 var go = true;
+var util = require('util');
+var memStart;
 function startPerf(fstart, time) {
     start = process.hrtime();
     setTimeout(function() {
@@ -37,7 +39,33 @@ exports.startPerf = startPerf;
 function round(n) {
     return Math.floor(n * 100) / 100;
 }
+function memToString(mem) {
+    if (java) {
+        return mem.toString();
+    } else {
+        return util.inspect(mem)
+    }
+}
+function captureMemory() {
+    if (java) {
+        return java.lang.management.ManagementFactory.getMemoryMXBean().getHeapMemoryUsage()
+    } else {
+        return process.memoryUsage();
+    }
+}
 
+function diffMemory(start, end) {
+    if (java) {
+        return end.used - start.used;
+    } else {
+        return end.heapUsed - start.heapUsed;
+    }
+}
+function forceGC() {
+    for (var i = 0; i < 10; i++) {
+        global.gc();
+    }
+}
 function dumpResults() {
     var end = process.hrtime();
     process.stdout.write('\n');
@@ -53,12 +81,23 @@ exports.dumpResults = dumpResults;
 function canContinue() {
     if (!go) {
         dumpResults();
+        console.log("Ending...");
+        forceGC();
+        var memEnd = captureMemory();
+        console.log("Memory after gc \n" + memToString(memEnd));
+        console.log("Heap Diff " + diffMemory(memStart, memEnd));
         process.exit(0);
     }
     return true;
 }
 exports.canContinue = canContinue;
 function actionStart() {
+    if(count == 5) {
+        console.log("Capturing mem...")
+        forceGC();
+        memStart = captureMemory()
+        console.log("mem " + memToString(memStart));
+    }
     count++;
     if (!(count % 1000)) {
         process.stdout.write('.');

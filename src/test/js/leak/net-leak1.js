@@ -29,7 +29,16 @@ var perf = require("../perf/common-perf");
 var net = require('net');
 
 var body = 'hello world\n';
-var PORT = 9999;
+var PORT;
+
+if (process.argv[2] === '-pipe') {
+    PORT = require("../../../../test/common.js").PIPE;
+    process.on('exit', function() {
+        require('fs').unlinkSync(PORT);
+    })
+} else {
+    PORT = 9999;
+}
 
 var server = net.createServer(function(res) {
     res.end(body);
