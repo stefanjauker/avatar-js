@@ -3,7 +3,8 @@
         'config.gypi',
     },
     'variables': {
-        'AVATAR-JS_PATH%': 'out/<(target)/lib.target',
+        'AVATAR_JS_HOME%': '<(AVATAR_JS_HOME%)',
+        'SRC%': '<(AVATAR_JS_HOME%)/out/<(target)/obj.target/avatar-js',
     },
     'target_defaults': {
         'default_configuration': '<(target)',
@@ -14,6 +15,9 @@
                 'conditions': [
                     ['OS == "win"', {
                         'msvs_settings': {
+                            'VCCLCompilerTool': {
+                                'ObjectFile': 'out\<(target)\obj.target\\avatar-js\\',
+                            },
                             'VCLinkerTool': {
                                 'GenerateDebugInformation': 'true',
                             },
@@ -77,9 +81,9 @@
                         }]
                     ],
                     'sources': [
-                        '<(AVATAR-JS_PATH)/../obj.target/avatar-js/os.cpp',
-                        '<(AVATAR-JS_PATH)/../obj.target/avatar-js/process.cpp',
-                        '<(AVATAR-JS_PATH)/../obj.target/avatar-js/throw.cpp',
+                        '<(SRC)/os.cpp',
+                        '<(SRC)/process.cpp',
+                        '<(SRC)/throw.cpp',
                     ],
                     'libraries': [
                     ],
@@ -97,9 +101,9 @@
                         }]
                     ],
                     'sources': [
-                        '<(AVATAR-JS_PATH)/../obj.target/avatar-js/os.cpp',
-                        '<(AVATAR-JS_PATH)/../obj.target/avatar-js/process.cpp',
-                        '<(AVATAR-JS_PATH)/../obj.target/avatar-js/throw.cpp',
+                        '<(SRC)/os.cpp',
+                        '<(SRC)/process.cpp',
+                        '<(SRC)/throw.cpp',
                     ],
                     'defines': [
                         '_UNICODE',

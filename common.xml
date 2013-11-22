@@ -90,6 +90,9 @@
         <echo file="${gypi}" append="true">{ 'variables': { ${line.separator}</echo>
         <echo file="${gypi}" append="true">    'JAVA_HOME%': '${jdk.home}', ${line.separator}</echo>
         <echo file="${gypi}" append="true">    'SOURCE_HOME%': '${source.home}', ${line.separator}</echo>
+        <echo file="${gypi}" append="true">    'LIBUV_JAVA_HOME%': '${libuv.home}', ${line.separator}</echo>
+        <echo file="${gypi}" append="true">    'HTTP_PARSER_JAVA_HOME%': '${http-parser.home}', ${line.separator}</echo>
+        <echo file="${gypi}" append="true">    'AVATAR_JS_HOME%': '${avatar-js.home}', ${line.separator}</echo>
         <echo file="${gypi}" append="true">  },${line.separator}</echo>
         <echo file="${gypi}" append="true">  'target_defaults': {'default_configuration': '${build.type}'}${line.separator}</echo>
         <echo file="${gypi}" append="true">}${line.separator}</echo>
@@ -139,7 +142,9 @@
     </target>
 
     <target name="make-linux" if="isLinux" unless="product.lib.uptodate">
-        <exec executable="make" failonerror="true"/>
+        <exec executable="make" failonerror="true">
+            <arg value="builddir_name=out"/>
+        </exec>
     </target>
 
     <target name="make-macos" if="isMacOSX" unless="product.lib.uptodate">
@@ -149,6 +154,7 @@
     <target name="make-windows" if="isWindows" unless="product.lib.uptodate">
         <exec executable="msbuild" failonerror="true">
             <arg value="${product.name}.sln"/>
+            <arg value="/p:outdir=out/${build.type}/"/>
             <arg value="/p:Platform=x64"/>
             <arg value="/p:Configuration=${build.type}"/>
         </exec>
@@ -156,6 +162,9 @@
 
 
     <target name="shlib-linux" depends="init"  if="isLinux">
+        <fileset dir="${basedir}/out/${source.home}" id="libuv" includes="**/*.o" excludes="**/test/*" erroronmissingdir="false"/>
+        <pathconvert property="libuv.objs" refid="libuv" pathsep=" " />
+
         <fileset dir="${libuv.home}/out/${build.type}" id="libuv-java" includes="**/*.o" excludes="**/test/*" erroronmissingdir="false"/>
         <pathconvert property="libuv-java.objs" refid="libuv-java" pathsep=" "/>
 
@@ -169,6 +178,7 @@
             <arg value="-shared"/>
             <arg value="-o"/>
             <arg value="libavatar-js.so"/>
+            <arg line="${libuv.objs}"/>
             <arg line="${libuv-java.objs}"/>
             <arg line="${http-parser-java.objs}"/>
             <arg line="${avatar-js.objs}"/>
@@ -211,7 +221,7 @@
         <fileset dir="${source.home}/deps/uv/${build.type}" id="libuv" includes="**/*.obj" excludes="**/test/*" erroronmissingdir="false"/>
         <pathconvert property="libuv.objs" refid="libuv" pathsep=" " />
 
-        <fileset dir="${libuv.home}/${build.type}" id="libuv-java" includes="**/*.obj" erroronmissingdir="false"/>
+        <fileset dir="${libuv.home}/out/${build.type}" id="libuv-java" includes="**/*.obj" erroronmissingdir="false"/>
         <pathconvert property="libuv-java.objs" refid="libuv-java" pathsep=" " />
 
         <fileset dir="${http-parser.home}/${build.type}" id="http-parser-java" includes="**/*.obj" erroronmissingdir="false"/>
