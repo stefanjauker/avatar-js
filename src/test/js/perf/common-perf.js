@@ -27,13 +27,15 @@ var count = 0;
 var go = true;
 var util = require('util');
 var memStart;
+var log = console.log;
+
 function startPerf(fstart, time) {
     start = process.hrtime();
     setTimeout(function() {
         go = false;
     }, time * 1000);
     fstart();
-    console.log("Perf test started.");
+    log("Perf test started.");
 }
 exports.startPerf = startPerf;
 function round(n) {
@@ -69,23 +71,23 @@ function forceGC() {
 function dumpResults() {
     var end = process.hrtime();
     process.stdout.write('\n');
-    console.log('num of actions %d ', count);
+    log('num of actions %d ', count);
     var elapsed = [end[0] - start[0], end[1] - start[1]];
     var ns = elapsed[0] * 1E9 + elapsed[1];
     var nsper = round(ns / count);
-    console.log('%d ns per action (lower is better)', nsper);
+    log('%d ns per action (lower is better)', nsper);
     var readsper = round(count / (ns / 1E9));
-    console.log('%d actions per sec (higher is better)', readsper);
+    log('%d actions per sec (higher is better)', readsper);
 }
 exports.dumpResults = dumpResults;
 function canContinue() {
     if (!go) {
         dumpResults();
-        console.log("Ending...");
+        log("Ending...");
         forceGC();
         var memEnd = captureMemory();
-        console.log("Memory after gc \n" + memToString(memEnd));
-        console.log("Heap Diff " + diffMemory(memStart, memEnd));
+        log("Memory after gc \n" + memToString(memEnd));
+        log("Heap Diff " + diffMemory(memStart, memEnd));
         process.exit(0);
     }
     return true;
@@ -93,10 +95,10 @@ function canContinue() {
 exports.canContinue = canContinue;
 function actionStart() {
     if(count == 5) {
-        console.log("Capturing mem...")
+        log("Capturing mem...")
         forceGC();
         memStart = captureMemory()
-        console.log("mem " + memToString(memStart));
+        log("mem " + memToString(memStart));
     }
     count++;
     if (!(count % 1000)) {
@@ -104,3 +106,45 @@ function actionStart() {
     }
 }
 exports.actionStart = actionStart;
+
+// Automated execution of exiting tests
+var fs = require("fs")
+var path = require("path")
+var module = require("module");
+var testFiles = [];
+
+function startPerfFromTests(rootDirs, radicals, time) {
+    if(!Array.isArray(rootDirs)) {
+        rootDirs = [rootDirs]
+    }
+    if(!Array.isArray(radicals)) {
+        radicals = [radicals]
+    }
+    rootDirs.map(function(rootDir) {
+        var files = fs.readdirSync(rootDir);
+        files.map(function(item) {
+            radicals.map(function(radical) {
+                if(item.indexOf(radical) == 0) {
+                    testFiles.push(path.join(rootDir, item));
+                }
+            });
+        })
+    });
+    log("Run files:\n" + testFiles);
+    console.log = function() {}
+    startPerf(run, time)
+}
+
+exports.startPerfFromTests = startPerfFromTests;
+
+function run() {
+    actionStart();
+    // load/execute all tests
+    testFiles.map(function(f) {
+        require(f);
+        delete module.Module._cache[f];
+    })
+    if (canContinue()) {
+        setImmediate(run);
+    }
+}

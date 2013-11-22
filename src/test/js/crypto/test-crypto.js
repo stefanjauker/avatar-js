@@ -155,9 +155,7 @@ for(var i = 0; i < algos.length; i++){
 }
 
 function log(txt) {
-    if (!global.silent) {
-        print(txt);
-    }
+    console.log(txt);
 }
 
 function doTest(algo){

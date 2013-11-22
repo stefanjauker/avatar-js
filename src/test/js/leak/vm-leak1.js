@@ -26,6 +26,5 @@
 
 var perf = require("../perf/common-perf");
 var path = require("path");
-var testRoot = path.join(__dirname, '../crypto');
-var cryptoRoot = path.join(__dirname, '../../../../test/crypto');
-perf.startPerfFromTests([testRoot, cryptoRoot], ["test-crypto"], 100);
+var simpleRoot = path.join(__dirname, '../../../../test/simple');
+perf.startPerfFromTests(simpleRoot, ["test-vm", "test-script"], 100);
