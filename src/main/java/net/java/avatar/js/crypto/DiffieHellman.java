@@ -210,6 +210,18 @@ public final class DiffieHellman {
     }
 
     public static void checkPrime(BigInteger prime) throws Exception {
+        // Is it a known Prime?
+        for(BigInteger bi : PRIMES.values()) {
+            if (bi.equals(prime)) {
+                return;
+            }
+        }
+        // is it a group?
+        for(BigInteger bi : WELL_KNOWN_GROUPS.values()) {
+            if (bi.equals(prime)) {
+                return;
+            }
+        }
         checkSafePrimeForGenerator2(prime);
     }
 
