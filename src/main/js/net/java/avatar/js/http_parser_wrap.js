@@ -201,7 +201,7 @@
         var buff = new Buffer(length);
         data.copy(buff, 0, start, start + length);
         this._got_exception = null;
-        var nparsed = this._parser.execute(this._settings, buff._impl.toByteBuffer());
+        var nparsed = this._parser.execute(this._settings, buff._impl.underlying());
         if (this._got_exception)
             throw this._got_exception;
         if (!this._parser.upgrade() && nparsed != length) {

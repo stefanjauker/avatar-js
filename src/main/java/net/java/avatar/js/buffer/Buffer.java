@@ -55,7 +55,7 @@ public final class Buffer {
     }
 
     public Buffer(final int size) {
-        byteBuffer = ByteBuffer.allocate(size);
+        byteBuffer = ByteBuffer.allocateDirect(size);
     }
 
     public Buffer(final Double[] numbers) {
@@ -135,10 +135,6 @@ public final class Buffer {
         return this;
     }
 
-    public Buffer asReadOnlyBuffer() {
-        return new Buffer(byteBuffer.asReadOnlyBuffer().array());
-    }
-
     public Buffer slice() {
         return new Buffer(byteBuffer.slice());
     }
@@ -148,7 +144,15 @@ public final class Buffer {
     }
 
     public byte[] array() {
-        return byteBuffer.array();
+        if (byteBuffer.hasArray()) {
+            return byteBuffer.array();
+        } else {
+            final ByteBuffer dup = byteBuffer.duplicate();
+            final byte[] data = new byte[dup.capacity()];
+            dup.clear();
+            dup.get(data);
+            return data;
+        }
     }
 
     public ByteBuffer underlying() {
@@ -174,11 +178,11 @@ public final class Buffer {
     }
 
     public String toStringContent() {
-        return new String(byteBuffer.array());
+        return new String(array());
     }
 
     public String toStringContent(final Charset charset) {
-        return new String(byteBuffer.array(), charset);
+        return new String(array(), charset);
     }
 
     public String toStringContent(final Charset charset, final int position, final int limit) {
@@ -271,21 +275,42 @@ public final class Buffer {
 
     public int copy(final Buffer targetBuffer, final int targetStart, final int sourceStart, final int sourceEnd) {
         final int len = Math.min(sourceEnd - sourceStart, targetBuffer.byteBuffer.capacity());
-        System.arraycopy(byteBuffer.array(), sourceStart, targetBuffer.byteBuffer.array(), targetStart, len);
+        if (byteBuffer.hasArray() && targetBuffer.byteBuffer.hasArray()) {
+            System.arraycopy(byteBuffer.array(), sourceStart, targetBuffer.byteBuffer.array(), targetStart, len);
+        } else if (targetBuffer.byteBuffer.hasArray()) {
+            System.arraycopy(array(), sourceStart, targetBuffer.byteBuffer.array(), targetStart, len);
+        } else {
+            final int pos = targetBuffer.byteBuffer.position();
+            try {
+                targetBuffer.byteBuffer.position(targetStart);
+                targetBuffer.byteBuffer.put(array(), sourceStart, len);
+            } finally {
+                targetBuffer.byteBuffer.position(pos);
+            }
+        }
         return len;
     }
 
     public String toString(final String encoding, final int start, final int length)
             throws UnsupportedEncodingException {
-        return Buffer.fromBytes(Arrays.copyOfRange(byteBuffer.array(), start, start + length), encoding);
+        return Buffer.fromBytes(Arrays.copyOfRange(array(), start, start + length), encoding);
     }
 
     public Buffer slice(final int position, final int end) {
-        return new Buffer(Arrays.copyOfRange(byteBuffer.array(), position, end));
+        return new Buffer(Arrays.copyOfRange(array(), position, end));
     }
 
     public void fill(final Double value, final int start, final int end) {
-        Arrays.fill(byteBuffer.array(), start, end, value.byteValue());
+        if (byteBuffer.hasArray()) {
+            Arrays.fill(byteBuffer.array(), start, end, value.byteValue());
+        } else {
+            final byte[] data = new byte[end - start];
+            Arrays.fill(data, value.byteValue());
+            final ByteBuffer dup = byteBuffer.duplicate();
+            dup.clear();
+            dup.position(start);
+            dup.put(data, 0, data.length);
+        }
     }
 
     public int readInt8(final int off) {
@@ -549,9 +574,8 @@ public final class Buffer {
         sb.append("<");
         sb.append(slow ? "Slow" : "");
         sb.append("Buffer ");
-        final byte[] array = byteBuffer.array();
         for (int i = 0; i < byteBuffer.limit(); i++) {
-            sb.append(String.format("%02x", array[i]));
+            sb.append(String.format("%02x", byteBuffer.get(i)));
             final int nexti = i + 1;
             if (nexti < maxBytes) {
                 if (nexti < byteBuffer.limit()) {

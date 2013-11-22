@@ -200,7 +200,7 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleFileReadCallback(final FileReadCallback cb, final Object context, final int bytesRead, final byte[] data, final Exception error) {
+    public void handleFileReadCallback(final FileReadCallback cb, final Object context, final int bytesRead, final ByteBuffer data, final Exception error) {
         try {
             cb.onRead(context, bytesRead, data, error);
             eventLoop.processQueuedEvents();

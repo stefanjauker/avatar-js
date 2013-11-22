@@ -84,10 +84,10 @@
             position = -1;
         }
         if (typeof callback === 'function') {
-            return fs.read(fd, buffer._impl.array(), offset, length, position, callback);
+            return fs.read(fd, buffer._impl.underlying(), offset, length, position, callback);
         } else {
             try {
-                return fs.read(fd, buffer._impl.array(), offset, length, position);
+                return fs.read(fd, buffer._impl.underlying(), offset, length, position);
             } catch(e) {
                 throw newError(e);
             }
@@ -130,10 +130,10 @@
         }
 
         if (typeof callback === 'function') {
-            var r = fs.write(fd, buffer._impl.array(), offset, length, position, callback);
+            var r = fs.write(fd, buffer._impl.underlying(), offset, length, position, callback);
         } else {
             try {
-                return fs.write(fd, buffer._impl.array(), offset, length, position);
+                return fs.write(fd, buffer._impl.underlying(), offset, length, position);
             } catch(e) {
                 throw newError(e);
             }
