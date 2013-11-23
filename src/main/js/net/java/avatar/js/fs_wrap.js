@@ -550,10 +550,14 @@
     function StatWatcher() {
         var that = this;
         this._fsPoll = new FilePollHandle(loop);
+        this._previous = new exports.Stats();
+        this._current = new exports.Stats();
 
         this._fsPoll.setFilePollCallback(function(status, previous, current) {
             if (that.onchange) {
-                that.onchange(new exports.Stats(current), new exports.Stats(previous), status);
+                that._current.update(current);
+                that._previous.update(previous);
+                that.onchange(that._current, that._previous, status);
             }
         });
 
@@ -581,19 +585,22 @@
     }
 
     exports.Stats = function(stats) {
-        Object.defineProperty(this, 'dev', { enumerable: true, get: function() {  return stats.getDev(); } });
-        Object.defineProperty(this, 'ino', { enumerable: true, get: function() {  return stats.getIno(); } });
-        Object.defineProperty(this, 'mode', { enumerable: true, get: function() {  return stats.getMode(); } });
-        Object.defineProperty(this, 'nlink', { enumerable: true, get: function() {  return stats.getNlink(); } });
-        Object.defineProperty(this, 'uid', { enumerable: true, get: function() {  return stats.getUid(); } });
-        Object.defineProperty(this, 'gid', { enumerable: true, get: function() {  return stats.getGid(); } });
-        Object.defineProperty(this, 'rdev', { enumerable: true, get: function() {  return stats.getRdev(); } });
-        Object.defineProperty(this, 'size', { enumerable: true, get: function() {  return stats.getSize(); } });
-        Object.defineProperty(this, 'blksize', { enumerable: true, get: function() {  return stats.getBlksize(); } });
-        Object.defineProperty(this, 'blocks', { enumerable: true, get: function() {  return stats.getBlocks(); } });
-        Object.defineProperty(this, 'atime', { enumerable: true, get: function() {  return new Date(stats.getAtime()); } });
-        Object.defineProperty(this, 'mtime', { enumerable: true, get: function() {  return new Date(stats.getMtime()); } });
-        Object.defineProperty(this, 'ctime', { enumerable: true, get: function() {  return new Date(stats.getCtime()); } });
+        this.update = function(stats) {
+            this.dev = stats ? stats.getDev() : undefined;
+            this.ino = stats ? stats.getIno() : undefined;
+            this.mode = stats ? stats.getMode() : undefined;
+            this.nlink = stats ? stats.getNlink() : undefined;
+            this.uid = stats ? stats.getUid() : undefined;
+            this.gid = stats ? stats.getGid() : undefined;
+            this.rdev = stats ? stats.getRdev() : undefined;
+            this.size = stats ? stats.getSize() : undefined;
+            this.blksize = stats ? stats.getBlksize() : undefined;
+            this.blocks = stats ? stats.getBlocks() : undefined;
+            this.atime = stats ? new Date(stats.getAtime()) : undefined;
+            this.mtime = stats ? new Date(stats.getMtime()) : undefined;
+            this.ctime = stats ? new Date(stats.getMtime()) : undefined;
+        }
+        this.update(stats);
     }
 
     var newError = function(exception) {
