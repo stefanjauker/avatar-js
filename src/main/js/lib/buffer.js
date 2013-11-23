@@ -98,7 +98,7 @@ function Buffer(subject, encoding, offset) {
                     var len = +subject.length > 0 ? Math.ceil(subject.length) : 0;
                     var a = java.lang.reflect.Array.newInstance(java.lang.Double.class, len);
                     for (var i=0; i < len; i++) {
-                        a[i] = JavaBuffer._valueOf(subject[i]);
+                        a[i] = subject[i];
                     }
                     this._impl = new JavaBuffer(a);
                 }
@@ -127,7 +127,7 @@ Buffer.prototype._init = function() {
     // provide frequently-used final properties as overrides for speed
     // Side effect of this is that Object.getOwnPropertyNames(buffer)
     // https://kenai.com/jira/browse/NODEJS-110
-    // returns the content of overrides otherwise it is not true (eg: valueOf and toString) 
+    // returns the content of overrides otherwise it is not true (eg: valueOf and toString)
     var overrides = {
         _impl: that._impl,
         _this: that,
@@ -190,11 +190,11 @@ Buffer.prototype._init = function() {
                 return that[name];
             }
         },
-        
+
         __has__: function(name) { // called by slice and var exists = "x" in obj;
             if (typeof name == 'number') {
                 return name < that._impl.capacity();
-            } else { 
+            } else {
                 // Overrides properties are handled by nashorn runtime.
                 // Checking the Buffer prototype, "in" goes up the chain
                 return Object.keys(Buffer.prototype).indexOf(name) > -1
@@ -212,7 +212,7 @@ Buffer.prototype._init = function() {
                 Object.setPrototypeOf(that, value);
             } else {
                 that[name] = value;
-            }            
+            }
         },
 
         __call__: function(name, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
@@ -230,7 +230,7 @@ Buffer.prototype._init = function() {
             // Called when for in is called.
             // The list of properties must contain: all indexes, overrides and Buffer.prototype.
             // Getting all indexes would kill perf, but we can add Buffer.prototype.
-            return [ 'length', 'toString', 'write', 'copy', 
+            return [ 'length', 'toString', 'write', 'copy',
                 'isBuffer', 'slice', 'fill' ].concat(Object.keys(Buffer.prototype));
         }
 
@@ -300,11 +300,11 @@ Buffer.prototype.copy = function(targetBuffer, targetStart, sourceStart, sourceE
     if (se > len) {
         throw new RangeError('sourceEnd out of bounds');
     }
-    
+
     if (targetBuffer.length - ts < se - ss) {
         se = targetBuffer.length - ts + ss;
     }
-    
+
     return this._impl.copy(targetBuffer._impl, ts, ss, se);
 }
 

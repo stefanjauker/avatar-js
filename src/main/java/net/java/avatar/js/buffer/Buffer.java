@@ -664,15 +664,4 @@ public final class Buffer {
         return new Buffer(bytes);
     }
 
-    public static double _valueOf(final Object obj) {
-        if (obj instanceof Integer) {
-            return ((Integer) obj).doubleValue();
-        } else if (obj instanceof Double) {
-            return ((Double) obj).doubleValue();
-        } else if (obj instanceof String) {
-            return Double.valueOf((String) obj);
-        }
-        return 0;
-    }
-
 }
