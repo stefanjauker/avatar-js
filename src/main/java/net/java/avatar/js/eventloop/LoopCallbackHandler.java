@@ -81,7 +81,7 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleCheckCallback(final CheckCallback cb, final int status) {
         try {
-            cb.call(status);
+            cb.onCheck(status);
             eventLoop.processQueuedEvents();
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -91,7 +91,7 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleSignalCallback(final SignalCallback cb, final int signum) {
         try {
-            cb.call(signum);
+            cb.onSignal(signum);
             eventLoop.processQueuedEvents();
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -171,7 +171,7 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFileCallback(final FileCallback cb, final Object context, final Exception error) {
         try {
-            cb.call(context, error);
+            cb.onDone(context, error);
             eventLoop.processQueuedEvents();
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -262,7 +262,7 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFileEventCallback(FileEventCallback cb, int status, String event, String filename) {
         try {
-            cb.call(status, event, filename);
+            cb.onEvent(status, event, filename);
             eventLoop.processQueuedEvents();
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -309,7 +309,7 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleTimerCallback(final TimerCallback cb, final int status) {
         try {
-            cb.call(status);
+            cb.onTimer(status);
             eventLoop.processQueuedEvents();
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
@@ -349,7 +349,7 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleIdleCallback(IdleCallback cb, int status) {
         try {
-            cb.call(status);
+            cb.onIdle(status);
             eventLoop.processQueuedEvents();
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
