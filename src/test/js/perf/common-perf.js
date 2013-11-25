@@ -29,6 +29,10 @@ var util = require('util');
 var memStart;
 var log = console.log;
 
+function isAvatarjs() {
+    return typeof(__avatar) != 'undefined'
+}
+
 function startPerf(fstart, time) {
     var duration = time ? time : 100
     for(var arg in process.argv) {
@@ -52,14 +56,14 @@ function round(n) {
     return Math.floor(n * 100) / 100;
 }
 function memToString(mem) {
-    if (java) {
+    if (isAvatarjs()) {
         return mem.toString();
     } else {
         return util.inspect(mem)
     }
 }
 function captureMemory() {
-    if (java) {
+    if (isAvatarjs()) {
         return java.lang.management.ManagementFactory.getMemoryMXBean().getHeapMemoryUsage()
     } else {
         return process.memoryUsage();
@@ -67,7 +71,7 @@ function captureMemory() {
 }
 
 function diffMemory(start, end) {
-    if (java) {
+    if (isAvatarjs()) {
         return end.used - start.used;
     } else {
         return end.heapUsed - start.heapUsed;
@@ -166,5 +170,8 @@ function run() {
     }
 }
 // Killing the process dumps current status
-process.signals.setSignalCallback(doExit);
-process.signals.start('SIGINT');
+// only when using avatarjs
+if(process.signals) {
+    process.signals.setSignalCallback(doExit);
+    process.signals.start('SIGINT');
+}
