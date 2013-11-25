@@ -76,14 +76,14 @@
     UDP.prototype.send = function(buffer, offset, length, port, ip) {
         var wrapper = {_buffer: buffer};
         this._writeWrappers.push(wrapper);
-        this._udp.send(buffer._impl.array(), offset, length, port, ip);
+        this._udp.send(buffer._impl.underlying(), offset, length, port, ip);
         return wrapper;
     }
 
     UDP.prototype.send6 = function(buffer, offset, length, port, ip) {
         var wrapper = {_buffer: buffer};
         this._writeWrappers.push(wrapper);
-        this._udp.send6(buffer._impl.array(), offset, length, port, ip);
+        this._udp.send6(buffer._impl.underlying(), offset, length, port, ip);
         return wrapper;
     }
 
