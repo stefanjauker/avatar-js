@@ -4,7 +4,7 @@
     },
     'variables': {
         'AVATAR_JS_HOME%': '<(AVATAR_JS_HOME%)',
-        'SRC%': '<(AVATAR_JS_HOME%)/out/<(target)/obj.target/avatar-js',
+        'SRC%': './out/<(target)/obj.target/avatar-js',
     },
     'target_defaults': {
         'default_configuration': '<(target)',
