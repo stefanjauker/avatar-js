@@ -62,7 +62,7 @@ public class StringDecoder {
     public String write(Buffer buffer) {
         // The received buffer can be fully consumed
         ByteBuffer buff = ByteBuffer.allocate(buffer.capacity());
-        buff.put(buffer.underlying());
+        buff.put(buffer.array());
         buff.flip();
         ByteBuffer nBuffer = buff;
         if (remaining != null) {
