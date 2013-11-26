@@ -46,9 +46,11 @@ Build Instructions
    b) ant clean-all (to clean project and dependencies)
    c) ant -Dbuild.type=Release jar-all (to build Release configuration)
 
-7. Test
+7. Test (might need to set LANG=en_US.UTF-8)
    a) java -jar dist/avatar-js.jar src/test/js/test-runner.js test/simple/
       (test-runner.js supports many options, look at source for help)
+   b) java -jar dist/avatar-js.jar src/test/js/test-runner.js test/crypto/
+   c) java -jar dist/avatar-js.jar src/test/js/test-runner.js -timeout 180 test/pummel/
 
 8. Running applications
    java -jar dist/avatar-js.jar app.js
