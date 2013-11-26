@@ -408,6 +408,7 @@
         <!-- pummel -->
         <apply-patch-file target="${test.dir}/pummel" dir="test/crypto" name="test-crypto-dh.js"/>
         <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-dh-regr.js"/>
+        <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-exec.js"/>
         <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-https-ci-reneg-attack.js"/>
         <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-net-pingpong.js"/>
         <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-net-throttle.js"/>
