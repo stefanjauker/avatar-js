@@ -224,10 +224,10 @@
         <fileset dir="${libuv.home}/out/${build.type}" id="libuv-java" includes="**/*.obj" erroronmissingdir="false"/>
         <pathconvert property="libuv-java.objs" refid="libuv-java" pathsep=" " />
 
-        <fileset dir="${http-parser.home}/${build.type}" id="http-parser-java" includes="**/*.obj" erroronmissingdir="false"/>
+        <fileset dir="${http-parser.home}/out/${build.type}" id="http-parser-java" includes="**/*.obj" erroronmissingdir="false"/>
         <pathconvert property="http-parser-java.objs" refid="http-parser-java" pathsep=" " />
 
-        <fileset dir="${avatar-js.home}/${build.type}" id="avatar-js" includes="**/*.obj" erroronmissingdir="false"/>
+        <fileset dir="${avatar-js.home}/out/${build.type}" id="avatar-js" includes="**/*.obj" erroronmissingdir="false"/>
         <pathconvert property="avatar-js.objs" refid="avatar-js" pathsep=" " />
 
         <exec executable="link.exe" dir="${dist.dir}" failonerror="true">
