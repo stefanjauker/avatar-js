@@ -476,7 +476,7 @@
         <property name="package.name" value="${product.name}-windows"/>
     </target>
 
-    <target name="package" depends="build, package-linux, package-macos, package-windows">
+    <target name="package" depends="jar-all, package-linux, package-macos, package-windows">
         <delete dir="dist/${product.name}"/>
         <delete file="dist/${package.name}.zip"/>
         <copy todir="${dist.dir}/${product.name}/lib">
