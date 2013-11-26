@@ -206,10 +206,10 @@
 
     TCP.prototype.writeBuffer = function(data) {
         if (data._impl) data = data._impl; // unwrap if necessary
-        var wrapper = {bytes: data.array().length};
+        var wrapper = {bytes: data.underlying().capacity()};
         this._writeWrappers.push(wrapper);
         Object.defineProperty(wrapper, '_socketHandle', { value: this.owner });
-        this._connection.write(data.array());
+        this._connection.write(data.underlying());
         return wrapper;
     }
 

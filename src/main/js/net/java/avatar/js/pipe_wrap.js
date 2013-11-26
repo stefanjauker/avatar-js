@@ -233,9 +233,9 @@
 
     Pipe.prototype.writeBuffer = function(message) {
         if (message._impl) message = message._impl; // unwrap if necessary
-        var wrapper = {bytes: message.array().length};
+        var wrapper = {bytes: message.underlying().length};
         this._writeWrappers.push(wrapper);
-        this._pipe.write(message.array());
+        this._pipe.write(message.underlying());
         return wrapper;
     }
 
