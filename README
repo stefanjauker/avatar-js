@@ -2,7 +2,7 @@ Build Instructions
 
 1. Install jdk8, ant and python
    a) Install the latest jdk8 build from http://jdk8.java.net/download.html
-   b) Ensure ant is installed and ant --version is 1.8+
+   b) Ensure ant is installed and ant -version is 1.8+
    c) Ensure python is installed and python --version is 2.7.5+
 
 2. Download node.js
@@ -11,7 +11,7 @@ Build Instructions
    c) git checkout v0.10.18
       (do 'git pull' to refresh repo if you get an error saying this version is unknown)
 
-3. Clone dependencies
+3. Clone dependencies (<id> is your java.net id)
    a) git clone git://java.net/avatar-js~libuv-java libuv-java (read-only)
       git clone ssh://<id>@git.java.net/avatar-js~libuv-java libuv-java
 
@@ -21,7 +21,7 @@ Build Instructions
    c) git clone git://java.net/avatar-js~src avatar-js (read-only)
       git clone ssh://<id>@git.java.net/avatar-js~src avatar-js
 
-   d) Download testng from http://testng.org/doc/download.html
+   d) Download test-ng from http://testng.org/doc/download.html
       unzip bundle and place testng.jar somewhere in your workspace
 
 3. Edit ~/.avatar-js.properties to set various locations, for example
@@ -41,16 +41,22 @@ Build Instructions
 5. Configure
    a) ant setup
 
-6. Build - ensure jdk8 and appropriate c++ compiler is in PATH
+6. Build - ensure ant, jdk8 and appropriate c++ compiler/linker is in PATH
    a) ant jar-all
    b) ant clean-all (to clean project and dependencies)
    c) ant -Dbuild.type=Release jar-all (to build Release configuration)
 
-7. Test (might need to set LANG=en_US.UTF-8)
-   a) java -jar dist/avatar-js.jar src/test/js/test-runner.js test/simple/
+7. Test
+   a) might need to set LANG=en_US.UTF-8
+   b) Some crypto tests require 
+      Java Cryptography Extension Unlimited Jurisdiction Policy Files
+      to be installed from
+      http://www.oracle.com/technetwork/java/javase/downloads/index.html
+      follow the instructions in the download, files for Java7 work in Java8
+   c) java -jar dist/avatar-js.jar src/test/js/test-runner.js test/simple/
       (test-runner.js supports many options, look at source for help)
-   b) java -jar dist/avatar-js.jar src/test/js/test-runner.js test/crypto/
-   c) java -jar dist/avatar-js.jar src/test/js/test-runner.js -timeout 180 test/pummel/
+   d) java -jar dist/avatar-js.jar src/test/js/test-runner.js test/crypto/
+   e) java -jar dist/avatar-js.jar src/test/js/test-runner.js -timeout 180 test/pummel/
 
 8. Running applications
    java -jar dist/avatar-js.jar app.js
@@ -84,8 +90,9 @@ Limitations and Gotchas
 
 7. No signal handlers installed by default
    some generate EINVAL (invalid argument)
-   and the JVM installs some of its own and we do not want to cause conflicts
+   the JVM installs some of its own and we do not want to cause conflicts
    an app can install signal handlers as needed using
       process.signals.start('SIGUSR1');
    or
-     process.signals.start(43);
+      process.signals.start(43);
+
