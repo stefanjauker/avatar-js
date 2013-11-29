@@ -31,8 +31,10 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLStreamHandler;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -40,8 +42,51 @@ import java.util.Set;
  * An extensible module loader.
  */
 public abstract class Loader {
-
-    public static final String PREFIX = "(function (exports, require, module, __filename, __dirname) { ";
+    static {
+        // XXX jfdenise, this could be revisited with other way to find out debug mode
+        List<String> debug_keys = new ArrayList<>();
+        debug_keys.add("-Xdebug");
+        debug_keys.add("-agentlib:jdwp");
+        
+        String p = "(function (exports, require, module, __filename, __dirname) { ";
+        boolean debug = false;
+        try {
+            Class<?> clazz = Class.forName("java.lang.management.ManagementFactory");
+            Class<?> mxbeanClazz = Class.forName("java.lang.management.RuntimeMXBean");
+            Object mxbean = clazz.getMethod("getRuntimeMXBean").invoke(null);
+            @SuppressWarnings("unchecked")
+            List<String> arguments = (List<String>) mxbeanClazz.getDeclaredMethod("getInputArguments").invoke(mxbean);
+            for (String a : arguments) {
+                // does it starts with
+                for (String k : debug_keys) {
+                    if (a.startsWith(k)) {
+                        debug = true;
+                        break;
+                    }
+                }
+            }
+        }catch(Exception ex) {
+            // XXX OK compact1 or something
+        }
+        
+        /*
+         * If we are in debugging, the runtime source file is exposed to the user. 
+         * So it must be cleanly formatted and a \n is expected. If a stack trace is displayed, 
+         * the line numbers must be in sync with the file exposed to the user (The Runtime Source).
+         * In this case the function signature is postfixed by a \n for proper formatting.
+         * If we are NOT in debugging, the original source file is exposed to the user. 
+         * No function wrapper visible. If a stack trace is displayed, 
+         * the line numbers must be in sync with the file exposed to the user (The original Source).
+         * In this case the function signature is not postfixed by a \n.
+         */
+        if (debug) { // Runtime source is exposed.
+            PREFIX = p +"\n";
+        } else { // Not exposed, so hide wrapping.
+            PREFIX = p;
+        }
+    }
+    
+    public static final String PREFIX;
     public static final String SUFFIX = "\n});";
 
     public static String wrap(final String content) {
