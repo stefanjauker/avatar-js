@@ -123,7 +123,7 @@ public final class Logging {
             }
         }
         this.enabled = enabled;
-        this.defaultLogger = enabled ? create("node") : NULL_LOGGER;
+        this.defaultLogger = enabled ? create("avatar-js") : NULL_LOGGER;
     }
 
     public boolean setEnabled(final boolean enabled) {
