@@ -87,7 +87,8 @@ Object.defineProperty(exports, 'stdin', {
             var tty_wrap = process.binding('tty_wrap');
             var fd = 0;
 
-            switch (tty_wrap.guessHandleType(fd)) {
+            var handleType = tty_wrap.guessHandleType(fd);
+            switch (handleType) {
                 case 'TTY':
                   var tty = NativeModule.require('tty');
                   stdin = new tty.ReadStream(fd, {
@@ -112,7 +113,7 @@ Object.defineProperty(exports, 'stdin', {
 
                 default:
                     // Probably an error on in uv_guess_handle()
-                    throw new Error('Unknown stdin file type!');
+                    throw new Error('Unknown stdin handle type ' + handleType);
             }
 
             // For supporting legacy API we put the FD here.
@@ -150,7 +151,8 @@ var wrapStdOutputStream = function(fd) {
     // From Node.js
     var stream;
     var tty_wrap = process.binding('tty_wrap');
-    switch(tty_wrap.guessHandleType(fd)) {
+    var handleType = tty_wrap.guessHandleType(fd);
+    switch (handleType) {
         case 'TTY':
             var tty = NativeModule.require('tty');
             stream = new tty.WriteStream(fd);
@@ -193,7 +195,7 @@ var wrapStdOutputStream = function(fd) {
             stream._isStdio = true;
             break;
         default:
-            throw new Error('Unknow stream type');
+            throw new Error('Unknown stdout handle type ' + handleType);
     }
     stream.fd = fd;
     stream._isStdio = true;
