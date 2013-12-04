@@ -39,6 +39,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.script.ScriptException;
 
 import jdk.nashorn.api.scripting.NashornException;
+import jdk.nashorn.internal.runtime.ECMAException;
+import jdk.nashorn.internal.runtime.ScriptObject;
 import net.java.avatar.js.dns.DNS;
 import net.java.avatar.js.log.Logger;
 import net.java.avatar.js.log.Logging;
@@ -186,7 +188,7 @@ public final class EventLoop {
     }
 
     // filename, line, column, name, message
-    public static final String EXCEPTION_FILE = "file";
+    public static final String EXCEPTION_FILE = "filename";
     public static final String EXCEPTION_LINE = "line";
     public static final String EXCEPTION_COLUMN = "column";
     public static final String EXCEPTION_NAME = "name";
@@ -213,9 +215,8 @@ public final class EventLoop {
         }
 
         final Map<String, Object> args = new HashMap<>();
-        args.put(EXCEPTION_STACK, NashornException.getScriptStackString(ex));
         if (LOG.enabled()) { LOG.log("uncaught %s", ex.toString()); }
-
+        
         NashornException nex = null;
         if (ex instanceof NashornException) {
             nex = (NashornException) ex;
@@ -231,11 +232,12 @@ public final class EventLoop {
             // unknown/unhandled exception - rethrow
             return false;
         }
-
-        // extract exception file, line, column, name and message, if available
+                
+        // extract exception file, line, column, stack, name and message, if available
         args.put(EXCEPTION_FILE, nex.getFileName());
         args.put(EXCEPTION_LINE, nex.getLineNumber());
         args.put(EXCEPTION_COLUMN, nex.getColumnNumber());
+        args.put(EXCEPTION_STACK, NashornException.getScriptStackString(nex));
 
         final String message = nex.getMessage();
         final String[] EMPTY_ARRAY = {};
@@ -250,7 +252,20 @@ public final class EventLoop {
                 break;
             default:
         }
-
+        // Workaround of https://bugs.openjdk.java.net/browse/JDK-8029364
+        // To be replaced with public API when available.
+        if (nex instanceof ECMAException) {
+            ECMAException ecma = (ECMAException) nex;
+            if (ecma.getThrown() instanceof ScriptObject) {
+                ScriptObject so = (ScriptObject) ecma.getThrown();
+                for (String m : so.getOwnKeys(false)) {
+                    if (!args.keySet().contains(m)) {
+                        args.put(m, so.get(m));
+                    }
+                }
+            }
+        }
+        
         // dispatch exception to user handler, returning true on success
         try {
             final Object[] arr = {args};

@@ -211,12 +211,9 @@ var gc = global.gc;
             var ctx = Packages.net.java.avatar.js.eventloop.EventLoop;
             var e = new Error();
             var ex = args[0];
-            e.filename = ex[ctx.EXCEPTION_FILE];
-            e.line = ex[ctx.EXCEPTION_LINE];
-            e.column = ex[ctx.EXCEPTION_COLUMN];
-            e.name = ex[ctx.EXCEPTION_NAME];
-            e.message = ex[ctx.EXCEPTION_MESSAGE];
-            e.stack = ex[ctx.EXCEPTION_STACK];
+            for (var k in ex) {
+                e[k] = ex[k];
+            }
             process.emit(name, e);
         }
     );

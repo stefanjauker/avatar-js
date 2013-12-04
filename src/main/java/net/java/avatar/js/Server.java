@@ -210,17 +210,29 @@ public final class Server {
                 userArgs.toArray(new String[userArgs.size()]),
                 userFiles);
         Exception rootCause = null;
+        // First run the main script...
         try {
             runSystemScript(SYSTEM_INIT_SCRIPTS);
-            // run the main event loop
-            eventLoop.run();
         } catch(Exception ex) {
             if (!eventLoop.handleCallbackException(ex)) {
+                throw ex;
+            }
+        }
+        // ...then run the main event loop. If an exception has been handled
+        // the process can continue. For example some timer events can be fired.
+        try {
+            eventLoop.run();
+        } catch(Exception ex) {
+            boolean rethrow = false;
+            if (!eventLoop.handleCallbackException(ex)) {
+                rethrow = true;
                 eventLoop.stop();
             }
             holder.setExitCode(1);
-            rootCause = ex;
-            throw ex;
+            if (rethrow) {
+                rootCause = ex;
+                throw ex;
+            }
         } finally {
             if (args != null && args.length > 0) {
                 try {
