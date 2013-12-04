@@ -12,6 +12,8 @@ Build Instructions
       (do 'git pull' to refresh repo if you get an error saying this version is unknown)
 
 3. Clone dependencies (<id> is your java.net id)
+   (Strongly recommend that all dependencies be cloned at the same level as node.js)
+
    a) git clone git://java.net/avatar-js~libuv-java libuv-java (read-only)
       git clone ssh://<id>@git.java.net/avatar-js~libuv-java libuv-java
 
@@ -24,7 +26,8 @@ Build Instructions
    d) Download test-ng from http://testng.org/doc/download.html
       unzip bundle and place testng.jar somewhere in your workspace
 
-3. Edit ~/.avatar-js.properties to set various locations, for example
+4. Edit ~/.avatar-js.properties to set various locations 
+   (Ensure that there is no trailing slash after a property value), for example
 
    source.home = /ws/source (from 2a)
    libuv.home = /ws/libuv-java (from 3a)
@@ -32,21 +35,21 @@ Build Instructions
    avatar-js.home = /ws/avatar-js (from 3c)
    testng.jar = /ws/lib/testng.jar (from 3d)
 
-4. Setup environment so that native libraries can be found
+5. Setup environment so that native libraries can be found
    cd avatar-js
    export LD_LIBRARY_PATH=$PWD/dist:$LD_LIBRARY_PATH (linux)
    export DYLD_LIBRARY_PATH=$PWD/dist:$DYLD_LIBRARY_PATH (mac)
    export PATH=%CWD%/dist;%PATH% (windows)
 
-5. Configure
+6. Configure
    a) ant setup
 
-6. Build - ensure ant, jdk8 and appropriate c++ compiler/linker is in PATH
+7. Build - ensure ant, jdk8 and appropriate c++ compiler/linker is in PATH
    a) ant jar-all
    b) ant clean-all (to clean project and dependencies)
    c) ant -Dbuild.type=Release jar-all (to build Release configuration)
 
-7. Test
+8. Test
    a) might need to set LANG=en_US.UTF-8
    b) Some crypto tests require 
       Java Cryptography Extension Unlimited Jurisdiction Policy Files
@@ -58,7 +61,7 @@ Build Instructions
    d) java -jar dist/avatar-js.jar src/test/js/test-runner.js test/crypto/
    e) java -jar dist/avatar-js.jar src/test/js/test-runner.js -timeout 180 test/pummel/
 
-8. Running applications
+9. Running applications
    java -jar dist/avatar-js.jar app.js
 
 Limitations and Gotchas
