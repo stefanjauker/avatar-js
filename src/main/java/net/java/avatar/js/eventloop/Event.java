@@ -49,7 +49,7 @@ public final class Event {
         this.callback = callback;
         this.args = new Object[1];
         this.args[0] = arg;
-        if(System.getSecurityManager() != null) {
+        if (System.getSecurityManager() != null) {
            this.ctx = AccessController.getContext();
         } else {
             this.ctx = null;
@@ -61,7 +61,7 @@ public final class Event {
         this.domain = null;
         this.callback = callback;
         this.args = args == null ? null : args.clone();
-        if(System.getSecurityManager() != null) {
+        if (System.getSecurityManager() != null) {
            this.ctx = AccessController.getContext();
         } else {
             this.ctx = null;

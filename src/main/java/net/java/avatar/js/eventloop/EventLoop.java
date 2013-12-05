@@ -79,6 +79,7 @@ public final class EventLoop {
 
         private final AtomicInteger hooks;
         private final AsyncHandle asyncHandle;
+
         public Handle(final AtomicInteger hooks, final AsyncHandle asyncHandle) {
             this.hooks = hooks;
             this.asyncHandle = asyncHandle;
@@ -92,7 +93,7 @@ public final class EventLoop {
             hooks.decrementAndGet();
             asyncHandle.send();
         }
-        
+
         public void release() {
             close();
         }
@@ -125,7 +126,7 @@ public final class EventLoop {
     public void post(final Callback cb, Object... args) {
         eventQueue.add(new Event(null, cb, args));
     }
-    
+
     public void post(final Event event) {
         eventQueue.add(event);
     }
@@ -243,7 +244,7 @@ public final class EventLoop {
 
         final Map<String, Object> args = new HashMap<>();
         if (LOG.enabled()) { LOG.log("uncaught %s", ex.toString()); }
-        
+
         NashornException nex = null;
         if (ex instanceof NashornException) {
             nex = (NashornException) ex;
@@ -259,7 +260,7 @@ public final class EventLoop {
             // unknown/unhandled exception - rethrow
             return false;
         }
-                
+
         // extract exception file, line, column, stack, name and message, if available
         args.put(EXCEPTION_FILE, nex.getFileName());
         args.put(EXCEPTION_LINE, nex.getLineNumber());
@@ -292,7 +293,7 @@ public final class EventLoop {
                 }
             }
         }
-        
+
         // dispatch exception to user handler, returning true on success
         try {
             final Object[] arr = {args};

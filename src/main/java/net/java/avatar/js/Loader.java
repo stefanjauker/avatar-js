@@ -42,13 +42,13 @@ import java.util.Set;
  * An extensible module loader.
  */
 public abstract class Loader {
+
     static {
         // XXX jfdenise, this could be revisited with other way to find out debug mode
         List<String> debug_keys = new ArrayList<>();
         debug_keys.add("-Xdebug");
         debug_keys.add("-agentlib:jdwp");
-        
-        String p = "(function (exports, require, module, __filename, __dirname) { ";
+
         boolean debug = false;
         try {
             Class<?> clazz = Class.forName("java.lang.management.ManagementFactory");
@@ -65,27 +65,28 @@ public abstract class Loader {
                     }
                 }
             }
-        }catch(Exception ex) {
+        } catch (Exception ex) {
             // XXX OK compact1 or something
         }
-        
+
         /*
-         * If we are in debugging, the runtime source file is exposed to the user. 
-         * So it must be cleanly formatted and a \n is expected. If a stack trace is displayed, 
+         * If we are in debugging, the runtime source file is exposed to the user.
+         * So it must be cleanly formatted and a \n is expected. If a stack trace is displayed,
          * the line numbers must be in sync with the file exposed to the user (The Runtime Source).
          * In this case the function signature is postfixed by a \n for proper formatting.
-         * If we are NOT in debugging, the original source file is exposed to the user. 
-         * No function wrapper visible. If a stack trace is displayed, 
+         * If we are NOT in debugging, the original source file is exposed to the user.
+         * No function wrapper visible. If a stack trace is displayed,
          * the line numbers must be in sync with the file exposed to the user (The original Source).
          * In this case the function signature is not postfixed by a \n.
          */
+        final String p = "(function (exports, require, module, __filename, __dirname) { ";
         if (debug) { // Runtime source is exposed.
-            PREFIX = p +"\n";
+            PREFIX = p + "\n";
         } else { // Not exposed, so hide wrapping.
             PREFIX = p;
         }
     }
-    
+
     public static final String PREFIX;
     public static final String SUFFIX = "\n});";
 
