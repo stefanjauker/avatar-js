@@ -27,8 +27,8 @@ package net.java.avatar.js.eventloop;
 
 import java.security.AccessControlContext;
 import java.security.AccessController;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
-import net.java.avatar.js.eventloop.Callback;
 import net.java.avatar.js.Server;
 
 public final class Event {
@@ -37,12 +37,15 @@ public final class Event {
     private final Callback callback;
     private final Object[] args;
     private final AccessControlContext ctx;
-    public Event(final String name, final Callback callback) {
-        this(name, callback, (Object[]) null);
+    private final ScriptObjectMirror domain;
+
+    public Event(final String name, final ScriptObjectMirror domain, final Callback callback) {
+        this(name, domain, callback, (Object[]) null);
     }
 
-    public Event(final String name, final Callback callback, final Object arg) {
+    public Event(final String name, final ScriptObjectMirror domain, final Callback callback, final Object arg) {
         this.name = name;
+        this.domain = domain;
         this.callback = callback;
         this.args = new Object[1];
         this.args[0] = arg;
@@ -55,6 +58,7 @@ public final class Event {
 
     public Event(final String name, final Callback callback, final Object... args) {
         this.name = name;
+        this.domain = null;
         this.callback = callback;
         this.args = args == null ? null : args.clone();
         if(System.getSecurityManager() != null) {
@@ -107,4 +111,7 @@ public final class Event {
         return sb.toString();
     }
 
+    public ScriptObjectMirror getDomain() {
+        return domain;
+    }
 }

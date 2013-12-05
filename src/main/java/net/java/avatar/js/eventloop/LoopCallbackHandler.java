@@ -63,16 +63,42 @@ import net.java.libuv.cb.UDPSendCallback;
 final class LoopCallbackHandler implements CallbackHandler {
 
     private final EventLoop eventLoop;
-
+    private final Object domain;
     public LoopCallbackHandler(EventLoop eventLoop) {
+        this(eventLoop, null);
+    }
+    
+    public LoopCallbackHandler(EventLoop eventLoop, Object domain) {
         this.eventLoop = eventLoop;
+        this.domain = domain;
     }
 
+    private boolean shouldCall() {
+        if (domain != null) {
+            if (eventLoop.isDisposed(domain)) {
+                return false;
+            }
+            
+            eventLoop.enterDomain(domain);
+        }
+        
+        return true;
+    }
+    
+    private void post() throws Exception {
+        if (domain != null) {
+            eventLoop.exitDomain(domain);
+        }
+        eventLoop.processQueuedEvents();
+    }
+    
     @Override
     public void handleAsyncCallback(final AsyncCallback cb, final int status) {
         try {
-            cb.onSend(status);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onSend(status);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -81,8 +107,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleCheckCallback(final CheckCallback cb, final int status) {
         try {
-            cb.onCheck(status);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onCheck(status);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -91,8 +119,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleSignalCallback(final SignalCallback cb, final int signum) {
         try {
-            cb.onSignal(signum);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onSignal(signum);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -101,8 +131,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleStreamReadCallback(final StreamReadCallback cb, final ByteBuffer data) {
         try {
-            cb.onRead(data);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onRead(data);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -111,8 +143,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleStreamRead2Callback(final StreamRead2Callback cb, final ByteBuffer data, final long handle, final int type) {
         try {
-            cb.onRead2(data, handle, type);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onRead2(data, handle, type);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -121,8 +155,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleStreamWriteCallback(final StreamWriteCallback cb, final int status, final Exception error) {
         try {
-            cb.onWrite(status, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onWrite(status, error);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -131,8 +167,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleStreamConnectCallback(final StreamConnectCallback cb, final int status, final Exception error) {
         try {
-            cb.onConnect(status, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onConnect(status, error);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -141,8 +179,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleStreamConnectionCallback(final StreamConnectionCallback cb, final int status, final Exception error) {
         try {
-            cb.onConnection(status, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onConnection(status, error);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -151,8 +191,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleStreamCloseCallback(final StreamCloseCallback cb) {
         try {
-            cb.onClose();
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onClose();
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -161,8 +203,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleStreamShutdownCallback(final StreamShutdownCallback cb, final int status, final Exception error) {
         try {
-            cb.onShutdown(status, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onShutdown(status, error);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -171,8 +215,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFileCallback(final FileCallback cb, final Object context, final Exception error) {
         try {
-            cb.onDone(context, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onDone(context, error);
+                post();
+            }
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -182,8 +228,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFileCloseCallback(final FileCloseCallback cb, final Object context, final int fd, final Exception error) {
         try {
-            cb.onClose(context, fd, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onClose(context, fd, error);
+                post();
+            }
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -192,8 +240,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFileOpenCallback(final FileOpenCallback cb, final Object context, final int fd, final Exception error) {
         try {
-            cb.onOpen(context, fd, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onOpen(context, fd, error);
+                post();
+            }
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -202,8 +252,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFileReadCallback(final FileReadCallback cb, final Object context, final int bytesRead, final ByteBuffer data, final Exception error) {
         try {
-            cb.onRead(context, bytesRead, data, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onRead(context, bytesRead, data, error);
+                post();
+            }
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -212,8 +264,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFileReadDirCallback(final FileReadDirCallback cb, final Object context, final String[] names, final Exception error) {
         try {
-            cb.onReadDir(context, names, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onReadDir(context, names, error);
+                post();
+            }
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -222,8 +276,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFileReadLinkCallback(final FileReadLinkCallback cb, final Object context, final String name, final Exception error) {
         try {
-            cb.onReadLink(context, name, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onReadLink(context, name, error);
+                post();
+            }
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -232,8 +288,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFileStatsCallback(final FileStatsCallback cb, final Object context, final Stats stats, final Exception error) {
         try {
-            cb.onStats(context, stats, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onStats(context, stats, error);
+                post();
+            }
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -242,8 +300,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFileUTimeCallback(final FileUTimeCallback cb, final Object context, final long time, final Exception error) {
         try {
-            cb.onUTime(context, time, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onUTime(context, time, error);
+                post();
+            }
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -252,8 +312,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFileWriteCallback(final FileWriteCallback cb, final Object context, final int bytesWritten, final Exception error) {
         try {
-            cb.onWrite(context, bytesWritten, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onWrite(context, bytesWritten, error);
+                post();
+            }
         } catch (final Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -262,8 +324,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFileEventCallback(FileEventCallback cb, int status, String event, String filename) {
         try {
-            cb.onEvent(status, event, filename);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onEvent(status, event, filename);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -273,7 +337,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFilePollCallback(FilePollCallback cb, int status, Stats previous, Stats current) {
         try {
-            cb.onPoll(status, previous, current);
+            if (shouldCall()) {
+                cb.onPoll(status, previous, current);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -282,7 +349,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleFilePollStopCallback(FilePollStopCallback cb) {
         try {
-            cb.onStop();
+            if (shouldCall()) {
+                cb.onStop();
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -291,7 +361,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleProcessCloseCallback(ProcessCloseCallback cb) {
         try {
-            cb.onClose();
+            if (shouldCall()) {
+                cb.onClose();
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -300,7 +373,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleProcessExitCallback(ProcessExitCallback cb, int status, int signal, Exception error) {
         try {
-            cb.onExit(status, signal, error);
+            if (shouldCall()) {
+                cb.onExit(status, signal, error);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -309,8 +385,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleTimerCallback(final TimerCallback cb, final int status) {
         try {
-            cb.onTimer(status);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onTimer(status);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -319,8 +397,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleUDPRecvCallback(final UDPRecvCallback cb, final int nread, final ByteBuffer data, final Address address) {
         try {
-            cb.onRecv(nread, data, address);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onRecv(nread, data, address);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -329,8 +409,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleUDPSendCallback(final UDPSendCallback cb, final int status, final Exception error) {
         try {
-            cb.onSend(status, error);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onSend(status, error);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -339,8 +421,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleUDPCloseCallback(final UDPCloseCallback cb) {
         try {
-            cb.onClose();
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onClose();
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }
@@ -349,8 +433,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     @Override
     public void handleIdleCallback(IdleCallback cb, int status) {
         try {
-            cb.onIdle(status);
-            eventLoop.processQueuedEvents();
+            if (shouldCall()) {
+                cb.onIdle(status);
+                post();
+            }
         } catch (Exception ex) {
             eventLoop.loop().getExceptionHandler().handle(ex);
         }

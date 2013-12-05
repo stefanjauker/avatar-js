@@ -32,7 +32,14 @@
         var that = this;
         this._timer.setTimerFiredCallback(function(status) {
             if (that.ontimeout) {
+                // When a timer is unref, the domain is set on the wrap.
+                if (that.domain) {
+                    that.domain.enter();
+                }
                 that.ontimeout();
+                if (that.domain) {
+                    that.domain.exit();
+                }
             }
         });
     }

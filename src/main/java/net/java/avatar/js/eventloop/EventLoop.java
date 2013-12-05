@@ -41,12 +41,16 @@ import javax.script.ScriptException;
 import jdk.nashorn.api.scripting.NashornException;
 import jdk.nashorn.internal.runtime.ECMAException;
 import jdk.nashorn.internal.runtime.ScriptObject;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import net.java.avatar.js.dns.DNS;
 import net.java.avatar.js.log.Logger;
 import net.java.avatar.js.log.Logging;
 import net.java.libuv.LibUV;
 import net.java.libuv.cb.AsyncCallback;
 import net.java.libuv.cb.CallbackExceptionHandler;
+import net.java.libuv.cb.CallbackDomainProvider;
+import net.java.libuv.cb.CallbackHandler;
+import net.java.libuv.cb.CallbackHandlerFactory;
 import net.java.libuv.handles.AsyncHandle;
 import net.java.libuv.handles.LoopHandle;
 
@@ -68,6 +72,8 @@ public final class EventLoop {
     private Callback isHandlerRegistered = null;
     private Callback uncaughtExceptionHandler = null;
     private Exception pendingException = null;
+
+    private ScriptObjectMirror domain;
 
     public static final class Handle implements AutoCloseable {
 
@@ -106,9 +112,14 @@ public final class EventLoop {
         uncaughtExceptionHandler = handler;
     }
 
-    public void nextTick(final Event event) {
+    public void nextTick(final Callback cb) {
         assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
-        eventQueue.add(event);
+        eventQueue.add(new Event("nextTick", cb));
+    }
+
+    public void nextTickWithDomain(final Callback cb, ScriptObjectMirror evtDomain) {
+        assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
+        eventQueue.add(new Event("nextTickWithDomain", evtDomain, cb));
     }
 
     public void post(final Callback cb, Object... args) {
@@ -141,7 +152,17 @@ public final class EventLoop {
             for (Event event = eventQueue.poll();
                  event != null;
                  event = eventQueue.poll()) {
-                processEvent(event);
+                ScriptObjectMirror evtDomain = event.getDomain();
+                if (evtDomain != null) {
+                    if (isDisposed(evtDomain)) {
+                        continue;
+                    }
+                    enterDomain(evtDomain);
+                    processEvent(event);
+                    exitDomain(evtDomain);
+                } else {
+                    processEvent(event);
+                }
             }
         }
     }
@@ -198,19 +219,25 @@ public final class EventLoop {
     private static final String UNCAUGHT_EXCEPTION_NAME = "uncaughtException";
 
     public boolean handleCallbackException(final Exception ex) {
-
+        boolean handled = true;
         // callback to check if an uncaught exception handler has been registered by the user
         final Object[] registeredArgs = {null};
         if (isHandlerRegistered != null) {
             try {
                 isHandlerRegistered.call(UNCAUGHT_EXCEPTION_NAME, registeredArgs);
             } catch (final Exception e) {
-                return false;
+                handled = false;
             }
         }
 
         if (registeredArgs[0] == null || uncaughtExceptionHandler == null) {
             // no handler registered - rethrow uncaught exceptions
+            handled = false;
+        }
+
+        if (!handled && domain == null) {
+           // No domain and no uncaughtException Handler registered
+           // rethrowing
             return false;
         }
 
@@ -333,6 +360,8 @@ public final class EventLoop {
         this.uvVersion = uvVersion;
         this.logging = logging;
         this.dns = new DNS(this);
+
+        final LoopCallbackHandler defaultHandler = new LoopCallbackHandler(this);
         this.uvLoop = new LoopHandle(new CallbackExceptionHandler() {
             @Override
             public void handle(final Exception ex) {
@@ -345,8 +374,23 @@ public final class EventLoop {
                     stop();
                 }
             }
-        }, new LoopCallbackHandler(this));
-
+        },
+        new CallbackHandlerFactory() {
+            @Override
+            public CallbackHandler newCallbackHandlerWithDomain(Object domain) {
+                return new LoopCallbackHandler(EventLoop.this, domain);
+            }
+            @Override
+            public CallbackHandler newCallbackHandler() {
+                return defaultHandler;
+            }
+        },
+        new CallbackDomainProvider() {
+            @Override
+            public Object getDomain() {
+                return EventLoop.this.getDomain();
+            }
+        });
         this.instanceNumber = instanceNumber;
         this.executor = executor;
 
@@ -399,4 +443,47 @@ public final class EventLoop {
         return uvLoop;
     }
 
+    public void setDomain(ScriptObjectMirror obj) {
+        assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
+        domain = obj;
+    }
+
+    public ScriptObjectMirror getDomain() {
+        assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
+        return domain;
+    }
+
+    public boolean isDisposed(ScriptObjectMirror domain) {
+        assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
+        return Boolean.TRUE.equals(domain.getMember("_disposed"));
+    }
+
+    public void enterDomain(ScriptObjectMirror domain) {
+        assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
+         domain.callMember("enter");
+    }
+
+    public void exitDomain(ScriptObjectMirror domain) {
+        assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
+        domain.callMember("exit");
+    }
+
+    public boolean isDisposed(Object domain) {
+        if (domain instanceof ScriptObjectMirror) {
+            isDisposed((ScriptObjectMirror) domain);
+        }
+        return false;
+    }
+
+    public void enterDomain(Object domain) {
+        if (domain instanceof ScriptObjectMirror) {
+            enterDomain((ScriptObjectMirror) domain);
+        }
+    }
+
+    public void exitDomain(Object domain) {
+        if (domain instanceof ScriptObjectMirror) {
+            exitDomain((ScriptObjectMirror) domain);
+        }
+    }
 }

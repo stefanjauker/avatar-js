@@ -61,7 +61,6 @@ var eventloop = __avatar.eventloop;
 var LibUV = Packages.net.java.libuv.LibUV;
 var Process = Packages.net.java.avatar.js.os.Process;
 var Server = Packages.net.java.avatar.js.Server;
-var Event = Packages.net.java.avatar.js.eventloop.Event
 var Constants = Packages.net.java.avatar.js.constants.Constants;
 var Signals = Packages.net.java.libuv.handles.SignalHandle;
 
@@ -430,16 +429,14 @@ Object.defineProperty(exports, 'hrtime', {
 
 Object.defineProperty(exports, 'nextTick', {
     enumerable: true,
+    configurable: true,
     value: function(callback) {
         if (this._exiting) {
             return;
         }
-        eventloop.nextTick(
-            new Event('nextTick', function(name, args) {
-                    callback();
-                }
-            )
-        );
+        eventloop.nextTick(function(name, args) {
+            callback();
+        });
     }
 });
 
@@ -588,7 +585,35 @@ exports.openStdin = function() {
 }
 
 exports._usingDomains = function() {
+    // redefine nextTick at this time to speedup
+    // domain event posting
+    Object.defineProperty(exports, 'nextTick', {
+        enumerable: true,
+        value: function(callback) {
+            if (this._exiting) {
+                return;
+            }
+            eventloop.nextTickWithDomain(function(name, args) {
+                callback();
+            }, process.domain)
+        }
+    });
 }
+
+var ScriptUtils = Packages.jdk.nashorn.api.scripting.ScriptUtils
+Object.defineProperty(exports, 'domain', {
+    enumerable : true,
+    set : function(domain) {
+        if (domain) {
+            eventloop.domain = domain;
+        } else {
+            eventloop.domain = null;
+        }
+    },
+    get : function() {
+        return ScriptUtils.unwrap(eventloop.domain);
+    }
+});
 
 var Check = Packages.net.java.libuv.handles.CheckHandle;
 var Idle = Packages.net.java.libuv.handles.IdleHandle;

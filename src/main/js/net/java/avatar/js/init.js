@@ -200,6 +200,67 @@ var gc = global.gc;
         console.log(this.stack);
     };
 
+    var fatalProcessing = function(er) {
+        var caught = false;
+        if (process.domain) { // From nodejs
+            var domain = process.domain;
+            var domainModule = NativeModule.require('domain');
+            var domainStack = domainModule._stack;
+
+            // ignore errors on disposed domains.
+            //
+            // XXX This is a bit stupid.  We should probably get rid of
+            // domain.dispose() altogether.  It's almost always a terrible
+            // idea.  --isaacs
+            if (domain._disposed)
+                return true;
+
+            er.domain = domain;
+            er.domainThrown = true;
+            // wrap this in a try/catch so we don't get infinite throwing
+            try {
+                // One of three things will happen here.
+                //
+                // 1. There is a handler, caught = true
+                // 2. There is no handler, caught = false
+                // 3. It throws, caught = false
+                //
+                // If caught is false after this, then there's no need to exit()
+                // the domain, because we're going to crash the process anyway.
+                caught = domain.emit('error', er);
+                // Exit all domains on the stack.  Uncaught exceptions end the
+                // current tick and no domains should be left on the stack
+                // between ticks.
+                var domainModule = NativeModule.require('domain');
+                domainStack.length = 0;
+                domainModule.active = process.domain = null;
+            } catch (er2) {
+                // The domain error handler threw!  oh no!
+                // See if another domain can catch THIS error,
+                // or else crash on the original one.
+                // If the user already exited it, then don't double-exit.
+                if (domain === domainModule.active)
+                    domainStack.pop();
+                if (domainStack.length) {
+                    var parentDomain = domainStack[domainStack.length - 1];
+                    process.domain = domainModule.active = parentDomain;
+                    caught = fatalProcessing(er2);
+                } else
+                    caught = false;
+            }
+        } else {
+            caught = process.emit('uncaughtException', er);
+        }
+        
+        // Avatar-js specific handling, 
+        // exit is handled in the class that is catching the rethrown er
+        if (!caught) {
+            throw er;
+        }
+
+        return caught;
+    };
+    
     __avatar.eventloop.setUncaughtExceptionHandler(
         function(name, args) {
             var listeners = process.listeners('uncaughtException');
@@ -208,13 +269,12 @@ var gc = global.gc;
             }
         },
         function(name, args) {
-            var ctx = Packages.net.java.avatar.js.eventloop.EventLoop;
             var e = new Error();
             var ex = args[0];
             for (var k in ex) {
                 e[k] = ex[k];
             }
-            process.emit(name, e);
+            fatalProcessing(e);
         }
     );
 
