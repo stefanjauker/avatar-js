@@ -201,11 +201,14 @@ public abstract class Loader {
             final byte[] data = new byte[BUFFERSIZE];
             final ByteArrayOutputStream buffer = new ByteArrayOutputStream(BUFFERSIZE);
             try (final InputStream is = this.getClass().getResourceAsStream(id)) {
-                assert is != null;
-                int bytesRead = is.read(data, 0, data.length);
-                while (bytesRead != -1) {
-                    buffer.write(data, 0, bytesRead);
-                    bytesRead = is.read(data, 0, data.length);
+                if (is == null) {
+                    return null;
+                } else {
+                    for (int bytesRead = is.read(data, 0, data.length);
+                         bytesRead != -1;
+                         bytesRead = is.read(data, 0, data.length)) {
+                        buffer.write(data, 0, bytesRead);
+                    }
                 }
             }
             return new String(buffer.toByteArray(), "utf-8");
