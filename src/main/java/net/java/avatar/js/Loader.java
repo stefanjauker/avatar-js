@@ -126,7 +126,7 @@ public abstract class Loader {
      */
     public abstract boolean exists(final String id);
 
-    public abstract String load(final String id);
+    public abstract String load(final String id) throws IOException;
 
     /**
      * Returns the value of a compiled-in property.
@@ -196,24 +196,19 @@ public abstract class Loader {
         }
 
         @Override
-        public String load(final String id) {
+        public String load(final String id) throws IOException {
             final int BUFFERSIZE = 64 * 1024;
             final byte[] data = new byte[BUFFERSIZE];
             final ByteArrayOutputStream buffer = new ByteArrayOutputStream(BUFFERSIZE);
-            final InputStream is = this.getClass().getResourceAsStream(id);
-            assert is != null;
-
-            try {
+            try (final InputStream is = this.getClass().getResourceAsStream(id)) {
+                assert is != null;
                 int bytesRead = is.read(data, 0, data.length);
                 while (bytesRead != -1) {
                     buffer.write(data, 0, bytesRead);
                     bytesRead = is.read(data, 0, data.length);
                 }
-                buffer.flush();
-            } catch (final IOException ex) {
-                ex.printStackTrace();
             }
-            return new String(buffer.toByteArray());
+            return new String(buffer.toByteArray(), "utf-8");
         }
 
         protected String pathFor(final String id) {

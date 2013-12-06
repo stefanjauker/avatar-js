@@ -67,6 +67,7 @@ var gc = global.gc;
     var PrivilegedAction = java.security.PrivilegedAction;
     var avatarPermission = new java.lang.RuntimePermission("avatar-js");
     var avatarContext = __avatar.controlContext;
+
     function NativeModule(id) {
         this.filename = id + '.js';
         this.id = id;
@@ -187,7 +188,7 @@ var gc = global.gc;
         var t = NativeModule.require('timers');
         return t.clearImmediate.apply(this, arguments);
     };
-    
+
     // console require timers that require setTimeout.
     var console = NativeModule.require('console');
     global.console = console;
@@ -251,8 +252,8 @@ var gc = global.gc;
         } else {
             caught = process.emit('uncaughtException', er);
         }
-        
-        // Avatar-js specific handling, 
+
+        // Avatar-js specific handling,
         // exit is handled in the class that is catching the rethrown er
         if (!caught) {
             throw er;
@@ -260,7 +261,7 @@ var gc = global.gc;
 
         return caught;
     };
-    
+
     __avatar.eventloop.setUncaughtExceptionHandler(
         function(name, args) {
             var listeners = process.listeners('uncaughtException');
