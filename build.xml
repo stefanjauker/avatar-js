@@ -274,6 +274,7 @@
         <apply-diff src="lib" mod="src/main/js/lib" name="querystring.js"/>
         <apply-diff src="lib" mod="src/main/js/lib" name="module.js"/>
         <apply-diff src="lib" mod="src/main/js/lib" name="net.js"/>
+        <apply-diff src="lib" mod="src/main/js/lib" name="repl.js"/>
         <apply-diff src="lib" mod="src/main/js/lib" name="string_decoder.js"/>
         <apply-diff src="lib" mod="src/main/js/lib" name="tls.js"/>
         <!-- tests -->
@@ -350,6 +351,7 @@
         <apply-patch-file target="src/main/js/lib" dir="lib" name="querystring.js"/>
         <apply-patch-file target="src/main/js/lib" dir="lib" name="module.js"/>
         <apply-patch-file target="src/main/js/lib" dir="lib" name="net.js"/>
+        <apply-patch-file target="src/main/js/lib" dir="lib" name="repl.js"/>
         <apply-patch-file target="src/main/js/lib" dir="lib" name="string_decoder.js"/>
         <apply-patch-file target="src/main/js/lib" dir="lib" name="tls.js"/>
         <!-- tests -->

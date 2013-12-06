@@ -300,6 +300,55 @@ var gc = global.gc;
         return current.apply(this, args);
     }
 
-    NativeModule.require('module').runMain();
+    if (process.argv[1]) {
+        // make process.argv[1] into a full path
+        var path = NativeModule.require('path');
+        process.argv[1] = path.resolve(process.argv[1]);
 
+        // If this is a worker in cluster mode, start up the communiction
+        // channel.
+        if (process.env.NODE_UNIQUE_ID) {
+            var cluster = NativeModule.require('cluster');
+            cluster._setupWorker();
+
+            // Make sure it's not accidentally inherited by child processes.
+            delete process.env.NODE_UNIQUE_ID;
+        }
+
+        NativeModule.require('module').runMain();
+    } else {
+        var Module = NativeModule.require('module');
+
+        // If -i or --interactive were passed, or stdin is a TTY.
+        if (process._forceRepl || NativeModule.require('tty').isatty(0)) {
+            // REPL
+            var opts = {
+                useGlobal: true,
+                ignoreUndefined: false
+            };
+            if (parseInt(process.env['NODE_NO_READLINE'], 10)) {
+                opts.terminal = false;
+            }
+            if (parseInt(process.env['NODE_DISABLE_COLORS'], 10)) {
+                opts.useColors = false;
+            }
+            var repl = Module.requireRepl().start(opts);
+            repl.on('exit', function() {
+                process.exit();
+            });
+         } else {
+            // Read all of stdin - execute it.
+            process.stdin.setEncoding('utf8');
+
+            var code = '';
+            process.stdin.on('data', function(d) {
+                code += d;
+            });
+
+            process.stdin.on('end', function() {
+                process._eval = code;
+                evalScript('[stdin]');
+            });
+        }
+    }
 } )();

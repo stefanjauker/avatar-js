@@ -77,6 +77,11 @@ Object.defineProperty(exports, 'traceDeprecation', {
     value: __avatar.traceDeprecation
 });
 
+Object.defineProperty(exports, '_forceRepl', {
+    enumerable: true,
+    value: __avatar.forceRepl
+});
+
 var stdin;
 Object.defineProperty(exports, 'stdin', {
     enumerable: true,
@@ -278,12 +283,12 @@ Object.defineProperty(exports, 'argv', {
             _argv = [];
             _argv.push(exports.execPath);
             var uf = __avatar.userFiles;
-            var flen = uf.length;
+            var flen = uf ? uf.length : 0;
             for (var i=0; i < flen; i++) {
                 _argv.push(uf[i]);
             }
             var ua = __avatar.userArgs;
-            var alen = ua.length;
+            var alen = ua ? ua.length : 0;
             for (var j=0; j < alen; j++) {
                 _argv.push(ua[j]);
             }
@@ -302,7 +307,7 @@ Object.defineProperty(exports, 'execArgv', {
         if (!_execArgv) {
             _execArgv = [];
             var aa = __avatar.avatarArgs;
-            var alen = aa.length;
+            var alen = aa ? aa.length : 0;
             for (var j=0; j < alen; j++) {
                 _execArgv.push(aa[j]);
             }

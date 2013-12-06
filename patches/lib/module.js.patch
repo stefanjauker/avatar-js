@@ -1,5 +1,5 @@
---- ../node/lib/module.js	2013-08-22 13:55:28.000000000 +0200
-+++ src/main/js/lib/module.js	2013-10-07 14:01:12.000000000 +0200
+--- ../nodejs/lib/module.js	2013-12-02 16:45:51.723090200 -0800
++++ src/main/js/lib/module.js	2013-12-05 16:49:59.264917800 -0800
 @@ -271,13 +271,19 @@
    return [id, [path.dirname(parent.filename)]];
  };
@@ -21,6 +21,15 @@
  
    var cachedModule = Module._cache[filename];
    if (cachedModule) {
+@@ -288,7 +294,7 @@
+     // REPL is a special case, because it needs the real require.
+     if (filename == 'repl') {
+       var replModule = new Module('repl');
+-      replModule._compile(NativeModule.getSource('repl'), 'repl.js');
++      replModule._compile(NativeModule.getSource('/lib/repl.js'), 'repl.js');
+       NativeModule._cache.repl = replModule;
+       return replModule.exports;
+     }
 @@ -309,7 +315,11 @@
    var hadException = true;
  
@@ -49,7 +58,7 @@
  // Returns exception if any
  Module.prototype._compile = function(content, filename) {
    var self = this;
-+  
++
    // remove shebang
 +  if(content != null) {
    content = content.replace(/^\#\!.*/, '');

@@ -100,9 +100,7 @@ public final class Server {
     }
 
     public static void main(final String... args) throws Exception {
-        if (args != null && args.length > 0) {
-            new Server().run(args);
-        }
+        new Server().run(args);
     }
 
     public Server() throws Exception {
@@ -147,7 +145,11 @@ public final class Server {
         checkPermission();
         bindings.put(SECURE_HOLDER, holder);
         try {
-            runUserScripts(args);
+            if (args.length == 0) {
+                runREPL();
+            } else {
+                runUserScripts(args);
+            }
         } catch (final ScriptException ex) {
             if (!eventLoop.handleCallbackException(ex)) {
                 throw ex;
@@ -206,11 +208,21 @@ public final class Server {
         }
 
         final String[] userFiles = {userFile};
-        holder.setArgs(avatarArgs.toArray(new String[avatarArgs.size()]),
-                userArgs.toArray(new String[userArgs.size()]),
-                userFiles);
+
+        runEventLoop(avatarArgs.toArray(new String[avatarArgs.size()]),
+                     userArgs.toArray(new String[userArgs.size()]),
+                     userFiles);
+    }
+
+    private void runREPL() throws Exception {
+        holder.setForceRepl(true);
+        runEventLoop(null, null, null);
+    }
+
+    private void runEventLoop(final String[] avatarArgs, final String[] userArgs, final String[] userFiles) throws Exception {
         Exception rootCause = null;
-        // First run the main script...
+        holder.setArgs(avatarArgs, userArgs, userFiles);
+
         try {
             runSystemScript(SYSTEM_INIT_SCRIPTS);
         } catch(Exception ex) {
@@ -234,17 +246,15 @@ public final class Server {
                 throw ex;
             }
         } finally {
-            if (args != null && args.length > 0) {
-                try {
-                    // emit the process.exit event
-                    runSystemScript(SYSTEM_FINALIZATION_SCRIPTS);
-                } catch (Exception ex) {
-                    if (rootCause != null) {
-                        rootCause.addSuppressed(ex);
-                        throw rootCause;
-                    }
-                    throw ex;
+            try {
+                // emit the process.exit event
+                runSystemScript(SYSTEM_FINALIZATION_SCRIPTS);
+            } catch (Exception ex) {
+                if (rootCause != null) {
+                    rootCause.addSuppressed(ex);
+                    throw rootCause;
                 }
+                throw ex;
             }
         }
     }
@@ -266,6 +276,8 @@ public final class Server {
             } else if ("--trace-deprecation".equals(arg)) {
                 holder.setTraceDeprecation(true);
                 holder.setThrowDeprecation(false);
+            } else if ("-i".equals(arg) || "--interactive".equals(arg)) {
+                holder.setForceRepl(true);
             } else {
                 System.out.println(HELP);
                 throw new IllegalArgumentException(arg);
@@ -339,6 +351,7 @@ public final class Server {
         private String[] userFiles;
         private boolean throwDeprecation = true;
         private boolean traceDeprecation;
+        private boolean forceRepl = false;
         private int exitCode = 0;
         private final Invocable invocable;
         private Object nativeModule;
@@ -368,9 +381,9 @@ public final class Server {
         }
 
         private void setArgs(final String[] avatarArgs, final String[] userArgs, final String[] userFiles) {
-            this.avatarArgs = avatarArgs.clone();
-            this.userArgs = userArgs.clone();
-            this.userFiles = userFiles.clone();
+            this.avatarArgs = avatarArgs != null ? avatarArgs.clone() : null;
+            this.userArgs = userArgs != null ? userArgs.clone() : null;
+            this.userFiles = userFiles != null ? userFiles.clone() : null;
         }
 
         public String[] getAvatarArgs() {
@@ -393,12 +406,20 @@ public final class Server {
             this.traceDeprecation = traceDeprecation;
         }
 
+        private void setForceRepl(boolean forceRepl) {
+            this.forceRepl = forceRepl;
+        }
+
         public boolean getThrowDeprecation() {
             return throwDeprecation;
         }
 
         public boolean getTraceDeprecation() {
             return traceDeprecation;
+        }
+
+        public boolean getForceRepl() {
+            return forceRepl;
         }
 
         private void setExitCode(int exitCode) {

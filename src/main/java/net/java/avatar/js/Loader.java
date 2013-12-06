@@ -25,6 +25,7 @@
 
 package net.java.avatar.js;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -125,6 +126,8 @@ public abstract class Loader {
      */
     public abstract boolean exists(final String id);
 
+    public abstract String load(final String id);
+
     /**
      * Returns the value of a compiled-in property.
      * @param key the key whose value is desired
@@ -190,6 +193,27 @@ public abstract class Loader {
         @Override
         public String getBuildProperty(final String key) {
             return BUILD_PROPERTIES.getProperty(key);
+        }
+
+        @Override
+        public String load(final String id) {
+            final int BUFFERSIZE = 64 * 1024;
+            final byte[] data = new byte[BUFFERSIZE];
+            final ByteArrayOutputStream buffer = new ByteArrayOutputStream(BUFFERSIZE);
+            final InputStream is = this.getClass().getResourceAsStream(id);
+            assert is != null;
+
+            try {
+                int bytesRead = is.read(data, 0, data.length);
+                while (bytesRead != -1) {
+                    buffer.write(data, 0, bytesRead);
+                    bytesRead = is.read(data, 0, data.length);
+                }
+                buffer.flush();
+            } catch (final IOException ex) {
+                ex.printStackTrace();
+            }
+            return new String(buffer.toByteArray());
         }
 
         protected String pathFor(final String id) {
