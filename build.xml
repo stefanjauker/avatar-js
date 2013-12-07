@@ -142,7 +142,7 @@
 
     <target name="configure-unix" depends="config-gyp" if="isLinux">
         <exec executable="python" dir="." failonerror="true">
-            <arg value="${source.home}/tools/gyp/gyp"/>
+            <arg value="${source.home}/tools/gyp/gyp_main.py"/>
             <arg value="--depth=."/>
             <arg value="--format=make"/>
             <arg value="${product.name}.gyp"/>
@@ -153,7 +153,7 @@
 
     <target name="configure-mac" depends="config-gyp" if="isMacOSX">
         <exec executable="python" dir="." failonerror="true">
-            <arg value="${source.home}/tools/gyp/gyp"/>
+            <arg value="${source.home}/tools/gyp/gyp_main.py"/>
             <arg value="--depth=."/>
             <arg value="--format=make"/>
             <arg value="${product.name}.gyp"/>
@@ -164,7 +164,7 @@
 
     <target name="configure-windows" depends="config-gyp" if="isWindows">
         <exec executable="python" dir="." failonerror="true">
-            <arg value="${source.home}/tools/gyp/gyp"/>
+            <arg value="${source.home}/tools/gyp/gyp_main.py"/>
             <arg value="--depth=."/>
             <arg value="${product.name}.gyp"/>
             <arg value="-Dtarget=${build.type}"/>

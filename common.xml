@@ -104,7 +104,7 @@
         <attribute name="target"/>
         <sequential>
             <exec executable="python" dir="." failonerror="true">
-                <arg value="${source.home}/tools/gyp/gyp"/>
+                <arg value="${source.home}/tools/gyp/gyp_main.py"/>
                 <arg value="--depth=."/>
                 <arg value="--format=@{format}"/>
                 <arg value="-Dtarget_arch=x64"/>
