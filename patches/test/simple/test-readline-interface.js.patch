@@ -1,6 +1,6 @@
---- ../node/test/simple/test-readline-interface.js	2013-05-03 13:58:42.000000000 +0200
-+++ node/test/simple/test-readline-interface.js	2013-05-16 12:05:01.000000000 +0200
-@@ -158,6 +158,7 @@
+--- ../node/test/simple/test-readline-interface.js	2013-12-06 15:13:28.003097729 -0800
++++ test/simple/test-readline-interface.js	2013-12-06 15:25:17.018281776 -0800
+@@ -170,6 +170,7 @@
  
    // sending a multi-byte utf8 char over multiple writes
    var buf = Buffer('☮', 'utf8');
@@ -8,7 +8,7 @@
    fi = new FakeInput();
    rli = new readline.Interface({ input: fi, output: fi, terminal: terminal });
    callCount = 0;
-@@ -165,7 +166,7 @@
+@@ -177,7 +178,7 @@
      callCount++;
      assert.equal(line, buf.toString('utf8'));
    });

@@ -1,6 +1,6 @@
---- /Users/jfdenise/workspaces/v10.latest/node/lib/http.js	2013-08-22 13:55:28.000000000 +0200
-+++ src/main/js/lib/http.js	2013-08-22 16:31:07.000000000 +0200
-@@ -1009,12 +1009,12 @@
+--- ../node/lib/http.js	2013-12-06 15:13:27.999097695 -0800
++++ src/main/js/lib/http.js	2013-12-06 15:25:00.781739221 -0800
+@@ -1008,12 +1008,12 @@
  OutgoingMessage.prototype._finish = function() {
    assert(this.connection);
    if (this instanceof ServerResponse) {
@@ -17,7 +17,7 @@
    }
    this.emit('finish');
  };
-@@ -1679,8 +1679,8 @@
+@@ -1678,8 +1678,8 @@
    }
  
  
@@ -28,7 +28,7 @@
    req.res = res;
    res.req = req;
  
-@@ -2023,8 +2023,8 @@
+@@ -2055,8 +2055,8 @@
      var res = new ServerResponse(req);
  
      res.shouldKeepAlive = shouldKeepAlive;

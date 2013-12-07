@@ -8,7 +8,7 @@ Build Instructions
 2. Download node.js
    a) git clone https://github.com/joyent/node.git source
    b) cd source
-   c) git checkout v0.10.18
+   c) git checkout v0.10.21
       (do 'git pull' to refresh repo if you get an error saying this version is unknown)
 
 3. Clone dependencies (<id> is your java.net id)
