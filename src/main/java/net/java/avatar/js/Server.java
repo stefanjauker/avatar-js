@@ -227,7 +227,20 @@ public final class Server {
             runSystemScript(SYSTEM_INIT_SCRIPTS);
         } catch(Exception ex) {
             if (!eventLoop.handleCallbackException(ex)) {
+                rootCause = ex;
                 throw ex;
+            }
+        } finally {
+            if (rootCause != null) {
+                try {
+                    // emit the process.exit event
+                    runSystemScript(SYSTEM_FINALIZATION_SCRIPTS);
+                } catch (Exception ex) {
+                    if (!eventLoop.handleCallbackException(ex)) {
+                        rootCause.addSuppressed(ex);
+                        throw rootCause;
+                    }
+                }
             }
         }
         // ...then run the main event loop. If an exception has been handled
