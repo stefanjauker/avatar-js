@@ -56,6 +56,7 @@ src/main/js/lib/os.js
 src/main/js/lib/path.js
 src/main/js/lib/querystring.js
 src/main/js/lib/readline.js
+src/main/js/lib/repl.js
 src/main/js/lib/stream.js
 src/main/js/lib/string_decoder.js
 src/main/js/lib/timers.js
