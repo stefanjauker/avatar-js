@@ -43,6 +43,7 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import jdk.nashorn.api.scripting.NashornException;
 
 import net.java.avatar.js.eventloop.EventLoop;
 import net.java.avatar.js.eventloop.ThreadPool;
@@ -94,29 +95,30 @@ public final class Server {
 
     private final String version;
     private final String uvVersion;
-
+    private final boolean rethrowException;
     static {
         initAssertionStatus();
     }
 
     public static void main(final String... args) throws Exception {
-        new Server().run(args);
+        new Server(false).run(args);
     }
 
-    public Server() throws Exception {
+    public Server(boolean rethrowException) throws Exception {
         this(newEngine(),
                 new Loader.Core(),
                 System.getProperty(LOG_OUTPUT_DIR) == null ?
                         new Logging(assertions) :
                         new Logging(new File(System.getProperty(LOG_OUTPUT_DIR)), assertions),
-                System.getProperty("user.dir"));
+                System.getProperty("user.dir"), rethrowException);
     }
 
     public Server(final ScriptEngine engine,
                   final Loader loader,
                   final Logging logging,
-                  final String workDir) throws Exception {
-        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.getInstance());
+                  final String workDir,
+                  final boolean rethrowException) throws Exception {
+        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.getInstance(), rethrowException);
     }
 
     public Server(final ScriptEngine engine,
@@ -125,7 +127,8 @@ public final class Server {
                   final String workDir,
                   final ScriptContext context,
                   final int instanceNumber,
-                  final ThreadPool threadPool) throws Exception {
+                  final ThreadPool threadPool,
+                  final boolean rethrowException) throws Exception {
         this.engine = engine;
         this.context = context;
         this.bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
@@ -137,6 +140,7 @@ public final class Server {
         assert uvVersion != null;
         this.eventLoop = new EventLoop(version, uvVersion, logging, workDir, instanceNumber, threadPool);
         this.holder = new SecureHolder(eventLoop, loader, (Invocable) engine);
+        this.rethrowException = rethrowException;
     }
 
     public void run(final String... args) throws Exception {
@@ -150,9 +154,27 @@ public final class Server {
             } else {
                 runUserScripts(args);
             }
-        } catch (final ScriptException ex) {
+        } catch (final Exception ex) {
             if (!eventLoop.handleCallbackException(ex)) {
-                throw ex;
+                if (rethrowException) {
+                    throw ex;
+                } else {
+                     NashornException nex = retrieveNashornException(ex);
+                     if (nex != null) {
+                         System.err.println(formatException(nex, 0));
+                         for (Throwable sup : ex.getSuppressed()) {
+                             System.err.println("Suppressed...");
+                             NashornException supNex = retrieveNashornException(sup);
+                             if (supNex != null) {
+                                 System.err.println(formatException(supNex, 0));
+                             } else {
+                                 supNex.printStackTrace(System.err);
+                             }
+                         }
+                     } else {
+                         ex.printStackTrace(System.err);
+                     }
+                 }
             }
         } finally {
             eventLoop.stop();
@@ -160,6 +182,44 @@ public final class Server {
         }
     }
 
+    public static String formatException(Throwable ex, int startIndex) {
+        if (ex == null) {
+            return null;
+        }
+        
+        StringBuilder builder = new StringBuilder();
+        builder.append(ex.toString()).append("\n");
+        StackTraceElement[] elems = NashornException.getScriptFrames(ex);
+
+        for (int i = startIndex; i < elems.length; i++) {
+            StackTraceElement st = elems[i];
+            builder.append("\tat ");
+            builder.append(st.getMethodName());
+            builder.append(" (");
+            builder.append(st.getFileName());
+            builder.append(':');
+            builder.append(st.getLineNumber());
+            builder.append(")");
+            if (i != elems.length - 1) {
+                builder.append("\n");
+            }
+        }
+
+        return builder.toString();
+    }
+
+    private static NashornException retrieveNashornException(Throwable ex) {
+        Throwable orig = ex;
+        NashornException ret = null;
+        while (!(orig instanceof NashornException)) {
+            orig = ex.getCause();
+        }
+        if (orig != null) {
+            ret = (NashornException) orig;
+        }
+        return ret;
+    }
+    
     public void interrupt() {
         eventLoop.stop();
     }
