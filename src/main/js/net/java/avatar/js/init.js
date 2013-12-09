@@ -112,15 +112,6 @@ var gc = global.gc;
         return exists;
     }
 
-    NativeModule.getSource = function(id) {
-        var source = AccessController.doPrivileged(new PrivilegedAction() {
-            run: function() {
-                return __avatar.loader.load(id);
-            }
-        }, avatarContext, avatarPermission);
-        return source;
-    }
-
     NativeModule.wrap = function(script) {
         return Packages.net.java.avatar.js.Loader.wrap(script);
     };

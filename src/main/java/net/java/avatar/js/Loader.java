@@ -126,8 +126,6 @@ public abstract class Loader {
      */
     public abstract boolean exists(final String id);
 
-    public abstract String load(final String id) throws IOException;
-
     /**
      * Returns the value of a compiled-in property.
      * @param key the key whose value is desired
@@ -193,25 +191,6 @@ public abstract class Loader {
         @Override
         public String getBuildProperty(final String key) {
             return BUILD_PROPERTIES.getProperty(key);
-        }
-
-        @Override
-        public String load(final String id) throws IOException {
-            final int BUFFERSIZE = 64 * 1024;
-            final byte[] data = new byte[BUFFERSIZE];
-            final ByteArrayOutputStream buffer = new ByteArrayOutputStream(BUFFERSIZE);
-            try (final InputStream is = this.getClass().getResourceAsStream(id)) {
-                if (is == null) {
-                    return null;
-                } else {
-                    for (int bytesRead = is.read(data, 0, data.length);
-                         bytesRead != -1;
-                         bytesRead = is.read(data, 0, data.length)) {
-                        buffer.write(data, 0, bytesRead);
-                    }
-                }
-            }
-            return new String(buffer.toByteArray(), "utf-8");
         }
 
         protected String pathFor(final String id) {

@@ -1,11 +1,12 @@
---- ../nodejs/lib/module.js	2013-12-02 16:45:51.723090200 -0800
-+++ src/main/js/lib/module.js	2013-12-05 16:49:59.264917800 -0800
-@@ -271,13 +271,19 @@
+--- ../node/lib/module.js	2013-12-09 10:27:58.000000000 +0100
++++ ./src/main/js/lib/module.js	2013-12-09 11:12:07.000000000 +0100
+@@ -271,13 +271,20 @@
    return [id, [path.dirname(parent.filename)]];
  };
  
 +var AccessController = java.security.AccessController;
 +var PrivilegedAction = java.security.PrivilegedAction;       
++var Server = Packages.net.java.avatar.js.Server;
  
  Module._load = function(request, parent, isMain) {
    if (parent) {
@@ -21,16 +22,16 @@
  
    var cachedModule = Module._cache[filename];
    if (cachedModule) {
-@@ -288,7 +294,7 @@
+@@ -288,7 +295,7 @@
      // REPL is a special case, because it needs the real require.
      if (filename == 'repl') {
        var replModule = new Module('repl');
 -      replModule._compile(NativeModule.getSource('repl'), 'repl.js');
-+      replModule._compile(NativeModule.getSource('/lib/repl.js'), 'repl.js');
++      replModule._compile(null, Server.getResource('/lib/repl.js'));
        NativeModule._cache.repl = replModule;
        return replModule.exports;
      }
-@@ -309,7 +315,11 @@
+@@ -309,7 +316,11 @@
    var hadException = true;
  
    try {
@@ -42,7 +43,7 @@
      hadException = false;
    } finally {
      if (hadException) {
-@@ -325,6 +335,11 @@
+@@ -325,6 +336,11 @@
      return request;
    }
  
@@ -54,7 +55,7 @@
    var resolvedModule = Module._resolveLookupPaths(request, parent);
    var id = resolvedModule[0];
    var paths = resolvedModule[1];
-@@ -373,8 +388,11 @@
+@@ -373,8 +389,11 @@
  // Returns exception if any
  Module.prototype._compile = function(content, filename) {
    var self = this;
@@ -66,7 +67,7 @@
  
    function require(path) {
      return self.require(path);
-@@ -434,7 +452,10 @@
+@@ -434,7 +453,10 @@
    }
  
    // create wrapper function
@@ -78,7 +79,7 @@
  
    var compiledWrapper = runInThisContext(wrapper, filename, true);
    if (global.v8debug) {
-@@ -470,8 +491,7 @@
+@@ -470,8 +492,7 @@
  
  // Native extension for .js
  Module._extensions['.js'] = function(module, filename) {
@@ -88,7 +89,7 @@
  };
  
  
-@@ -508,7 +528,9 @@
+@@ -508,7 +529,9 @@
      var homeDir = process.env.HOME;
    }
  
