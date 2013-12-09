@@ -310,6 +310,7 @@
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-pipe-head.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-pipe-unref.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-readline-interface.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-repl-tab-complete.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-script-context.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-stream2-push.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-stream2-read-sync-stack.js"/>
@@ -388,6 +389,7 @@
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-pipe-head.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-pipe-unref.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-readline-interface.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-repl-tab-complete.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-script-context.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-stream2-push.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-stream2-read-sync-stack.js"/>
