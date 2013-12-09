@@ -101,7 +101,7 @@ public class PermissionTest {
                 // XXX OK
             }
             // Only check permissions for the script location or any script in the same directory
-            if (domain.getCodeSource().getLocation().equals(location) || 
+            if (domain.getCodeSource().getLocation().equals(location) ||
                     parentDir.equals(parent)) {
                 return permissions.implies(permission);
             } else {
@@ -119,7 +119,7 @@ public class PermissionTest {
 
     @AfterMethod
     public void after() {
-        // would have to grant all testng required 
+        // would have to grant all testng required
         // permissions. Better to set it back to null. We are in a test....
         // So do unsafe stuff!
         System.setSecurityManager(null);
@@ -135,7 +135,7 @@ public class PermissionTest {
 
     private static Server newServer(ScriptEngine engine) throws Exception {
         Server server = new Server(engine, new Loader.Core(), new Logging(false),
-                System.getProperty("user.dir"));
+                System.getProperty("user.dir"), true);
         return server;
     }
 
@@ -148,7 +148,7 @@ public class PermissionTest {
         bindings.put(SCRIPT_ON_EXIT, false);
         doFail(bindings, f);
     }
-    
+
     @Test
     public void testTCPNoAccept() throws Exception {
         int port = getPort();
@@ -161,7 +161,7 @@ public class PermissionTest {
         permissions.add(new SocketPermission(ADDRESS + ":" + port, "connect"));
         doFail(bindings, f, permissions);
     }
-    
+
     @Test
     public void testTCPNoConnect() throws Exception {
         int port = getPort();
@@ -188,7 +188,7 @@ public class PermissionTest {
         bindings.put(SCRIPT_ON_EXIT, true);
         doSuccess(bindings, f, permissions);
     }
-    
+
     @Test
     public void testUDPNoAuth() throws Exception {
         int port = getPort();
@@ -197,7 +197,7 @@ public class PermissionTest {
         bindings.put(SCRIPT_PORT, port);
         bindings.put(SCRIPT_ON_EXIT, false);
         doFail(bindings, f);
-        
+
     }
 
     @Test
@@ -207,14 +207,14 @@ public class PermissionTest {
         // required by dns.js
         permissions.add(new PropertyPermission("os.name", "read"));
         permissions.add(new SocketPermission(ADDRESS + ":" + port, "connect"));
-        
+
         File f = new File("src/test/js/security/udp.js");
         Map<String, Object> bindings = new HashMap<String, Object>();
         bindings.put(SCRIPT_PORT, port);
         bindings.put(SCRIPT_ON_EXIT, true);
         doSuccess(bindings, f, permissions);
     }
-    
+
     @Test
     public void testSpawnNoAuth() throws Exception {
         File f = new File("src/test/js/security/spawn.js");
@@ -226,9 +226,9 @@ public class PermissionTest {
         // parent env
         permissions.add(new RuntimePermission("getenv.*"));
         doFail(bindings, f, permissions);
-        
+
     }
-    
+
     @Test
     public void testSpawnAuth() throws Exception {
         Permissions permissions = new Permissions();
@@ -238,7 +238,7 @@ public class PermissionTest {
         permissions.add(new RuntimePermission("getenv.*"));
         // execute
         permissions.add(new FilePermission("<<ALL FILES>>", "execute"));
-        
+
         File f = new File("src/test/js/security/spawn.js");
         Map<String, Object> bindings = new HashMap<String, Object>();
         bindings.put(SCRIPT_ON_EXIT, true);
@@ -264,7 +264,7 @@ public class PermissionTest {
         permissions.add(new PropertyPermission("os.name", "read"));
         doFail(bindings, f, permissions);
     }
-    
+
     @Test
     public void testPipeAuth() throws Exception {
         File f = new File("src/test/js/security/pipe.js");
@@ -281,17 +281,17 @@ public class PermissionTest {
         bindings.put(SCRIPT_PIPE, PIPE_NAME);
         bindings.put(SCRIPT_ON_EXIT, true);
         Permissions permissions = new Permissions();
-        
+
         //platform
         permissions.add(new PropertyPermission("os.name", "read"));
         permissions.add(new LibUVPermission("libuv.pipe.connect"));
         permissions.add(new LibUVPermission("libuv.pipe.bind"));
         permissions.add(new LibUVPermission("libuv.pipe.accept"));
 
-        
+
         doSuccess(bindings, f, permissions);
     }
-    
+
     @Test
     public void testPipeNoAccept() throws Exception {
         File f = new File("src/test/js/security/pipe.js");
@@ -308,15 +308,15 @@ public class PermissionTest {
         bindings.put(SCRIPT_PIPE, PIPE_NAME);
         bindings.put(SCRIPT_ON_EXIT, false);
         Permissions permissions = new Permissions();
-        
+
         //platform
         permissions.add(new PropertyPermission("os.name", "read"));
         permissions.add(new LibUVPermission("libuv.pipe.connect"));
         permissions.add(new LibUVPermission("libuv.pipe.bind"));
-        
+
         doFail(bindings, f, permissions);
     }
-    
+
     @Test
     public void testPipeNoConnect() throws Exception {
         File f = new File("src/test/js/security/pipe.js");
@@ -333,42 +333,42 @@ public class PermissionTest {
         bindings.put(SCRIPT_PIPE, PIPE_NAME);
         bindings.put(SCRIPT_ON_EXIT, false);
         Permissions permissions = new Permissions();
-        
+
         //platform
         permissions.add(new PropertyPermission("os.name", "read"));
         permissions.add(new LibUVPermission("libuv.pipe.bind"));
-        
+
         doFail(bindings, f, permissions);
     }
-    
+
     @Test
     public void testModules() throws Exception {
         File f = new File("src/test/js/security/modules.js");
         Map<String, Object> bindings = new HashMap<String, Object>();
-        
+
         Permissions permissions = new Permissions();
-        
+
         doSuccess(bindings, f, permissions);
     }
-    
+
     @Test
     public void testModules2() throws Exception {
         File f = new File("src/test/js/security/modules2.js");
         Map<String, Object> bindings = new HashMap<String, Object>();
-        
+
         Permissions permissions = new Permissions();
-        
+
         doFail(bindings, f, permissions);
     }
-    
+
     @Test
     public void testProcess() throws Exception {
         File f = new File("src/test/js/security/process.js");
-        Map<String, Object> bindings = new HashMap<String, Object>();    
-        
+        Map<String, Object> bindings = new HashMap<String, Object>();
+
         doSuccess(bindings, f, new Permissions());
     }
-    
+
     private static void testFailure(Callable r) throws Exception {
         try {
             r.call();
@@ -400,11 +400,11 @@ public class PermissionTest {
             throw ex;
         }
     }
-    
+
     private static void doFail(Map<String, Object> bindings, File f) throws Exception {
         doFail(bindings, f, new Permissions());
     }
-    
+
     private static void doFail(Map<String, Object> bindings, File f, Permissions permissions) throws Exception {
         URL location = f.toURI().toURL();
         final String[] args = {f.getAbsolutePath()};
@@ -422,7 +422,7 @@ public class PermissionTest {
 
         System.out.println(f + " NoAuth test passed");
     }
-    
+
     private static void doSuccess(Map<String, Object> bindings, File f, Permissions permissions) throws Exception {
         URL location = f.toURI().toURL();
         final String[] args = { f.getAbsolutePath() };

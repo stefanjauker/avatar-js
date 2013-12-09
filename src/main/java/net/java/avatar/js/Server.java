@@ -186,7 +186,7 @@ public final class Server {
         if (ex == null) {
             return null;
         }
-        
+
         StringBuilder builder = new StringBuilder();
         builder.append(ex.toString()).append("\n");
         StackTraceElement[] elems = NashornException.getScriptFrames(ex);
@@ -219,7 +219,7 @@ public final class Server {
         }
         return ret;
     }
-    
+
     public void interrupt() {
         eventLoop.stop();
     }
@@ -429,6 +429,7 @@ public final class Server {
         private final Invocable invocable;
         private Object nativeModule;
         private final AccessControlContext ctx;
+
         private SecureHolder(final EventLoop evtloop,
                              final Loader loader,
                              final Invocable invocable) {
