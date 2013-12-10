@@ -79,7 +79,6 @@
     */
    exports.NodeScript.createContext = function(initSandbox) {
        var context = {};
-       var init;
 
        // The optional argument initSandbox will be shallow-copied to seed
        // the initial contents of the global object used by the context.
@@ -97,9 +96,7 @@
                    Object.defineProperty(context, name,  desc);
                }
            }
-           init = context;
        }
-       addGlobalScope(init, context);
        return context;
    }
 
@@ -117,16 +114,15 @@
     * A new global scope. init has been created from createContext (runInContext)
     * or is a user object (runInNewContext).
     */
-   function addGlobalScope(init, context) {
-       var init_script = init ? new_global_prefix(init) : "";
-
+   function newGlobalScope(context) {
+        var init_script = new_global_prefix(context);
 
        // _global comes from foreign context, this is a ScriptObjectMirror
        // it has some limitations
-       context._global = loadWithNewGlobal({ name: "new_scope.js",
+       var _global = loadWithNewGlobal({ name: "new_scope.js",
            script: init_script +
-                   "this" }, init);
-       Object.defineProperty(context, '_global',  { writable: false,  configurable: false, enumerable: false});
+                   "this" }, context);
+       return _global; 
    }
 
    /**
@@ -165,21 +161,21 @@
        if (!context) {
            throw new TypeError('undefined context: ' + context);
        }
-       if (!context._global) {
-           throw new TypeError('invalid context type : ' + context);
-       }
 
        code = Buffer.isBuffer(code) ? code.toString() : code;
 
        var name = filename ? filename : "<script>";
 
-       // context._global is a SciptObjectMirror, load can't be called on it.
+       // global needs to reconstructed each time evaluation is done, context could have
+       // dynamically updated.
+       // _global is a SciptObjectMirror, load can't be called on it.
        // only eval can be used.
-       var loader = context._global.eval("(function loader(code, filename) { return load({name:filename, script:code}); });");
+       var _global = newGlobalScope(context);
+       var loader = _global.eval("(function loader(code, filename) { return load({name:filename, script:code}); });");
        var res = loader(code, name);
 
        // Export to context
-       syncContext(context);
+       syncContext(context, _global);
 
        return res;
    }
@@ -190,12 +186,12 @@
 
    /**
     * Feed the context and the sandbox (if any) with what has been loaded in the
-    * foreign global scope (context._global).
+    * foreign global scope (_global).
     */
-   function syncContext(context) {
-       for(var k in context._global) {
+   function syncContext(context, _global) {
+       for(var k in _global) {
            if (k !== CTX_PROPERTY_NAME) {
-               context[k] = context._global[k];
+               context[k] = _global[k];
                var sb = context._sandbox;
                if (sb) {
                    sb[k] = context[k];
