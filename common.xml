@@ -65,6 +65,10 @@
             </not>
         </condition>
 
+        <condition property="isRelease">
+            <matches string="${build.type}" pattern="Release"/>
+        </condition>
+
         <taskdef name="testng" classname="org.testng.TestNGAntTask">
             <classpath location="${testng.jar}"/>
         </taskdef>
@@ -230,10 +234,20 @@
         <fileset dir="${avatar-js.home}/out/${build.type}" id="avatar-js" includes="**/*.obj" erroronmissingdir="false"/>
         <pathconvert property="avatar-js.objs" refid="avatar-js" pathsep=" " />
 
+        <condition property="release.arg1" value="/LTCG" else="">
+            <istrue value="${isRelease}"/>
+        </condition>
+
+        <condition property="release.arg2" value="msvcrt.lib" else="">
+            <istrue value="${isRelease}"/>
+        </condition>
+
         <exec executable="link.exe" dir="${dist.dir}" failonerror="true">
             <arg value="/NODEFAULTLIB:msvcrt"/>
             <arg value="/OUT:avatar-js.dll"/>
             <arg value="/DLL"/>
+            <arg value="${release.arg1}"/>
+            <arg value="${release.arg2}"/>
             <arg value="advapi32.lib"/>
             <arg value="iphlpapi.lib"/>
             <arg value="psapi.lib"/>
