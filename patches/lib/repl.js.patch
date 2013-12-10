@@ -1,5 +1,5 @@
---- ../nodejs/lib/repl.js	2013-12-06 14:29:56.315446400 -0800
-+++ src/main/js/lib/repl.js	2013-12-06 14:41:35.670447200 -0800
+--- ../nodejs/lib/repl.js	2013-12-09 18:56:15.294402800 -0800
++++ src/main/js/lib/repl.js	2013-12-10 11:23:45.938789000 -0800
 @@ -535,7 +535,7 @@
          // Get global vars synchronously
          if (this.useGlobal ||
@@ -9,3 +9,10 @@
            var contextProto = this.context;
            while (contextProto = Object.getPrototypeOf(contextProto)) {
              completionGroups.push(Object.getOwnPropertyNames(contextProto));
+@@ -923,5 +923,5 @@
+       // "strict mode" syntax errors
+       !e.match(/^SyntaxError: .*strict mode.*/i) &&
+       // JSON.parse() error
+-      !e.match(/\n {4}at Object.parse \(native\)\n/);
++      !e.match(/^SyntaxError: Invalid JSON/);
+ }
