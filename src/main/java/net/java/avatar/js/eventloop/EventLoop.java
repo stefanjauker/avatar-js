@@ -48,7 +48,7 @@ import net.java.avatar.js.log.Logging;
 import net.java.libuv.LibUV;
 import net.java.libuv.cb.AsyncCallback;
 import net.java.libuv.cb.CallbackExceptionHandler;
-import net.java.libuv.cb.CallbackDomainProvider;
+import net.java.libuv.cb.ContextProvider;
 import net.java.libuv.cb.CallbackHandler;
 import net.java.libuv.cb.CallbackHandlerFactory;
 import net.java.libuv.handles.AsyncHandle;
@@ -363,6 +363,7 @@ public final class EventLoop {
         this.dns = new DNS(this);
 
         final LoopCallbackHandler defaultHandler = new LoopCallbackHandler(this);
+
         this.uvLoop = new LoopHandle(new CallbackExceptionHandler() {
             @Override
             public void handle(final Exception ex) {
@@ -376,28 +377,33 @@ public final class EventLoop {
                 }
             }
         },
+
         new CallbackHandlerFactory() {
             @Override
-            public CallbackHandler newCallbackHandlerWithDomain(Object domain) {
-                return new LoopCallbackHandler(EventLoop.this, domain);
+            public CallbackHandler newCallbackHandler(Object context) {
+                return new LoopCallbackHandler(EventLoop.this, context);
             }
+
             @Override
             public CallbackHandler newCallbackHandler() {
                 return defaultHandler;
             }
         },
-        new CallbackDomainProvider() {
+
+        new ContextProvider() {
             @Override
-            public Object getDomain() {
+            public Object getContext() {
                 return EventLoop.this.getDomain();
             }
         });
+
         this.instanceNumber = instanceNumber;
         this.executor = executor;
 
         LibUV.chdir(workDir);
         LOG = logger("eventloop");
         asyncHandle = new AsyncHandle(uvLoop);
+
         asyncHandle.setAsyncCallback(new AsyncCallback() {
             @Override
             public void onSend(int status) throws Exception {
@@ -408,6 +414,7 @@ public final class EventLoop {
                 }
             }
         });
+
         asyncHandle.unref();
 
     }
