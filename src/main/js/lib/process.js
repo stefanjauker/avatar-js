@@ -246,6 +246,7 @@ Object.defineProperty(exports, 'stderr', {
 });
 
 var _execPath;
+var System = java.lang.System;
 Object.defineProperty(exports, 'execPath', {
     enumerable: true,
     get: function() {
@@ -270,6 +271,13 @@ Object.defineProperty(exports, 'execPath', {
                '-cp ' +
                java.lang.System.getProperty('java.class.path') + ' ' +
                Server.class.getName();
+        } else {
+            // Not Leaking library.path and class.path
+            var sm = System.getSecurityManager();
+            if (sm) {
+                sm.checkPropertyAccess('java.library.path');
+                sm.checkPropertyAccess('java.class.path');
+            }
         }
         return _execPath;
     }
