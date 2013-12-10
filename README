@@ -3,7 +3,7 @@ Build Instructions
 1. Install jdk8, ant and python
    a) Install the latest jdk8 build from http://jdk8.java.net/download.html (b119+)
    b) Ensure ant is installed and ant -version is 1.8+
-   c) Ensure python is installed and python --version is 2.7.5+
+   c) Ensure python is installed and python --version is 2.7.5+ (python3 does not work)
 
 2. Download node.js
    a) git clone https://github.com/joyent/node.git source
