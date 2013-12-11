@@ -211,9 +211,11 @@ public final class Server {
     private static NashornException retrieveNashornException(Throwable ex) {
         Throwable orig = ex;
         NashornException ret = null;
-        while (!(orig instanceof NashornException)) {
-            orig = ex.getCause();
+        
+        while (orig != null && !(orig instanceof NashornException)) {
+            orig = orig.getCause();
         }
+        
         if (orig != null) {
             ret = (NashornException) orig;
         }
