@@ -8,7 +8,7 @@ Build Instructions
 2. Download node.js
    a) git clone https://github.com/joyent/node.git source
    b) cd source
-   c) git checkout v0.10.22
+   c) git checkout v0.10.23
       (do 'git pull' to refresh repo if you get an error saying this version is unknown)
 
 3. Clone dependencies (<id> is your java.net id)
@@ -71,27 +71,24 @@ Limitations and Gotchas
    b) Mac OS X Mountain Lion
    c) Windows 7 & 8 x64
 
-2. Dependencies
-   Requires a recent build of jdk8 (b108+)
-
-3. Globals - some additional globals are exposed
+2. Globals - some additional globals are exposed
    a) context of type ScriptContext [http://download.java.net/jdk8/docs/api/javax/script/ScriptContext.html]
    b) __avatar (non-iterable) container for some avatar-specific globals
 
-4. Limitations of the vm module
+3. Limitations of the vm module
    Objects loaded in a new context and accessed from the current context have some strong limitations -
    a) Only a subset of JavaScript API is available on these objects
    b) equality (==, ===) will not work as expected
 
-5. Limitations on __proto__
+4. Limitations on __proto__
    a) __proto__ cannot be set to undefined
       affects the ejs module used by express
 
-6. No const keyword
+5. No const keyword
    a) the const keyword is not supported, replace with var
       affects the mongodb and grunt modules
 
-7. No signal handlers installed by default
+6. No signal handlers installed by default
    some generate EINVAL (invalid argument)
    the JVM installs some of its own and we do not want to cause conflicts
    an app can install signal handlers as needed using
