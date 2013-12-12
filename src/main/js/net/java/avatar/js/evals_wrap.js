@@ -79,7 +79,12 @@
     */
    exports.NodeScript.createContext = function(initSandbox) {
        var context = {};
-
+       var init;
+       
+       // Undocumented but, coffee-script expects this to be:
+       // sandbox instanceof Script.createContext().constructor
+       context.__proto__ = exports.NodeScript.createContext.prototype
+       
        // The optional argument initSandbox will be shallow-copied to seed
        // the initial contents of the global object used by the context.
        if (initSandbox) {
@@ -96,7 +101,9 @@
                    Object.defineProperty(context, name,  desc);
                }
            }
+           init = context;
        }
+       addGlobalScope(init, context);
        return context;
    }
 
@@ -114,15 +121,15 @@
     * A new global scope. init has been created from createContext (runInContext)
     * or is a user object (runInNewContext).
     */
-   function newGlobalScope(context) {
-        var init_script = new_global_prefix(context);
+   function addGlobalScope(init, context) {
+       var init_script = init ? new_global_prefix(init) : "";
 
        // _global comes from foreign context, this is a ScriptObjectMirror
        // it has some limitations
-       var _global = loadWithNewGlobal({ name: "new_scope.js",
+       context._global = loadWithNewGlobal({ name: "new_scope.js",
            script: init_script +
-                   "this" }, context);
-       return _global; 
+                   "this" }, init);
+       Object.defineProperty(context, '_global',  { writable: false,  configurable: false, enumerable: false});
    }
 
    /**
@@ -136,23 +143,38 @@
        var length = names.length;
        for (var i=0; i < length; i++) {
            var key = names[i];
-           var desc = Object.getOwnPropertyDescriptor(init, key);
-           if (desc.value !== undefined) {
-               prefix += "this['"+key+"'] = arguments[0]['" + key +  "'];\n";
-           } else {
-               prefix += "Object.defineProperty(this, '" + key + "', {\n";
-               prefix += "get: function() { return " + CTX_PROPERTY_NAME + "." + key + "},\n";
-               prefix += "set: function(val) { " + CTX_PROPERTY_NAME + "." + key + " = val },\n";
-               prefix += "});\n"
-           }
+           prefix += "Object.defineProperty(this, '" + key + "', {\n";
+           prefix += "get: function() { return " + CTX_PROPERTY_NAME + "." + key + "},\n";
+           prefix += "set: function(val) { " + CTX_PROPERTY_NAME + "." + key + " = val },\n";
+           prefix += "});\n"
        }
 
        return prefix;
    }
-
+   
+   /**
+    * Generate global accessors for new properties
+    */
+   function update_global_script(context) {
+       var prefix = "(function (glob, ctx) {\n";
+       for( var k in context) {
+           if (!context._global.hasOwnProperty(k) && k !== '_global') {
+            prefix += "Object.defineProperty(glob, '" + k + "', {\n";
+            prefix += "get: function() { return ctx" + "." + k + "},\n";
+            prefix += "set: function(val) { ctx." + k + " = val },\n";
+            prefix += "});\n"
+           }
+       }
+       prefix += "});"
+       return prefix;
+   }
+   
    /*
     * Static execution of script inside the passed global context.
-    * The core of this function is the use of nashorn loadWithNewGlobal
+    * The core of this function is the use of nashorn loadWithNewGlobal.
+    * The complexity and hacky implementation is caused by the fact that the the passed
+    * context can;t be set as is as the new global. We need to create some global accessors
+    * to emulate that the context is the new global.
     */
    exports.NodeScript.runInContext = function(code, context, filename) {
        if (!code) {
@@ -161,21 +183,22 @@
        if (!context) {
            throw new TypeError('undefined context: ' + context);
        }
+       if (!context._global) {
+           throw new TypeError('invalid context type : ' + context);
+       }
 
        code = Buffer.isBuffer(code) ? code.toString() : code;
 
        var name = filename ? filename : "<script>";
 
-       // global needs to reconstructed each time evaluation is done, context could have
-       // dynamically updated.
-       // _global is a SciptObjectMirror, load can't be called on it.
-       // only eval can be used.
-       var _global = newGlobalScope(context);
-       var loader = _global.eval("(function loader(code, filename) { return load({name:filename, script:code}); });");
+       // Export to global
+       syncGlobal(context);
+       
+       var loader = context._global.eval("(function loader(code, filename) { return load({name:filename, script:code}); });");
        var res = loader(code, name);
 
        // Export to context
-       syncContext(context, _global);
+       syncContext(context);
 
        return res;
    }
@@ -184,14 +207,24 @@
        return exports.NodeScript.runInContext(this._source, context, this._filename);
    }
 
+   /*
+    * Context could have been updated, resync the global with the current context state
+    */
+   function syncGlobal(context) {
+       var updater = context._global.eval(update_global_script(context));
+       updater(context._global, context);
+   }
+   
    /**
     * Feed the context and the sandbox (if any) with what has been loaded in the
-    * foreign global scope (_global).
+    * foreign global scope (context._global).
     */
-   function syncContext(context, _global) {
-       for(var k in _global) {
+   function syncContext(context) {
+       for(var k in context._global) {
            if (k !== CTX_PROPERTY_NAME) {
-               context[k] = _global[k];
+               if (!context.hasOwnProperty(k)) {
+                   context[k] = context._global[k];
+               }
                var sb = context._sandbox;
                if (sb) {
                    sb[k] = context[k];
