@@ -1,5 +1,5 @@
---- ../node/lib/tls.js	2013-12-06 16:10:13.427409262 -0800
-+++ src/main/js/lib/tls.js	2013-12-06 16:10:41.639204375 -0800
+--- ../node/lib/tls.js	2013-12-12 09:46:21 -0800
++++ src/main/js/lib/tls.js	2013-12-12 10:20:39 -0800
 @@ -359,7 +359,10 @@
  
      // Handle and report errors
@@ -12,11 +12,11 @@
      }
  
      // Force SSL_read call to cycle some states/data inside OpenSSL
-@@ -460,7 +463,16 @@
- 
-     // Get NPN and Server name when ready
-     this.pair.maybeInitFinished();
--
+@@ -460,6 +463,17 @@
+       this.pair.error();
+       break;
+     }
++    
 +    // We need to check for ssl being destroyed.
 +    // If an invalide certificate is received, openSSL will return -1 when 
 +    // _buffer.use is called and no data will be written on this connection.
@@ -27,10 +27,10 @@
 +        read = -1;
 +        bytesRead = 0;
 +    }
-     // `maybeInitFinished()` can emit the 'secure' event which
-     // in turn destroys the connection in case of authentication
-     // failure and sets `this.pair.ssl` to `null`.
-@@ -1125,7 +1137,8 @@
+   } while (read > 0 &&
+            !this._buffer.isFull &&
+            bytesRead < size &&
+@@ -1133,7 +1147,8 @@
      passphrase: self.passphrase,
      cert: self.cert,
      ca: self.ca,
@@ -40,7 +40,7 @@
      secureProtocol: self.secureProtocol,
      secureOptions: self.secureOptions,
      crl: self.crl,
-@@ -1140,6 +1153,12 @@
+@@ -1148,6 +1163,12 @@
  
    // constructor call
    net.Server.call(this, function(socket) {
@@ -53,7 +53,7 @@
      var creds = crypto.createCredentials(null, sharedCreds.context);
  
      var pair = new SecurePair(creds,
-@@ -1336,6 +1355,10 @@
+@@ -1344,6 +1365,10 @@
                                cleartext: options.cleartext,
                                encrypted: options.encrypted
                              });
