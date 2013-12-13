@@ -28,7 +28,7 @@ import net.java.avatar.js.Server;
 import org.testng.annotations.Test;
 
 /**
- * Test crypto.
+ * Test eventloop.
  *
  */
 public class EventLoopTest {
