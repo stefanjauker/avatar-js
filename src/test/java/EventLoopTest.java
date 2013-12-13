@@ -22,40 +22,35 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-var evtloop = __avatar.eventloop;
-var count  = new java.util.concurrent.atomic.AtomicInteger(0);
-var NUM_THREADS = 2000;
 
-var POSTED = 12;
+import java.io.File;
+import net.java.avatar.js.Server;
+import org.testng.annotations.Test;
 
-function f2() {
-    count.incrementAndGet();
-}
+/**
+ * Test crypto.
+ *
+ */
+public class EventLoopTest {
 
-function createClosure(i) {
-    return function() {
-        java.lang.Thread.sleep(100);
-        for(var j = 0; j < 10; j++) {
-            evtloop.post(f2);
+    @Test
+    public void testEventLoop() throws Exception {
+        File dir = new File("src/test/js/eventloop/");
+        boolean failed = false;
+        for (File f : dir.listFiles()) {
+            final String[] args = { f.getAbsolutePath() };
+            System.out.println("Running " + f.getAbsolutePath());
+            try {
+                new Server().run(args);
+                System.out.println(f + " test passed");
+            } catch(Exception ex) {
+                System.out.println(f + " test failure");
+                ex.printStackTrace();
+                failed = true;
+            }
         }
-        java.lang.Thread.sleep(100);
-        evtloop.post(f2);
-        evtloop.post(f2);
-        handle.release();
+        if (failed) {
+            throw new Exception("EventLoop test failed");
+        }
     }
 }
-
-for(var i = 0 ; i < NUM_THREADS; i++) {
-    var handle = evtloop.acquire();
-    var thr = new java.lang.Thread(createClosure(i));
-    thr.setDaemon(true);
-    thr.start();
-}
-
-console.log("End synchronous script");
-process.on('exit', function(e) {
-    print("Exiting ");
-    if(count.get() != NUM_THREADS * POSTED) {
-        throw new Error("COunt is not the expected one " + count.get());
-    }
-})
