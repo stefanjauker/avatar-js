@@ -188,16 +188,28 @@
     }
 
     Pipe.prototype.bind = function(address) {
-        this._pipe.bind(address);
+        try {
+            this._pipe.bind(address);
+        } catch (err) {
+            if(!err.errnoString) {
+                throw err;
+            }
+            process._errno = err.errnoString();
+            this._pipe = undefined;
+            throw newError(err);
+        }
     }
 
     Pipe.prototype.listen = function(backlog) {
         try {
             this._pipe.listen(backlog);
         } catch (err) {
+            if(!err.errnoString) {
+                throw err;
+            }
             process._errno = err.errnoString();
             this._pipe = undefined;
-            return err;
+            return newError(err);
         }
     }
 
@@ -276,4 +288,11 @@
       this._pipe.unref();
     }
 
+    var newError = function(exception) {
+        var error = new Error(exception.getMessage());
+        error.errno = exception.errno()
+        error.code = exception.errnoString();
+        process._errno = error.code;
+        return error;
+    }
 });

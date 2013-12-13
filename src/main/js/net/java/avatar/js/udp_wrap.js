@@ -66,11 +66,25 @@
     }
 
     UDP.prototype.bind = function(address, port, flags) {
-        return this._udp.bind(port, address);
+        try {
+            return this._udp.bind(port, address);
+        } catch(err) {
+            if(!err.errnoString) {
+                throw err;
+            }
+            throw newError(err);
+        }
     }
 
     UDP.prototype.bind6 = function(address, port, flags) {
-        return this._udp.bind6(port, address);
+        try {
+            return this._udp.bind6(port, address);
+        } catch(err) {
+            if(!err.errnoString) {
+                throw err;
+            }
+            throw newError(err);
+        }
     }
 
     UDP.prototype.send = function(buffer, offset, length, port, ip) {
@@ -138,5 +152,13 @@
 
     UDP.prototype.unref = function() {
         this._udp.unref();
+    }
+
+    var newError = function(exception) {
+        var error = new Error(exception.getMessage());
+        error.errno = exception.errno()
+        error.code = exception.errnoString();
+        process._errno = error.code;
+        return error;
     }
 });
