@@ -41,7 +41,7 @@ public class CryptoTest {
             final String[] args = { f.getAbsolutePath() };
             System.out.println("Running " + f.getAbsolutePath());
             try {
-                new Server(true).run(args);
+                new Server().run(args);
                 System.out.println(f + " test passed");
             } catch(Exception ex) {
                 System.out.println(f + " test failure");

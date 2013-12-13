@@ -135,7 +135,7 @@ public class PermissionTest {
 
     private static Server newServer(ScriptEngine engine) throws Exception {
         Server server = new Server(engine, new Loader.Core(), new Logging(false),
-                System.getProperty("user.dir"), true);
+                System.getProperty("user.dir"));
         return server;
     }
 
