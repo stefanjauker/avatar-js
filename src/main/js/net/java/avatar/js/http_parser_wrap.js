@@ -49,6 +49,12 @@
         });
 
         var that = this;
+        var retrieveString = function(offset, length) {
+            var start = that._dataStart + offset;
+            var end = start + length;
+            return that._data.toString('utf8', start, end);
+        }
+        
         Object.defineProperty(this, '_settings', {
             value : new ParserSettings(
             // on_message_begin
@@ -57,7 +63,8 @@
                 return 0;
             },
             // on_url
-            function(url) {
+            function(offset, length) {
+                var url = retrieveString(offset, length);
                 if (that._url) { // truncated url
                     that._url += new Buffer(url).toString();
                 } else {
@@ -66,7 +73,8 @@
                 return 0;
             },
             // on_header_field
-            function(field) {
+            function(offset, length) {
+                var field = retrieveString(offset, length);
                 if (that._hkeys === that._hvalues) { // new field
                     that._hkeys += 1;
                     that._headers.push(field);
@@ -75,7 +83,8 @@
                 }
             },
             // on_header_value
-            function(value) {
+            function(offset, length) {
+                var value = retrieveString(offset, length);
                 if (that._hvalues !== that._hkeys) { // new value
                     that._hvalues += 1;
                     that._headers.push(value);
@@ -115,10 +124,10 @@
                 return response ? 1 : 0;
             },
             // on_body
-            function(data) {
-                var body = new Buffer(data);
+            function(offset, length) {
                 try {
-                    that.onBody(body, 0, body.length);
+                    var bodyOffset = that._dataStart + offset;
+                    that.onBody(that._data, bodyOffset, length);
                 } catch (e) {
                     debug(e.stack);
                     that._got_exception = e;
@@ -146,6 +155,8 @@
     exports.HTTPParser = HTTPParser;
     HTTPParser.REQUEST = Parser.Type.REQUEST.name();
     HTTPParser.RESPONSE = Parser.Type.RESPONSE.name();
+    var typeClass = Packages.net.java.httpparser.HttpParser.Type.class;
+    var valueOf = java.lang.Enum.valueOf;
 
     HTTPParser.prototype.reinitialize = function(type) {
         delete this._parser;
@@ -176,7 +187,7 @@
             value : 0,
             writable : true
         });
-        this._parser.init(java.lang.Enum.valueOf(Packages.net.java.httpparser.HttpParser.Type.class, type));
+        this._parser.init(valueOf(typeClass, type));
     }
 
     HTTPParser.prototype.execute = function(data, start, length) {
@@ -198,10 +209,12 @@
             return err;
         }
 
-        var buff = new Buffer(length);
-        data.copy(buff, 0, start, start + length);
         this._got_exception = null;
-        var nparsed = this._parser.execute(this._settings, buff._impl.underlying());
+        this._data = data;
+        this._dataStart = start;
+        var nparsed = this._parser.execute(this._settings, data._impl.underlying(), start, length);
+        this._data = null;
+        this._dataStart = -1;
         if (this._got_exception)
             throw this._got_exception;
         if (!this._parser.upgrade() && nparsed != length) {
@@ -219,9 +232,10 @@
         return e;
     }
 
+    var FINISH_BUFFER = new Buffer(0)._impl.toByteBuffer()
     HTTPParser.prototype.finish = function() {
         this._got_exception = null;
-        var nparsed = this._parser.execute(this._settings, new Buffer(0)._impl.toByteBuffer());
+        var nparsed = this._parser.execute(this._settings, FINISH_BUFFER, 0, 0);
         if (this._got_exception) {
             throw this._got_exception;
         }

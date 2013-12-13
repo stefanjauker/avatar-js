@@ -25,32 +25,32 @@
 
 package net.java.avatar.js.http;
 
-import java.nio.charset.Charset;
-
 import net.java.httpparser.HttpParserSettings;
-
-import net.java.avatar.js.buffer.Buffer;
 
 public final class ParserSettings extends HttpParserSettings {
 
+    public interface ParserDataFunction {
+        public int call(int offset, int length);
+    }
+
     public interface ParserFunction {
-        public int call(Object arg);
+        public int call();
     }
 
     final ParserFunction onMessageBegin;
-    final ParserFunction onURL;
-    final ParserFunction onHeaderField;
-    final ParserFunction onHeaderValue;
+    final ParserDataFunction onURL;
+    final ParserDataFunction onHeaderField;
+    final ParserDataFunction onHeaderValue;
     final ParserFunction onHeadersComplete;
-    final ParserFunction onBody;
+    final ParserDataFunction onBody;
     final ParserFunction onMessageComplete;
 
     public ParserSettings(final ParserFunction onMessageBegin,
-                          final ParserFunction onURL,
-                          final ParserFunction onHeaderField,
-                          final ParserFunction onHeaderValue,
+                          final ParserDataFunction onURL,
+                          final ParserDataFunction onHeaderField,
+                          final ParserDataFunction onHeaderValue,
                           final ParserFunction onHeadersComplete,
-                          final ParserFunction onBody,
+                          final ParserDataFunction onBody,
                           final ParserFunction onMessageComplete) {
         this.onMessageBegin = onMessageBegin;
         this.onURL = onURL;
@@ -63,39 +63,35 @@ public final class ParserSettings extends HttpParserSettings {
 
     @Override
     public int onMessageBegin() {
-        return onMessageBegin.call(null);
+        return onMessageBegin.call();
     }
     @Override
-    public int onURL(final byte[] data) {
-        return onURL.call(new Buffer(data));
-    }
-
-    @Override
-    public int onHeaderField(final byte[] data) {
-        return onHeaderField.call(toString(data));
+    public int onURL(int offset, int length) {
+        return onURL.call(offset, length);
     }
 
     @Override
-    public int onHeaderValue(final byte[] data) {
-        return onHeaderValue.call(toString(data));
+    public int onHeaderField(int offset, int length) {
+        return onHeaderField.call(offset, length);
+    }
+
+    @Override
+    public int onHeaderValue(int offset, int length) {
+        return onHeaderValue.call(offset, length);
     }
 
     @Override
     public int onHeadersComplete() {
-        return onHeadersComplete.call(null);
+        return onHeadersComplete.call();
     }
 
     @Override
-    public int onBody(final byte[] data) {
-        return onBody.call(new Buffer(data));
+    public int onBody(int offset, int length) {
+        return onBody.call(offset, length);
     }
 
     @Override
     public int onMessageComplete() {
-        return onMessageComplete.call(null);
-    }
-
-    private static String toString(final byte[] content) {
-        return new String(content, Charset.forName("utf-8"));
+        return onMessageComplete.call();
     }
 }
