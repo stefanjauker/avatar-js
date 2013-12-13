@@ -144,8 +144,8 @@
        for (var i=0; i < length; i++) {
            var key = names[i];
            prefix += "Object.defineProperty(this, '" + key + "', {\n";
-           prefix += "get: function() { return " + CTX_PROPERTY_NAME + "." + key + "},\n";
-           prefix += "set: function(val) { " + CTX_PROPERTY_NAME + "." + key + " = val },\n";
+           prefix += "get: function() { return " + CTX_PROPERTY_NAME + "['" + key + "']},\n";
+           prefix += "set: function(val) { " + CTX_PROPERTY_NAME + "['" + key + "'] = val },\n";
            prefix += "});\n"
        }
 
@@ -160,8 +160,8 @@
        for( var k in context) {
            if (!context._global.hasOwnProperty(k) && k !== '_global') {
             prefix += "Object.defineProperty(glob, '" + k + "', {\n";
-            prefix += "get: function() { return ctx" + "." + k + "},\n";
-            prefix += "set: function(val) { ctx." + k + " = val },\n";
+            prefix += "get: function() { return ctx" + "['" + k + "']},\n";
+            prefix += "set: function(val) { ctx['" + k + "'] = val },\n";
             prefix += "});\n"
            }
        }
