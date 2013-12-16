@@ -72,19 +72,23 @@
     *
     */
 
+   function Context() {
+
+   }
+
    /**
     * Static creation of a new global context used for execution in a foreign global context.
     * A shalow copy of the init instance is set in the returned context. There is no sharing between
     * the current context and new context.
     */
    exports.NodeScript.createContext = function(initSandbox) {
-       var context = {};
-       var init;
-       
+
        // Undocumented but, coffee-script expects this to be:
        // sandbox instanceof Script.createContext().constructor
-       context.__proto__ = exports.NodeScript.createContext.prototype
-       
+       // repl expects contructor.name === 'Context'
+       var context = new Context();
+
+       var init;
        // The optional argument initSandbox will be shallow-copied to seed
        // the initial contents of the global object used by the context.
        if (initSandbox) {
