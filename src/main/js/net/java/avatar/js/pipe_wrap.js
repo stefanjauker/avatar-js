@@ -94,6 +94,7 @@
                         }
                     }, avatarContext, LibUVPermission.HANDLE);
                    var tcp = new TCP(socket);
+                   tcp._connected = true;
                    that.onread(data, 0, data.length, tcp);
                } else if (type == UV_UDP) {
                    var datagram = AccessController.doPrivileged(new PrivilegedAction() {
