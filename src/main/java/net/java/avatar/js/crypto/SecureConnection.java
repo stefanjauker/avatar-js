@@ -162,8 +162,8 @@ public class SecureConnection {
         }
     }
 
-    public boolean getError() {
-        return exception != null;
+    public Exception getError() {
+        return exception;
     }
 
     public void resetError() {
@@ -268,18 +268,22 @@ public class SecureConnection {
         if (started) {
             return;
         }
-        sslEngine = createSSLEngine(context);
-        assert sslEngine != null;
-        started = true;
-        assert sslEngine != null;
+        try {
+            sslEngine = createSSLEngine(context);
+            assert sslEngine != null;
+            started = true;
+            assert sslEngine != null;
 
-        final SSLSession session = sslEngine.getSession();
-        localNetDataForPeer = ByteBuffer.allocate(session.getPacketBufferSize());
-        localAppData = ByteBuffer.allocate(session.getApplicationBufferSize());
-        decryptedAppData = ByteBuffer.allocate(session.getApplicationBufferSize());
-        incomingFromPeer = ByteBuffer.allocate(session.getPacketBufferSize());
+            final SSLSession session = sslEngine.getSession();
+            localNetDataForPeer = ByteBuffer.allocate(session.getPacketBufferSize());
+            localAppData = ByteBuffer.allocate(session.getApplicationBufferSize());
+            decryptedAppData = ByteBuffer.allocate(session.getApplicationBufferSize());
+            incomingFromPeer = ByteBuffer.allocate(session.getPacketBufferSize());
 
-        sslEngine.beginHandshake();
+            sslEngine.beginHandshake();
+        } catch (final Exception ex) {
+            exception = ex;
+        }
     }
 
     public static final class PeerCertificate {
@@ -555,7 +559,7 @@ public class SecureConnection {
          * getError(): A fatal error could have occured.
          * (started && !isHandshake()): nominal end of Handshake.
          */
-        return shutingdown || getError() || (started && !isHandshake());
+        return shutingdown || getError() != null || (started && !isHandshake());
     }
 
     /**
