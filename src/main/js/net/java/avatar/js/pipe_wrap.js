@@ -30,6 +30,7 @@
     var net = require("net");
     var dgram = require("dgram");
     var TCP = process.binding('tcp_wrap').TCP;
+    var UDP = process.binding('udp_wrap').UDP;
 
     var JavaBuffer = Packages.net.java.avatar.js.buffer.Buffer;
     var PipeHandle = Packages.net.java.libuv.handles.PipeHandle;
@@ -99,10 +100,10 @@
                } else if (type == UV_UDP) {
                    var datagram = AccessController.doPrivileged(new PrivilegedAction() {
                         run: function() {
-                            return new UDPHandle();
+                            return new UDPHandle(loop, handle);
                         }
                     }, avatarContext, LibUVPermission.HANDLE);
-                   var udp = new dgram.UDP(datagram);
+                   var udp = new UDP(datagram);
                    that.onread(data, 0, data.length, udp);
                } else {
                    that.onread(data, 0, data.length);
