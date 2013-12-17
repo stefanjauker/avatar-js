@@ -1,6 +1,6 @@
---- ../node/test/simple/test-pipe-unref.js	2013-09-23 13:54:04.000000000 +0200
-+++ test/simple/test-pipe-unref.js	2013-10-24 14:43:59.000000000 +0200
-@@ -29,10 +29,16 @@
+--- ../nodejs/test/simple/test-pipe-unref.js	2013-12-17 11:28:18.690118948 -0800
++++ test/simple/test-pipe-unref.js	2013-12-17 11:51:42.109888011 -0800
+@@ -29,11 +29,24 @@
  s.listen(common.PIPE);
  s.unref();
  
@@ -17,4 +17,12 @@
 +}, 7000).unref();
  
  process.on('exit', function() {
++  // We need to remove the pipe after the test exits
++  // because it causes an EADDRINUSE error when other test try to use the same pipe.
++  var fs = require('fs');
++  var exists = fs.existsSync(common.PIPE);
++  if (exists) {
++    fs.unlinkSync(common.PIPE);
++  }
    assert.strictEqual(closed, false, 'Unrefd socket should not hold loop open');
+ });
