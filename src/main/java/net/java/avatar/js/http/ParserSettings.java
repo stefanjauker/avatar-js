@@ -36,53 +36,33 @@ public final class ParserSettings extends HttpParserSettings {
     public interface ParserFunction {
         public int call();
     }
+    
+     public interface ParserHeadersFunction {
+        public int call(String url, String[] headers);
+    }
 
-    final ParserFunction onMessageBegin;
-    final ParserDataFunction onURL;
-    final ParserDataFunction onHeaderField;
-    final ParserDataFunction onHeaderValue;
-    final ParserFunction onHeadersComplete;
+    final ParserHeadersFunction onHeadersComplete;
     final ParserDataFunction onBody;
     final ParserFunction onMessageComplete;
+    final ParserHeadersFunction onHeaders;
 
-    public ParserSettings(final ParserFunction onMessageBegin,
-                          final ParserDataFunction onURL,
-                          final ParserDataFunction onHeaderField,
-                          final ParserDataFunction onHeaderValue,
-                          final ParserFunction onHeadersComplete,
+    public ParserSettings(final ParserHeadersFunction onHeadersComplete,
                           final ParserDataFunction onBody,
-                          final ParserFunction onMessageComplete) {
-        this.onMessageBegin = onMessageBegin;
-        this.onURL = onURL;
-        this.onHeaderField = onHeaderField;
-        this.onHeaderValue = onHeaderValue;
+                          final ParserFunction onMessageComplete,
+                          final ParserHeadersFunction onHeaders) {
         this.onHeadersComplete = onHeadersComplete;
         this.onBody = onBody;
         this.onMessageComplete = onMessageComplete;
+        this.onHeaders = onHeaders;
     }
 
     @Override
-    public int onMessageBegin() {
-        return onMessageBegin.call();
+    public int onHeadersComplete(String url, String[] headers) {
+        return onHeadersComplete.call(url, headers);
     }
     @Override
-    public int onURL(int offset, int length) {
-        return onURL.call(offset, length);
-    }
-
-    @Override
-    public int onHeaderField(int offset, int length) {
-        return onHeaderField.call(offset, length);
-    }
-
-    @Override
-    public int onHeaderValue(int offset, int length) {
-        return onHeaderValue.call(offset, length);
-    }
-
-    @Override
-    public int onHeadersComplete() {
-        return onHeadersComplete.call();
+    public int onHeaders(String url, String[] headers) {
+        return onHeaders.call(url, headers);
     }
 
     @Override

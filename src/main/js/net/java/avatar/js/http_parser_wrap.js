@@ -49,53 +49,14 @@
         });
 
         var that = this;
-        var retrieveString = function(offset, length) {
-            var start = that._dataStart + offset;
-            var end = start + length;
-            return that._data.toString('utf8', start, end);
-        }
-        
+
         Object.defineProperty(this, '_settings', {
             value : new ParserSettings(
-            // on_message_begin
-            function() {
-                that._url = null;
-                return 0;
-            },
-            // on_url
-            function(offset, length) {
-                var url = retrieveString(offset, length);
-                if (that._url) { // truncated url
-                    that._url += new Buffer(url).toString();
-                } else {
-                    that._url = new Buffer(url).toString();
-                }
-                return 0;
-            },
-            // on_header_field
-            function(offset, length) {
-                var field = retrieveString(offset, length);
-                if (that._hkeys === that._hvalues) { // new field
-                    that._hkeys += 1;
-                    that._headers.push(field);
-                } else { // truncated field
-                    that._headers[that._headers.length - 1] += field;
-                }
-            },
-            // on_header_value
-            function(offset, length) {
-                var value = retrieveString(offset, length);
-                if (that._hvalues !== that._hkeys) { // new value
-                    that._hvalues += 1;
-                    that._headers.push(value);
-                } else { // truncated value
-                    that._headers[that._headers.length - 1] += value;
-                }
-            },
             // on_headers_complete
-            function() {
+            function(url, jheaders) {
+                var headers = Java.from(jheaders);
                 var info = {
-                    headers : that._headers.slice(0),
+                    headers : headers,
                     versionMinor : that._parser.minor(),
                     versionMajor : that._parser.major(),
                     shouldKeepAlive : that._parser.shouldKeepAlive(),
@@ -103,15 +64,12 @@
                 };
 
                 if (that._type === HTTPParser.REQUEST) {
-                    info.url = that._url;
+                    info.url = url;
                     info.method = that._parser.method();
                 }
                 if (that._type === HTTPParser.RESPONSE) {
                     info.statusCode = that._parser.statusCode();
                 }
-
-                that._hkeys = that._hvalues = 0;
-                that._headers= [];
 
                 var response;
                 try {
@@ -138,9 +96,6 @@
             // on_message_complete
             function() {
                 try {
-                    if (that._hkeys) { // trailing headers
-                        that.onHeaders(that._headers.slice(0), that._url);
-                    }
                     that.onMessageComplete();
                 } catch (e) {
                     debug(e.stack);
@@ -148,6 +103,10 @@
                     return -1;
                 }
                 return 0;
+            },
+            // on_headers
+            function(url, jheaders) {
+               that.onHeaders(Java.from(jheaders), url);
             })
         });
     }
@@ -159,32 +118,18 @@
     var valueOf = java.lang.Enum.valueOf;
 
     HTTPParser.prototype.reinitialize = function(type) {
+        if (this._parser) {
+            this._parser.free();
+        }
         delete this._parser;
-        delete this._headers;
-        delete this._url;
         this._got_exception = null;
+
         Object.defineProperty(this, '_parser', {
             value : new Parser(),
             configurable : true
         });
-        Object.defineProperty(this, '_url', {
-            value : undefined,
-            writable : true
-        });
-        Object.defineProperty(this, '_headers', {
-            value : [],
-            writable : true
-        });
         Object.defineProperty(this, '_type', {
             value : type,
-            writable : true
-        });
-        Object.defineProperty(this, '_hvalues', {
-            value : 0,
-            writable : true
-        });
-        Object.defineProperty(this, '_hkeys', {
-            value : 0,
             writable : true
         });
         this._parser.init(valueOf(typeClass, type));
