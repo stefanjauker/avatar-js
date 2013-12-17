@@ -86,7 +86,7 @@
                             return new PipeHandle(loop, handle, true);
                         }
                     }, avatarContext, LibUVPermission.HANDLE);
-                   var p = new Pipe(pipeHandle);
+                   var p = new Pipe(true, pipeHandle);
                    that.onread(data, 0, data.length, p);
                } else if (type == UV_TCP) {
                    var socket = AccessController.doPrivileged(new PrivilegedAction() {

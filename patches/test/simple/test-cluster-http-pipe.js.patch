@@ -1,0 +1,16 @@
+--- ../nodejs/test/simple/test-cluster-http-pipe.js	2013-12-17 11:28:18.666118948 -0800
++++ test/simple/test-cluster-http-pipe.js	2013-12-17 11:38:54.817131582 -0800
+@@ -40,6 +40,13 @@
+     process.exit();
+   });
+   process.on('exit', function() {
++    // We need to remove the pipe after the test exits
++    // because it causes an EADDRINUSE error when other test try to use the same pipe.
++    var fs = require('fs');
++    var exists = fs.existsSync(common.PIPE);
++    if (exists) {
++      fs.unlinkSync(common.PIPE);
++    }
+     assert(ok);
+   });
+   return;
