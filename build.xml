@@ -345,6 +345,8 @@
         <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-net-throttle.js"/>
         <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-process-uptime.js"/>
         <apply-diff src="test/pummel" mod="${test.dir}/pummel" name="test-tls-ci-reneg-attack.js"/>
+        <!-- test/fixtures -->
+        <apply-diff src="test/fixtures" mod="${test.dir}/fixtures" name="create-file.js"/>
     </target>
 
     <!-- keep sorted and synchronized with diff-source-files -->
@@ -426,6 +428,8 @@
         <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-net-throttle.js"/>
         <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-process-uptime.js"/>
         <apply-patch-file target="${test.dir}/pummel" dir="test/pummel" name="test-tls-ci-reneg-attack.js"/>
+        <!-- test/fixtures -->
+        <apply-patch-file target="${test.dir}/fixtures" dir="test/fixtures" name="create-file.js"/>
     </target>
 
     <target name="generate-policy-file" depends="init">
