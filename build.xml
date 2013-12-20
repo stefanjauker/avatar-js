@@ -295,7 +295,6 @@
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-client-timeout-agent.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-default-encoding.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-end-throw-socket-handling.js"/>
-        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-head-request.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-many-ended-pipelines.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-many-keep-alive-connections.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-https-strict.js"/>
