@@ -1,5 +1,5 @@
---- ../node/lib/module.js	2013-12-09 10:27:58.000000000 +0100
-+++ src/main/js/lib/module.js	2013-12-10 09:43:02.000000000 +0100
+--- ../node/lib/module.js	2013-08-22 13:55:28.000000000 +0200
++++ src/main/js/lib/module.js	2013-12-20 17:16:24.000000000 +0100
 @@ -271,13 +271,20 @@
    return [id, [path.dirname(parent.filename)]];
  };
@@ -48,19 +48,7 @@
      hadException = false;
    } finally {
      if (hadException) {
-@@ -325,6 +341,11 @@
-     return request;
-   }
- 
-+  // NASHORN aliases
-+  if (request === 'https') {
-+    return Module._resolveFilename('http', parent);
-+  }
-+
-   var resolvedModule = Module._resolveLookupPaths(request, parent);
-   var id = resolvedModule[0];
-   var paths = resolvedModule[1];
-@@ -373,8 +394,11 @@
+@@ -373,8 +389,11 @@
  // Returns exception if any
  Module.prototype._compile = function(content, filename) {
    var self = this;
@@ -72,7 +60,7 @@
  
    function require(path) {
      return self.require(path);
-@@ -434,7 +458,10 @@
+@@ -434,7 +453,10 @@
    }
  
    // create wrapper function
@@ -84,7 +72,7 @@
  
    var compiledWrapper = runInThisContext(wrapper, filename, true);
    if (global.v8debug) {
-@@ -470,8 +497,7 @@
+@@ -470,8 +492,7 @@
  
  // Native extension for .js
  Module._extensions['.js'] = function(module, filename) {
@@ -94,12 +82,12 @@
  };
  
  
-@@ -508,7 +534,9 @@
+@@ -508,7 +529,9 @@
      var homeDir = process.env.HOME;
    }
  
 -  var paths = [path.resolve(process.execPath, '..', '..', 'lib', 'node')];
-+  // NASHORN: we do not install modules relative to the node.jar location
++  // Avatar.js: we do not install modules relative to the node.jar location
 +  // but we look for modules (and test scripts) relative to the current dir)
 +  var paths = [process.cwd()]; // [path.resolve(process.execPath, '..', '..', 'lib', 'node')];
  

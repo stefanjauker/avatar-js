@@ -378,7 +378,6 @@
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-client-timeout-agent.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-default-encoding.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-end-throw-socket-handling.js"/>
-        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-head-request.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-many-ended-pipelines.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-many-keep-alive-connections.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-https-strict.js"/>
