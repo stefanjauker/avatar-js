@@ -60,8 +60,18 @@ var colorize = !(process.platform === 'win32' && typeof java != 'undefined');
 var testNames = [];
 var exclusions = [];
 try {
-    exclusions = fs.readFileSync(process.platform +
-        '-test-exclusions.txt').toString('utf8').split('\n');
+    exclusions = fs.readFileSync(
+        process.platform + '-test-exclusions.txt')
+        .toString('utf8')
+        .split('\n')
+        .map(function(e) {
+            var comment = e.indexOf(' ');
+            if (comment > 0) {
+                return e.substr(0, comment).trim();
+            } else {
+                return e.trim();
+            }
+        })
 } catch (ignore) {}
 
 stderr.write('\n');
