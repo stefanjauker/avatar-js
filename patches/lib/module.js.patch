@@ -6,7 +6,7 @@
  
 +var AccessController = java.security.AccessController;
 +var PrivilegedAction = java.security.PrivilegedAction;       
-+var Server = Packages.net.java.avatar.js.Server;
++var Server = Packages.com.oracle.avatar.js.Server;
  
  Module._load = function(request, parent, isMain) {
    if (parent) {
