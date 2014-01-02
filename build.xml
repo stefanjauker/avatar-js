@@ -293,6 +293,7 @@
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-fs-readfile-pipe.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-client-timeout-agent.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-client-timeout-event.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-default-encoding.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-end-throw-socket-handling.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http-many-ended-pipelines.js"/>
@@ -376,6 +377,7 @@
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-fs-readfile-pipe.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-client-timeout-agent.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-client-timeout-event.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-default-encoding.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-end-throw-socket-handling.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-many-ended-pipelines.js"/>

@@ -1,0 +1,10 @@
+--- ../node/test/simple/test-http-client-timeout-event.js	2013-12-13 12:23:26 -0800
++++ test/simple//test-http-client-timeout-event.js	2014-01-02 11:06:29 -0800
+@@ -53,6 +53,6 @@
+   setTimeout(function () {
+     req.destroy();
+     assert.equal(timeout_events, 1);
+-  }, 10);
++  }, 100);
+   req.end();
+ });
