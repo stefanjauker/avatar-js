@@ -13,7 +13,7 @@
 -      this.surrogateSize = 2;
 -      this.detectIncompleteChar = utf16DetectIncompleteChar;
 -      break;
-+      var decoder = new Packages.net.java.avatar.js.buffer.StringDecoder(Buffer._javaEncoding(encoding));
++      var decoder = new Packages.com.oracle.avatar.js.buffer.StringDecoder(Buffer._javaEncoding(encoding));
 +      Object.defineProperty(this, '_decoder',  { writable: false, enumerable: false, value: decoder });
 +      this.write = stringWrite;
 +      this.end = stringEnd;
