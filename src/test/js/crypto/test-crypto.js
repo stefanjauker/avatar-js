@@ -28,7 +28,7 @@ var assert = require('assert');
 var process = require('process');
 var fs = require('fs');
 var rand = new java.util.Random();
-var hexutils = Packages.net.java.avatar.js.buffer.HexUtils;
+var hexutils = Packages.com.oracle.avatar.js.buffer.HexUtils;
 
 // DH START
 var alice = crypto.getDiffieHellman('modp5');

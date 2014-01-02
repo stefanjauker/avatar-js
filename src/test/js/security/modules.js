@@ -34,13 +34,13 @@ for(m in natives) {
 assert.throws(function() { process.binding("nasty"); } );
 
 // Can't load file directly.
-assert.throws(function() { 
+assert.throws(function() {
     var url = require("path").join(__dirname, "tcp.js");
     load(url);
 });
 
 // Can't retrieve module directly.
-var url = Packages.net.java.avatar.js.Server.getResource("/net/java/avatar/js/init.js");
+var url = Packages.com.oracle.avatar.js.Server.getResource("/com/oracle/avatar/js/init.js");
 assert.equal(url, null);
 
 process.on('exit', function() {

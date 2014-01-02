@@ -43,7 +43,7 @@ import javax.script.ScriptEngine;
 import com.oracle.avatar.js.Loader;
 import com.oracle.avatar.js.Server;
 import com.oracle.avatar.js.log.Logging;
-import net.java.libuv.LibUVPermission;
+import com.oracle.libuv.LibUVPermission;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.AfterMethod;
