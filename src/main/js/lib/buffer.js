@@ -45,7 +45,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 var assert = require('assert');
-var JavaBuffer = Packages.net.java.avatar.js.buffer.Buffer;
+var JavaBuffer = Packages.com.oracle.avatar.js.buffer.Buffer;
 
 function Buffer(subject, encoding, offset) {
 

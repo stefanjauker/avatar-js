@@ -58,11 +58,11 @@ for (var f in events) {
 }
 
 var eventloop = __avatar.eventloop;
-var LibUV = Packages.net.java.libuv.LibUV;
-var Process = Packages.net.java.avatar.js.os.Process;
-var Server = Packages.net.java.avatar.js.Server;
-var Constants = Packages.net.java.avatar.js.constants.Constants;
-var Signals = Packages.net.java.libuv.handles.SignalHandle;
+var LibUV = Packages.com.oracle.libuv.LibUV;
+var Process = Packages.com.oracle.avatar.js.os.Process;
+var Server = Packages.com.oracle.avatar.js.Server;
+var Constants = Packages.com.oracle.avatar.js.constants.Constants;
+var Signals = Packages.com.oracle.libuv.handles.SignalHandle;
 
 var separator = exports.platform === 'win32' ? ';' : ':';
 var pathSeparator = exports.platform === 'win32' ? '\\' : '/';
@@ -480,7 +480,7 @@ Object.defineProperty(exports, 'binding', {
         if (!module.match(/._wrap$/)) {
             module += '_wrap';
         }
-        var file = '/net/java/avatar/js/' + module + '.js';
+        var file = '/com/oracle/avatar/js/' + module + '.js';
         var exports = {};
         AccessController.doPrivileged(new PrivilegedAction() {
             run: function() {
@@ -628,8 +628,8 @@ Object.defineProperty(exports, 'domain', {
     }
 });
 
-var Check = Packages.net.java.libuv.handles.CheckHandle;
-var Idle = Packages.net.java.libuv.handles.IdleHandle;
+var Check = Packages.com.oracle.libuv.handles.CheckHandle;
+var Idle = Packages.com.oracle.libuv.handles.IdleHandle;
 var checkHandle = new Check(eventloop.loop());
 checkHandle.setCheckCallback(checkImmediate);
 // this handle should not keep the event loop from terminating

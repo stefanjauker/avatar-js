@@ -40,9 +40,9 @@ import java.util.Map;
 import java.util.PropertyPermission;
 import java.util.concurrent.Callable;
 import javax.script.ScriptEngine;
-import net.java.avatar.js.Loader;
-import net.java.avatar.js.Server;
-import net.java.avatar.js.log.Logging;
+import com.oracle.avatar.js.Loader;
+import com.oracle.avatar.js.Server;
+import com.oracle.avatar.js.log.Logging;
 import net.java.libuv.LibUVPermission;
 
 import org.testng.annotations.BeforeMethod;

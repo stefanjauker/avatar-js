@@ -23,34 +23,11 @@
  * questions.
  */
 
-import java.io.File;
-import com.oracle.avatar.js.Server;
-import org.testng.annotations.Test;
-
-/**
- * Test crypto.
- *
- */
-public class CryptoTest {
-
-    @Test
-    public void testCrypto() throws Exception {
-        File dir = new File("src/test/js/crypto");
-        boolean failed = false;
-        for (File f : dir.listFiles()) {
-            final String[] args = { f.getAbsolutePath() };
-            System.out.println("Running " + f.getAbsolutePath());
-            try {
-                new Server().run(args);
-                System.out.println(f + " test passed");
-            } catch(Exception ex) {
-                System.out.println(f + " test failure");
-                ex.printStackTrace();
-                failed = true;
-            }
-        }
-        if (failed) {
-            throw new Exception("Crypto test failed");
-        }
+(function(exports) {
+    var constants = Packages.com.oracle.libuv.Constants.getConstants();
+    var pi = constants.entrySet().iterator();
+    while (pi.hasNext()) {
+        var p = pi.next();
+        exports[p.key] = p.value;
     }
-}
+});

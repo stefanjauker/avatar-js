@@ -23,34 +23,35 @@
  * questions.
  */
 
-import java.io.File;
-import com.oracle.avatar.js.Server;
-import org.testng.annotations.Test;
+package com.oracle.avatar.js.zlib;
+
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
+
+import com.oracle.avatar.js.eventloop.EventLoop;
 
 /**
- * Test crypto.
- *
+ * Deflate compressor.
  */
-public class CryptoTest {
+public class Deflate extends CompressWriter {
 
-    @Test
-    public void testCrypto() throws Exception {
-        File dir = new File("src/test/js/crypto");
-        boolean failed = false;
-        for (File f : dir.listFiles()) {
-            final String[] args = { f.getAbsolutePath() };
-            System.out.println("Running " + f.getAbsolutePath());
-            try {
-                new Server().run(args);
-                System.out.println(f + " test passed");
-            } catch(Exception ex) {
-                System.out.println(f + " test failure");
-                ex.printStackTrace();
-                failed = true;
-            }
+    public Deflate(final EventLoop eventLoop) {
+        super(eventLoop);
+    }
+
+    @Override
+    protected OutputStream createCompressionStream(final ByteArrayOutputStream out) {
+        final Deflater deflater = newDeflater(getLevel());
+        deflater.setStrategy(getStrategy());
+        if (getDictionary() != null) {
+            deflater.setDictionary(getDictionary().array());
         }
-        if (failed) {
-            throw new Exception("Crypto test failed");
-        }
+        return new DeflaterOutputStream(out, deflater, true);
+    }
+
+    protected Deflater newDeflater(final int level) {
+        return new Deflater(level);
     }
 }

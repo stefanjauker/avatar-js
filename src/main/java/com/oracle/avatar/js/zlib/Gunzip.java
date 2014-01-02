@@ -23,34 +23,39 @@
  * questions.
  */
 
-import java.io.File;
-import com.oracle.avatar.js.Server;
-import org.testng.annotations.Test;
+package com.oracle.avatar.js.zlib;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.zip.GZIPInputStream;
+
+import com.oracle.avatar.js.eventloop.EventLoop;
 
 /**
- * Test crypto.
- *
+ * Read GZIP compressed input and write uncompressed to output.
  */
-public class CryptoTest {
+public final class Gunzip extends UncompressWriter {
 
-    @Test
-    public void testCrypto() throws Exception {
-        File dir = new File("src/test/js/crypto");
-        boolean failed = false;
-        for (File f : dir.listFiles()) {
-            final String[] args = { f.getAbsolutePath() };
-            System.out.println("Running " + f.getAbsolutePath());
-            try {
-                new Server().run(args);
-                System.out.println(f + " test passed");
-            } catch(Exception ex) {
-                System.out.println(f + " test failure");
-                ex.printStackTrace();
-                failed = true;
+    public Gunzip(final EventLoop eventLoop) {
+        super(eventLoop);
+    }
+
+    @Override
+    protected InputStream createInputStream(final byte[] rawChunk, final InputStream istream) throws IOException {
+        return new ExtendedGZIPInputStream(istream);
+    }
+    /**
+     * The GZIPInputStream doesn't offer a constructor with initialization
+     * parameter. This one does a best effort to map input parameters with
+     * internal Deflater capabilities.
+     */
+    private final class ExtendedGZIPInputStream extends GZIPInputStream {
+
+        public ExtendedGZIPInputStream(final InputStream out) throws IOException {
+            super(out);
+            if (getDictionary() != null) {
+                inf.setDictionary(getDictionary().array());
             }
-        }
-        if (failed) {
-            throw new Exception("Crypto test failed");
         }
     }
 }

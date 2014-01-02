@@ -23,34 +23,35 @@
  * questions.
  */
 
-import java.io.File;
-import com.oracle.avatar.js.Server;
-import org.testng.annotations.Test;
+package com.oracle.avatar.js.zlib;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import com.oracle.avatar.js.eventloop.EventLoop;
 
 /**
- * Test crypto.
- *
+ * Read GZIP or Deflate compressed input and write uncompressed to output.
  */
-public class CryptoTest {
+public final class Unzip extends UncompressWriter {
 
-    @Test
-    public void testCrypto() throws Exception {
-        File dir = new File("src/test/js/crypto");
-        boolean failed = false;
-        for (File f : dir.listFiles()) {
-            final String[] args = { f.getAbsolutePath() };
-            System.out.println("Running " + f.getAbsolutePath());
-            try {
-                new Server().run(args);
-                System.out.println(f + " test passed");
-            } catch(Exception ex) {
-                System.out.println(f + " test failure");
-                ex.printStackTrace();
-                failed = true;
-            }
-        }
-        if (failed) {
-            throw new Exception("Crypto test failed");
-        }
+    public Unzip(final EventLoop eventLoop) {
+        super(eventLoop);
     }
+
+    @Override
+    protected InputStream createInputStream(final byte[] rawChunk, final InputStream istream) throws IOException {
+        if (rawChunk == null || rawChunk.length < 2) {
+            throw new IllegalArgumentException("Invalid chunk");
+        }
+        if (isGZIP(rawChunk)) {
+            return new Gunzip(eventLoop).createInputStream(rawChunk, istream);
+        }
+        return new Inflate(eventLoop).createInputStream(rawChunk, istream);
+    }
+
+     private static boolean isGZIP(final byte[] rawChunk) throws IOException {
+         // Defined in GZIP specification
+         return rawChunk[0] == (byte) 0x1f && rawChunk[1] == (byte) 0x8b;
+        }
 }

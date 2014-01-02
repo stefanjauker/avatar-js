@@ -24,7 +24,7 @@
  */
 
 import java.io.File;
-import net.java.avatar.js.Server;
+import com.oracle.avatar.js.Server;
 import org.testng.annotations.Test;
 
 /**

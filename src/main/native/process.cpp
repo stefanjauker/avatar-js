@@ -42,25 +42,25 @@ typedef int mode_t;
 #endif
 
 #include "throw.h"
-#include "net_java_avatar_js_os_Process.h"
+#include "com_oracle_avatar_js_os_Process.h"
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _abort
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1abort
+JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1abort
   (JNIEnv *env, jclass cls) {
 
   abort();
 }
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _getPid
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_net_java_avatar_js_os_Process__1getPid
+JNIEXPORT jint JNICALL Java_com_oracle_avatar_js_os_Process__1getPid
   (JNIEnv *env, jclass cls) {
 
 #ifdef __POSIX__
@@ -71,11 +71,11 @@ JNIEXPORT jint JNICALL Java_net_java_avatar_js_os_Process__1getPid
 }
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _getUid
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_net_java_avatar_js_os_Process__1getUid
+JNIEXPORT jint JNICALL Java_com_oracle_avatar_js_os_Process__1getUid
   (JNIEnv *env, jclass cls) {
 
 #ifdef __POSIX__
@@ -86,11 +86,11 @@ JNIEXPORT jint JNICALL Java_net_java_avatar_js_os_Process__1getUid
 }
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _setUid
  * Signature: (I)V
  */
-JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1setUid
+JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1setUid
   (JNIEnv *env, jclass cls, jint uid) {
 
 #ifdef __POSIX__
@@ -102,11 +102,11 @@ JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1setUid
 }
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _getGid
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_net_java_avatar_js_os_Process__1getGid
+JNIEXPORT jint JNICALL Java_com_oracle_avatar_js_os_Process__1getGid
   (JNIEnv *env, jclass cls) {
 
 #ifdef __POSIX__
@@ -117,11 +117,11 @@ JNIEXPORT jint JNICALL Java_net_java_avatar_js_os_Process__1getGid
 }
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _setGid
  * Signature: (I)V
  */
-JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1setGid
+JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1setGid
   (JNIEnv *env, jclass cls, jint gid) {
 
 #ifdef __POSIX__
@@ -133,21 +133,21 @@ JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1setGid
 }
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _umask
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_net_java_avatar_js_os_Process__1umask
+JNIEXPORT jint JNICALL Java_com_oracle_avatar_js_os_Process__1umask
   (JNIEnv *env, jclass cls, jint mask) {
   return umask(static_cast<mode_t>(mask));
 }
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _getUmask
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_net_java_avatar_js_os_Process__1getUmask
+JNIEXPORT jint JNICALL Java_com_oracle_avatar_js_os_Process__1getUmask
   (JNIEnv *env, jclass cls) {
   unsigned int old = umask(0);
   umask((mode_t)old);
@@ -159,11 +159,11 @@ JNIEXPORT jint JNICALL Java_net_java_avatar_js_os_Process__1getUmask
 static const gid_t gid_not_found = static_cast<gid_t>(-1);
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _getGroups
  * Signature: ()[I
  */
-JNIEXPORT jintArray JNICALL Java_net_java_avatar_js_os_Process__1getGroups
+JNIEXPORT jintArray JNICALL Java_com_oracle_avatar_js_os_Process__1getGroups
   (JNIEnv *env, jclass cls) {
 
   int ngroups = getgroups(0, NULL);
@@ -244,11 +244,11 @@ static char* name_by_uid(uid_t uid) {
 }
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _setGroups
  * Signature: ([Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1setGroups
+JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1setGroups
   (JNIEnv *env, jclass cls, jobjectArray array) {
 
   jsize size = env->GetArrayLength(array);
@@ -273,11 +273,11 @@ JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1setGroups
 }
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _initGroups_S_S
  * Signature: ([Ljava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1initGroups_1S_1S
+JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1initGroups_1S_1S
   (JNIEnv *env, jclass cls, jstring user, jstring group) {
 
   const char* u = env->GetStringUTFChars(user, 0);
@@ -297,11 +297,11 @@ JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1initGroups_1S_1S
 }
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _initGroups_I_I
  * Signature: (II)V
  */
-JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1initGroups_1I_1I
+JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1initGroups_1I_1I
   (JNIEnv *env, jclass cls, jint user, jint group) {
   gid_t extra_group = group;
   const char* u = name_by_uid(user);
@@ -317,11 +317,11 @@ JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1initGroups_1I_1I
 }
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _initGroups_I_S
  * Signature: (I[Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1initGroups_1I_1S
+JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1initGroups_1I_1S
   (JNIEnv *env, jclass cls, jint user, jstring group) {
     const char* u = name_by_uid(user);
     if (u == NULL) {
@@ -342,11 +342,11 @@ JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1initGroups_1I_1S
 }
 
 /*
- * Class:     net_java_avatar_js_os_Process
+ * Class:     com_oracle_avatar_js_os_Process
  * Method:    _initGroups_S_I
  * Signature: ([Ljava/lang/String;I)V
  */
-JNIEXPORT void JNICALL Java_net_java_avatar_js_os_Process__1initGroups_1S_1I
+JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1initGroups_1S_1I
   (JNIEnv *env, jclass cls, jstring user, jint group) {
     const char* u = env->GetStringUTFChars(user, 0);
 

@@ -31,14 +31,14 @@
 #include <Windows.h>
 #endif
 
-#include "net_java_avatar_js_os_OS.h"
+#include "com_oracle_avatar_js_os_OS.h"
 
 /*
- * Class:     net_java_avatar_js_os_OS
+ * Class:     com_oracle_avatar_js_os_OS
  * Method:    _getType
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_net_java_avatar_js_os_OS__1getType
+JNIEXPORT jstring JNICALL Java_com_oracle_avatar_js_os_OS__1getType
   (JNIEnv *env, jclass cls) {
 
 #ifdef __POSIX__
@@ -56,11 +56,11 @@ JNIEXPORT jstring JNICALL Java_net_java_avatar_js_os_OS__1getType
 }
 
 /*
- * Class:     net_java_avatar_js_os_OS
+ * Class:     com_oracle_avatar_js_os_OS
  * Method:    _getRelease
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_net_java_avatar_js_os_OS__1getRelease
+JNIEXPORT jstring JNICALL Java_com_oracle_avatar_js_os_OS__1getRelease
   (JNIEnv *env, jclass cls) {
 
   char release[256];
@@ -86,11 +86,11 @@ JNIEXPORT jstring JNICALL Java_net_java_avatar_js_os_OS__1getRelease
 }
 
 /*
- * Class:     net_java_avatar_js_os_OS
+ * Class:     com_oracle_avatar_js_os_OS
  * Method:    _getEndianness
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_net_java_avatar_js_os_OS__1getEndianness
+JNIEXPORT jstring JNICALL Java_com_oracle_avatar_js_os_OS__1getEndianness
   (JNIEnv *env, jclass cls) {
 
   int i = 1;

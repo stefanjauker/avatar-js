@@ -23,34 +23,36 @@
  * questions.
  */
 
-import java.io.File;
-import com.oracle.avatar.js.Server;
-import org.testng.annotations.Test;
+(function(exports) {
 
-/**
- * Test crypto.
- *
- */
-public class CryptoTest {
+    var FileEventHandle = Packages.com.oracle.libuv.handles.FileEventHandle;
+    var loop = __avatar.eventloop.loop();
 
-    @Test
-    public void testCrypto() throws Exception {
-        File dir = new File("src/test/js/crypto");
-        boolean failed = false;
-        for (File f : dir.listFiles()) {
-            final String[] args = { f.getAbsolutePath() };
-            System.out.println("Running " + f.getAbsolutePath());
-            try {
-                new Server().run(args);
-                System.out.println(f + " test passed");
-            } catch(Exception ex) {
-                System.out.println(f + " test failure");
-                ex.printStackTrace();
-                failed = true;
+    exports.FSEvent = FSEvent;
+
+    function FSEvent() {
+        var that = this;
+        this._fsEvent = new FileEventHandle(loop);
+        this._fsEvent.setFileEventCallback(function(status, event, filename) {
+            if (that.onchange) {
+                that.onchange(status, event, filename);
             }
-        }
-        if (failed) {
-            throw new Exception("Crypto test failed");
-        }
+        });
     }
-}
+
+    FSEvent.prototype.start = function(filename, persistent) {
+        try {
+            var status = this._fsEvent.start(filename, persistent);
+        } catch (err) {
+            if(!err.errnoString) {
+                throw err;
+            }
+            process._errno = err.errnoString();
+        }
+        return status;
+    }
+
+    FSEvent.prototype.close = function() {
+        this._fsEvent.stop();
+    }
+});

@@ -23,34 +23,15 @@
  * questions.
  */
 
-import java.io.File;
-import com.oracle.avatar.js.Server;
-import org.testng.annotations.Test;
+package com.oracle.avatar.js.path;
 
-/**
- * Test crypto.
- *
- */
-public class CryptoTest {
+public final class Path {
 
-    @Test
-    public void testCrypto() throws Exception {
-        File dir = new File("src/test/js/crypto");
-        boolean failed = false;
-        for (File f : dir.listFiles()) {
-            final String[] args = { f.getAbsolutePath() };
-            System.out.println("Running " + f.getAbsolutePath());
-            try {
-                new Server().run(args);
-                System.out.println(f + " test passed");
-            } catch(Exception ex) {
-                System.out.println(f + " test failure");
-                ex.printStackTrace();
-                failed = true;
-            }
-        }
-        if (failed) {
-            throw new Exception("Crypto test failed");
-        }
+    // TODO: remove method when nashorn can call java vararg methods directly
+    public static java.nio.file.Path get(final String first, final String[] args) {
+        return args.length > 0 ?
+            java.nio.file.Paths.get(first, args) :
+                java.nio.file.Paths.get(first);
     }
+
 }

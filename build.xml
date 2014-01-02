@@ -175,8 +175,8 @@
 
     <target name="javah" depends="compile">
         <javah destdir="${native.build.dir}" classpath="${classes.dir}">
-            <class name="net.java.avatar.js.os.OS"/>
-            <class name="net.java.avatar.js.os.Process"/>
+            <class name="com.oracle.avatar.js.os.OS"/>
+            <class name="com.oracle.avatar.js.os.Process"/>
         </javah>
     </target>
 
@@ -196,7 +196,7 @@
             <zipgroupfileset dir="${http-parser.home}/dist" includes="http-parser-java.jar"/>
             <manifest>
                 <attribute name="Built-By" value="${user.name}"/>
-                <attribute name="Main-Class" value="net.java.avatar.js.Server"/>
+                <attribute name="Main-Class" value="com.oracle.avatar.js.Server"/>
             </manifest>
         </jar>
     </target>

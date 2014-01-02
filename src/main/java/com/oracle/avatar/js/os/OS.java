@@ -23,34 +23,31 @@
  * questions.
  */
 
-import java.io.File;
-import com.oracle.avatar.js.Server;
-import org.testng.annotations.Test;
+package com.oracle.avatar.js.os;
 
-/**
- * Test crypto.
- *
- */
-public class CryptoTest {
+public final class OS {
 
-    @Test
-    public void testCrypto() throws Exception {
-        File dir = new File("src/test/js/crypto");
-        boolean failed = false;
-        for (File f : dir.listFiles()) {
-            final String[] args = { f.getAbsolutePath() };
-            System.out.println("Running " + f.getAbsolutePath());
-            try {
-                new Server().run(args);
-                System.out.println(f + " test passed");
-            } catch(Exception ex) {
-                System.out.println(f + " test failure");
-                ex.printStackTrace();
-                failed = true;
-            }
-        }
-        if (failed) {
-            throw new Exception("Crypto test failed");
-        }
+    static {
+        System.loadLibrary("avatar-js");
     }
+
+    private OS() {}
+
+    public static String getType() {
+        return _getType();
+    }
+
+    public static String getRelease() {
+        return _getRelease();
+    }
+
+    public static String getEndianness() {
+        return _getEndianness();
+    }
+
+    private static native String _getType();
+
+    private static native String _getRelease();
+
+    private static native String _getEndianness();
 }

@@ -23,34 +23,43 @@
  * questions.
  */
 
-import java.io.File;
-import com.oracle.avatar.js.Server;
-import org.testng.annotations.Test;
+package com.oracle.avatar.js.zlib;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.zip.GZIPOutputStream;
+
+import com.oracle.avatar.js.eventloop.EventLoop;
 
 /**
- * Test crypto.
- *
+ * Gzip compressor.
  */
-public class CryptoTest {
+public final class Gzip extends CompressWriter {
 
-    @Test
-    public void testCrypto() throws Exception {
-        File dir = new File("src/test/js/crypto");
-        boolean failed = false;
-        for (File f : dir.listFiles()) {
-            final String[] args = { f.getAbsolutePath() };
-            System.out.println("Running " + f.getAbsolutePath());
-            try {
-                new Server().run(args);
-                System.out.println(f + " test passed");
-            } catch(Exception ex) {
-                System.out.println(f + " test failure");
-                ex.printStackTrace();
-                failed = true;
+    public Gzip(final EventLoop eventLoop) {
+        super(eventLoop);
+    }
+
+    @Override
+    protected OutputStream createCompressionStream(final ByteArrayOutputStream out) throws IOException {
+        return new ExtendedGZIPOutputStream(out);
+    }
+
+    /**
+     * The GZIPOutputStream doesn't offer a constructor with initialization
+     * parameter. This one does a best effort to map input parameters with
+     * internal Deflater capabilities.
+     */
+    private final class ExtendedGZIPOutputStream extends GZIPOutputStream {
+
+        public ExtendedGZIPOutputStream(final OutputStream out) throws IOException {
+            super(out, true);
+            def.setLevel(getLevel());
+            def.setStrategy(getStrategy());
+            if (getDictionary() != null) {
+                def.setDictionary(getDictionary().array());
             }
-        }
-        if (failed) {
-            throw new Exception("Crypto test failed");
         }
     }
 }

@@ -23,34 +23,24 @@
  * questions.
  */
 
-import java.io.File;
-import com.oracle.avatar.js.Server;
-import org.testng.annotations.Test;
+package com.oracle.avatar.js.zlib;
+
+import java.util.zip.Deflater;
+
+import com.oracle.avatar.js.eventloop.EventLoop;
 
 /**
- * Test crypto.
- *
+ * DeflateRaw compressor. When creating the Deflater, 'nowrap' is true then the
+ * ZLIB header and checksum fields will not be used
  */
-public class CryptoTest {
+public final class DeflateRaw extends Deflate {
 
-    @Test
-    public void testCrypto() throws Exception {
-        File dir = new File("src/test/js/crypto");
-        boolean failed = false;
-        for (File f : dir.listFiles()) {
-            final String[] args = { f.getAbsolutePath() };
-            System.out.println("Running " + f.getAbsolutePath());
-            try {
-                new Server().run(args);
-                System.out.println(f + " test passed");
-            } catch(Exception ex) {
-                System.out.println(f + " test failure");
-                ex.printStackTrace();
-                failed = true;
-            }
-        }
-        if (failed) {
-            throw new Exception("Crypto test failed");
-        }
+    public DeflateRaw(final EventLoop eventLoop) {
+        super(eventLoop);
+    }
+
+    @Override
+    protected Deflater newDeflater(final int level) {
+        return new Deflater(level, true);
     }
 }

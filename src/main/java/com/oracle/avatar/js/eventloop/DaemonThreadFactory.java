@@ -23,34 +23,25 @@
  * questions.
  */
 
-import java.io.File;
-import com.oracle.avatar.js.Server;
-import org.testng.annotations.Test;
+package com.oracle.avatar.js.eventloop;
 
-/**
- * Test crypto.
- *
- */
-public class CryptoTest {
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
-    @Test
-    public void testCrypto() throws Exception {
-        File dir = new File("src/test/js/crypto");
-        boolean failed = false;
-        for (File f : dir.listFiles()) {
-            final String[] args = { f.getAbsolutePath() };
-            System.out.println("Running " + f.getAbsolutePath());
-            try {
-                new Server().run(args);
-                System.out.println(f + " test passed");
-            } catch(Exception ex) {
-                System.out.println(f + " test failure");
-                ex.printStackTrace();
-                failed = true;
-            }
-        }
-        if (failed) {
-            throw new Exception("Crypto test failed");
-        }
+public final class DaemonThreadFactory implements ThreadFactory {
+
+    private final String name;
+    private final AtomicInteger id = new AtomicInteger(0);
+
+    public DaemonThreadFactory(final String name) {
+        this.name = name;
     }
+
+    @Override
+    public Thread newThread(final Runnable r) {
+        final Thread thread = new Thread(r, name + "." + id.getAndIncrement());
+        thread.setDaemon(true);
+        return thread;
+    }
+
 }
