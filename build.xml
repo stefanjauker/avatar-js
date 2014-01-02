@@ -314,6 +314,7 @@
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-script-context.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-stream2-push.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-stream2-read-sync-stack.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-stream2-readable-empty-buffer-no-eof.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-string-decoder.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-timers-unref.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-timers-zero-timeout.js"/>
@@ -396,6 +397,7 @@
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-script-context.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-stream2-push.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-stream2-read-sync-stack.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-stream2-readable-empty-buffer-no-eof.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-string-decoder.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-timers-unref.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-timers-zero-timeout.js"/>
