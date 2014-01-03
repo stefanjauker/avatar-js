@@ -362,8 +362,6 @@ public final class EventLoop {
         this.logging = logging;
         this.dns = new DNS(this);
 
-        LibUV.disableStdioInheritance();
-
         final LoopCallbackHandler defaultHandler = new LoopCallbackHandler(this);
 
         this.uvLoop = new LoopHandle(new CallbackExceptionHandler() {

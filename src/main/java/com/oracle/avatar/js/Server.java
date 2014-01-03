@@ -49,6 +49,8 @@ import com.oracle.avatar.js.eventloop.ThreadPool;
 import com.oracle.avatar.js.log.Logger;
 import com.oracle.avatar.js.log.Logging;
 
+import com.oracle.libuv.LibUV;
+
 import jdk.nashorn.api.scripting.URLReader;
 
 /**
@@ -145,6 +147,7 @@ public final class Server {
         checkPermission();
         bindings.put(SECURE_HOLDER, holder);
         try {
+            LibUV.disableStdioInheritance();
             if (args.length == 0) {
                 runREPL();
             } else {
