@@ -1,0 +1,11 @@
+--- ../node/test/simple/test-net-GH-5504.js	2013-08-22 13:55:29.000000000 +0200
++++ test/simple/test-net-GH-5504.js	2014-01-03 14:57:59.000000000 +0100
+@@ -88,7 +88,7 @@
+     setTimeout(function() {
+       throw new Error('hang');
+     });
+-  }, 1000).unref();
++  }, 30000).unref();
+ 
+   var s = spawn(node, [__filename, 'server'], opt);
+   var c;

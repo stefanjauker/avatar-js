@@ -301,6 +301,7 @@
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-https-strict.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-module-loading.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-pingpong.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-GH-5504.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-server-address.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-server-unref.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-settimeout.js"/>
@@ -384,6 +385,7 @@
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http-many-keep-alive-connections.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-https-strict.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-module-loading.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-net-GH-5504.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-net-pingpong.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-net-server-address.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-net-server-unref.js"/>
