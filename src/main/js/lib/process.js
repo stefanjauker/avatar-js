@@ -58,6 +58,8 @@ for (var f in events) {
 }
 
 var eventloop = __avatar.eventloop;
+var System = java.lang.System;
+var Runtime = java.lang.Runtime.getRuntime();
 var LibUV = Packages.com.oracle.libuv.LibUV;
 var Process = Packages.com.oracle.avatar.js.os.Process;
 var Server = Packages.com.oracle.avatar.js.Server;
@@ -246,12 +248,11 @@ Object.defineProperty(exports, 'stderr', {
 });
 
 var _execPath;
-var System = java.lang.System;
 Object.defineProperty(exports, 'execPath', {
     enumerable: true,
     get: function() {
         if (!_execPath) {
-            var libPath = java.lang.System.getProperty('java.library.path').split(separator);
+            var libPath = System.getProperty('java.library.path').split(separator);
             var libs = "";
 
             for (var i = 0; i < libPath.length; i++) {
@@ -269,7 +270,7 @@ Object.defineProperty(exports, 'execPath', {
             _execPath = 'java ' +
                (libs ? '-Djava.library.path=' + libs : '') + ' ' +
                '-cp ' +
-               java.lang.System.getProperty('java.class.path') + ' ' +
+               System.getProperty('java.class.path') + ' ' +
                Server.class.getName();
         } else {
             // Not Leaking library.path and class.path
@@ -326,7 +327,7 @@ Object.defineProperty(exports, 'execArgv', {
 
 var _env = {};
 (function() {
-    var pi = java.lang.System.getenv().entrySet().iterator();
+    var pi = System.getenv().entrySet().iterator();
     while (pi.hasNext()) {
         var p = pi.next();
         _env[p.key] = p.value;
@@ -348,7 +349,7 @@ Object.defineProperty(exports, 'env', {
 Object.defineProperty(exports, 'arch', {
     enumerable: true,
     get: function() {
-        var arch =  java.lang.System.getProperty('os.arch').toLowerCase();
+        var arch =  System.getProperty('os.arch').toLowerCase();
         if (arch === 'x86_64') {
             return 'x64';
         }
@@ -359,7 +360,7 @@ Object.defineProperty(exports, 'arch', {
 Object.defineProperty(exports, 'platform', {
     enumerable: true,
     get: function() {
-        var osname = java.lang.System.getProperty('os.name').toLowerCase();
+        var osname = System.getProperty('os.name').toLowerCase();
         if (osname.startsWith('windows')) {
             return 'win32';
         } else {
@@ -404,16 +405,17 @@ exports.exit = function(status) {
         exports.emit('exit', code);
     }
     __avatar.eventloop.stop();
-    java.lang.System.exit(code);
+    System.exit(code);
 }
 
 Object.defineProperty(exports, 'memoryUsage', {
     enumerable: true,
-    value: function() {
-        var total = LibUV.getTotalMem();
+    value: function(native) {
+        var total = native ? LibUV.getTotalMem() : Runtime.maxMemory();
+        var free = native ? LibUV.getFreeMem() : Runtime.freeMemory();
         return {
             heapTotal: total,
-            heapUsed: total - LibUV.getFreeMem(),
+            heapUsed: total - free,
             rss: LibUV.rss(),
         };
     }
