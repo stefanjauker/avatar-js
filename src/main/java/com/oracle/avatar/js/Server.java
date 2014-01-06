@@ -292,6 +292,8 @@ public final class Server {
             } else if ("--trace-deprecation".equals(arg)) {
                 holder.setTraceDeprecation(true);
                 holder.setThrowDeprecation(false);
+            } else if ("--throw-deprecation".equals(arg)) {
+                holder.setThrowDeprecation(true);
             } else if ("-i".equals(arg) || "--interactive".equals(arg)) {
                 holder.setForceRepl(true);
             } else {
