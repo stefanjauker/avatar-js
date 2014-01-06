@@ -185,7 +185,13 @@
         };
 
         this.verify = function(pubKey, signature) {
-            return jBinding.verify(that.peer, pubKey.toString(), signature._impl);
+            var ret = false;
+            try {
+                ret = jBinding.verify(that.peer, pubKey.toString(), signature._impl);
+            } catch(e) {
+                // exception, returns false
+            }
+            return ret;
         };
     }
 
