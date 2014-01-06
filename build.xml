@@ -18,10 +18,9 @@
     <macrodef name="git-pull">
         <attribute name="dir"/>
         <sequential>
-            <echo>cd @{dir}; git pull --rebase</echo>
+            <echo>cd @{dir}; git pull</echo>
             <exec dir="@{dir}" executable="git">
                 <arg value="pull"/>
-                <arg value="--rebase"/>
             </exec>
         </sequential>
     </macrodef>
