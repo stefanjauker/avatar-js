@@ -829,7 +829,7 @@ public class SecureConnection {
                 // Generate handshaking data
                 localNetDataForPeer.clear();
                 final SSLEngineResult res = sslEngine.wrap(localAppData, localNetDataForPeer);
-                LOG.log("--HS-- wrap " + res);
+                LOG.log("--HS-- wrap " + res + ", buffer to fill " + pool);
                 switch (res.getStatus()) {
                     case OK:
                         encLength += fillBuffer(localNetDataForPeer, pool);
@@ -850,7 +850,8 @@ public class SecureConnection {
                 if (res.getHandshakeStatus() == HandshakeStatus.FINISHED) {
                     LOG.log("--HS-- FINISHED, Cipher suite [ " + getCipherSuite() + "] Session [" + HexUtils.encode(sslEngine.getSession().getId()) + "]");
                 }
-            } while (sslEngine.getHandshakeStatus() == HandshakeStatus.NEED_WRAP);
+             // Loop must stop when the provided buffer is full.
+            } while (sslEngine.getHandshakeStatus() == HandshakeStatus.NEED_WRAP && encLength < length);
         }
         otherStates();
         return encLength;
