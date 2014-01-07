@@ -189,4 +189,12 @@
         }
         return undefined;
     }
+
+    HTTPParser.prototype.pause = function() {
+       this._parser.pause();
+    }
+
+    HTTPParser.prototype.resume = function() {
+       this._parser.resume();
+    }
 });
