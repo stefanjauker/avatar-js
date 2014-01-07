@@ -1,15 +1,17 @@
 --- ../nodejs/test/simple/test-net-GH-5504.js	2014-01-06 13:25:28.924762579 -0800
-+++ test/simple/test-net-GH-5504.js	2014-01-06 18:06:06.316917426 -0800
-@@ -73,7 +73,7 @@
++++ test/simple/test-net-GH-5504.js	2014-01-06 18:48:54.692941044 -0800
+@@ -73,7 +73,9 @@
    var serverExited = false;
    var clientExited = false;
    var serverListened = false;
 -  var opt = { env: { NODE_DEBUG: 'net' } };
++  // AVATAR_JS-146: The path was getting overridden when the env was 
++  // set on the child causing the default version of Java to be used.
 +  var opt;
  
    process.on('exit', function() {
      assert(serverExited);
-@@ -88,7 +88,7 @@
+@@ -88,7 +90,7 @@
      setTimeout(function() {
        throw new Error('hang');
      });

@@ -1,0 +1,11 @@
+--- ../nodejs/test/simple/test-stdin-from-file.js	2013-12-19 22:22:19.827516500 -0800
++++ test/simple/test-stdin-from-file.js	2014-01-06 18:31:59.224650500 -0800
+@@ -31,7 +31,7 @@
+ var stdoutScript = join(common.fixturesDir, 'echo.js');
+ var tmpFile = join(common.fixturesDir, 'stdin.txt');
+ 
+-var cmd = '"' + process.argv[0] + '" "' + stdoutScript + '" < "' +
++var cmd = process.argv[0] + ' "' + stdoutScript + '" < "' +
+     tmpFile + '"';
+ 
+ var string = 'abc\nümlaut.\nsomething else\n' +
