@@ -1,0 +1,11 @@
+--- ../node/test/simple/test-http-pipeline-flood.js	2013-12-16 14:49:26.000000000 +0100
++++ test/simple/test-http-pipeline-flood.js	2014-01-07 11:08:54.000000000 +0100
+@@ -52,7 +52,7 @@
+ 
+   // kill the connection after a bit, verifying that the
+   // flood of requests was eventually halted.
+-  server.setTimeout(200, function(conn) {
++  server.setTimeout(2000, function(conn) {
+     gotTimeout = true;
+     conn.destroy();
+   });
