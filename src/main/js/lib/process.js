@@ -405,6 +405,10 @@ exports.exit = function(status) {
         exports.emit('exit', code);
     }
     __avatar.eventloop.stop();
+    exports.reallyExit(code);
+}
+
+exports.reallyExit = function(code) {
     System.exit(code);
 }
 
