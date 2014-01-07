@@ -292,7 +292,10 @@ var gc = global.gc;
         return current.apply(this, args);
     }
 
-    if (process.argv[1]) {
+    if (process._eval) {
+        // User passed '-e' or '--eval' arguments to Node.
+        evalScript('[eval]');
+    } else if (process.argv[1]) {
         // make process.argv[1] into a full path
         var path = NativeModule.require('path');
         process.argv[1] = path.resolve(process.argv[1]);
@@ -342,5 +345,29 @@ var gc = global.gc;
                 evalScript('[stdin]');
             });
         }
+    }
+
+    function evalScript(name) {
+        var Module = NativeModule.require('module');
+        var path = NativeModule.require('path');
+        var cwd = process.cwd();
+
+        var module = new Module(name);
+        module.filename = path.join(cwd, name);
+        module.paths = Module._nodeModulePaths(cwd);
+        var script = process._eval;
+        if (!Module._contextLoad) {
+            var body = script;
+            script = 'global.__filename = ' + JSON.stringify(name) + ';\n' +
+                     'global.exports = exports;\n' +
+                     'global.module = module;\n' +
+                     'global.__dirname = __dirname;\n' +
+                     'global.require = require;\n' +
+                     'return require("vm").runInThisContext(' +
+                     JSON.stringify(body) + ', ' +
+                     JSON.stringify(name) + ', true);\n';
+        }
+        var result = module._compile(script, name + '-wrapper');
+        if (process._print_eval) console.log(result);
     }
 } )();

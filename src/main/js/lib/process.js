@@ -84,6 +84,16 @@ Object.defineProperty(exports, '_forceRepl', {
     value: __avatar.forceRepl
 });
 
+Object.defineProperty(exports, '_print_eval', {
+    enumerable: true,
+    value: __avatar.printEval
+});
+
+Object.defineProperty(exports, '_eval', {
+    enumerable: true,
+    value: __avatar.evalString
+});
+
 var stdin;
 Object.defineProperty(exports, 'stdin', {
     enumerable: true,

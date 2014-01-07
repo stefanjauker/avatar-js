@@ -64,6 +64,8 @@ public final class Server {
             "\n" +
             "Options:\n" +
             "  -v, --version        print version\n" +
+            "  -e, --eval script    evaluate script\n" +
+            "  -p, --print          evaluate script and print result\n" +
             "  --no-deprecation     silence deprecation warnings\n" +
             "  --trace-deprecation  trace deprecation warnings\n" +
             "\n";
@@ -83,6 +85,7 @@ public final class Server {
     private static final String VERSION_BUILD_PROPERTY = "avatar-js.source.compatible.version";
     private static final String LIBUV_VERSION_BUILD_PROPERTY = "avatar-js.libuv.compatible.version";
     private static final String SECURE_HOLDER = "__avatar";
+    private static final String[] EMPTY_ARRAY = {};
 
     private static boolean assertions = false;
 
@@ -151,7 +154,18 @@ public final class Server {
             if (args.length == 0) {
                 runREPL();
             } else {
-                runUserScripts(args);
+                boolean isEval = false;
+                for (int i = 0; i < args.length; i++) {
+                    if (isEvalArg(args[i])) {
+                        isEval = true;
+                        break;
+                    }
+                }
+                if (isEval) {
+                    runEval(args);
+                } else {
+                    runUserScripts(args);
+                }
             }
         } catch (final Exception ex) {
             if (!eventLoop.handleCallbackException(ex)) {
@@ -219,7 +233,52 @@ public final class Server {
 
     private void runREPL() throws Exception {
         holder.setForceRepl(true);
-        runEventLoop(null, null, null);
+        runEventLoop(EMPTY_ARRAY, EMPTY_ARRAY, EMPTY_ARRAY);
+    }
+
+    private boolean isEvalArg(String arg) {
+        return ("--eval".equals(arg) || "-e".equals(arg) ||
+                "--print".equals(arg) || "-pe".equals(arg) || "-p".equals(arg));
+    }
+
+    private void runEval(final String... args) throws Exception {
+        for (int i = 0; i < args.length; i++) {
+            final String arg = args[i];
+            if (isEvalArg(arg)) {
+                final boolean isEval = arg.indexOf('e') != -1;
+                final boolean isPrint = arg.indexOf('p') != -1;
+
+                // argument to -p and --print is optional
+                if (isEval && i + 1 >= args.length) {
+                    System.err.println("Error: " + arg + " requires an argument\n");
+                    System.exit(0);
+                }
+
+                holder.setPrintEval(holder.getPrintEval() || isPrint);
+
+                // --eval, -e and -pe always require an argument
+                if (isEval) {
+                    holder.setEvalString(args[++i]);
+                    continue;
+                }
+
+                // next arg is the expression to evaluate unless it starts with:
+                //  - a dash, then it's another switch
+                //  - "\\-", then it's an escaped expression, drop the backslash
+                if (i + 1 >= args.length) {
+                    continue;
+                }
+                if (args[i + 1].charAt(0) == '-') {
+                    continue;
+                }
+                final String evalString = args[++i];
+                holder.setEvalString(evalString);
+                if ("\\-".startsWith(evalString)) {
+                    holder.setEvalString(evalString.substring(1));
+                }
+            }
+        }
+        runEventLoop(EMPTY_ARRAY, EMPTY_ARRAY, EMPTY_ARRAY);
     }
 
     private void runEventLoop(final String[] avatarArgs, final String[] userArgs, final String[] userFiles) throws Exception {
@@ -367,9 +426,11 @@ public final class Server {
         private String[] avatarArgs;
         private String[] userArgs;
         private String[] userFiles;
+        private String evalString;
         private boolean throwDeprecation = true;
         private boolean traceDeprecation;
         private boolean forceRepl = false;
+        private boolean printEval = false;
         private int exitCode = 0;
         private final Invocable invocable;
         private Object nativeModule;
@@ -429,6 +490,14 @@ public final class Server {
             this.forceRepl = forceRepl;
         }
 
+        private void setPrintEval(boolean printEval) {
+            this.printEval = printEval;
+        }
+
+        private void setEvalString(String evalString) {
+            this.evalString = evalString;
+        }
+
         public boolean getThrowDeprecation() {
             return throwDeprecation;
         }
@@ -439,6 +508,14 @@ public final class Server {
 
         public boolean getForceRepl() {
             return forceRepl;
+        }
+
+        public boolean getPrintEval() {
+            return printEval;
+        }
+
+        public String getEvalString() {
+            return evalString;
         }
 
         private void setExitCode(int exitCode) {
