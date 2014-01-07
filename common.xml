@@ -271,6 +271,7 @@
         <delete dir="Debug"/>
         <delete dir="Default"/>
         <delete dir="Release"/>
+        <delete dir="test/tmp"/>
         <delete file="config.gypi"/>
         <delete file="Makefile"/>
         <delete file="${product.name}.Makefile"/>
