@@ -242,6 +242,9 @@ public final class Server {
     }
 
     private void runEval(final String... args) throws Exception {
+        final List<String> userArgs = new ArrayList<>();
+        final List<String> avatarArgs = new ArrayList<>();
+
         for (int i = 0; i < args.length; i++) {
             final String arg = args[i];
             if (isEvalArg(arg)) {
@@ -276,9 +279,20 @@ public final class Server {
                 if ("\\-".startsWith(evalString)) {
                     holder.setEvalString(evalString.substring(1));
                 }
+            } else {
+                if (arg.startsWith("-")) {
+                    avatarArgs.add(arg);
+                } else {
+                    userArgs.add(arg);
+                }
             }
         }
-        runEventLoop(EMPTY_ARRAY, EMPTY_ARRAY, EMPTY_ARRAY);
+
+        processArgs(avatarArgs);
+
+        runEventLoop(avatarArgs.toArray(new String[avatarArgs.size()]),
+                userArgs.toArray(new String[userArgs.size()]),
+                EMPTY_ARRAY);
     }
 
     private void runEventLoop(final String[] avatarArgs, final String[] userArgs, final String[] userFiles) throws Exception {
