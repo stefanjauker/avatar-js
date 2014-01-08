@@ -315,6 +315,7 @@
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-repl.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-script-context.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-stdin-from-file.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-stdout-close-catch.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-stdout-to-file.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-stream2-push.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-stream2-read-sync-stack.js"/>
@@ -404,6 +405,7 @@
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-repl.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-script-context.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-stdin-from-file.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-stdout-close-catch.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-stdout-to-file.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-stream2-push.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-stream2-read-sync-stack.js"/>
