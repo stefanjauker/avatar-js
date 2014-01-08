@@ -1,0 +1,11 @@
+--- ../node/test/simple/test-child-process-fork-dgram.js	2013-12-10 12:33:53.460593079 -0800
++++ test/simple/test-child-process-fork-dgram.js	2014-01-08 11:30:40.082288386 -0800
+@@ -86,7 +86,7 @@
+           }
+         }
+       );
+-    }, 1);
++    }, 10);
+   };
+ 
+   var shutdown = function () {
