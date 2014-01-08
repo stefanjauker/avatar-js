@@ -60,11 +60,17 @@ for (var f in events) {
 var eventloop = __avatar.eventloop;
 var System = java.lang.System;
 var Runtime = java.lang.Runtime.getRuntime();
+
 var LibUV = Packages.com.oracle.libuv.LibUV;
+var CheckHandle = Packages.com.oracle.libuv.handles.CheckHandle;
+var IdleHandle = Packages.com.oracle.libuv.handles.IdleHandle;
+var SignalHandle = Packages.com.oracle.libuv.handles.SignalHandle;
+
 var Process = Packages.com.oracle.avatar.js.os.Process;
 var Server = Packages.com.oracle.avatar.js.Server;
 var Constants = Packages.com.oracle.avatar.js.constants.Constants;
-var Signals = Packages.com.oracle.libuv.handles.SignalHandle;
+
+var ScriptUtils = Packages.jdk.nashorn.api.scripting.ScriptUtils
 
 var separator = exports.platform === 'win32' ? ';' : ':';
 var pathSeparator = exports.platform === 'win32' ? '\\' : '/';
@@ -484,7 +490,7 @@ Object.defineProperty(exports, 'binding', {
     enumerable: true,
     value: function(module) {
         if (module === 'buffer') {
-        // loaded on demand to avoid dependency cycles
+            // loaded on demand to avoid dependency cycles
             return {SlowBuffer: require('buffer').SlowBuffer};
         }
         var cached = _bindings_cache[module];
@@ -629,7 +635,6 @@ exports._usingDomains = function() {
     });
 }
 
-var ScriptUtils = Packages.jdk.nashorn.api.scripting.ScriptUtils
 Object.defineProperty(exports, 'domain', {
     enumerable : true,
     set : function(domain) {
@@ -644,18 +649,16 @@ Object.defineProperty(exports, 'domain', {
     }
 });
 
-var Check = Packages.com.oracle.libuv.handles.CheckHandle;
-var Idle = Packages.com.oracle.libuv.handles.IdleHandle;
-var checkHandle = new Check(eventloop.loop());
+var checkHandle = new CheckHandle(eventloop.loop());
 checkHandle.setCheckCallback(checkImmediate);
 // this handle should not keep the event loop from terminating
 checkHandle.unref();
 
 // During the lifetime of an immediate callback, we want to keep the loop running.
-// This is why an Idle is started/stopped when the unrefed Check is started/stopped
+// This is why an IdleHandle is started/stopped when the unrefed CheckHandle is started/stopped
 // Nodejs core.cc
-var idleHandle = new Idle(eventloop.loop());
-idleHandle.setIdleCallback(IdleImmediateDummy);
+var idleHandle = new IdleHandle(eventloop.loop());
+idleHandle.setIdleCallback(IdleCallbackHandler);
 
 function checkImmediate() {
     // This needs to be treated as a callback, all ticked events need to be handled.
@@ -664,7 +667,7 @@ function checkImmediate() {
     }
 }
 
-function IdleImmediateDummy() {
+function IdleCallbackHandler() {
     // Just to keep the loop running.
 }
 
@@ -683,12 +686,13 @@ Object.defineProperty(exports, '_needImmediateCallback', {
     }
 });
 
-var signalHandle = new Signals(eventloop.loop());
+var signalHandle = new SignalHandle(eventloop.loop());
 // this handle should not keep the event loop from terminating
 signalHandle.unref();
 signalHandle.signalCallback = function(signum) {
     exports.emit(Constants.getConstantsString().get(signum));
 }
+
 // do not install any signal handlers by default
 // some generate EINVAL (invalid argument)
 // and the JVM installs some of its own and we do not want to cause conflicts
@@ -703,17 +707,17 @@ Object.defineProperty(exports, 'signals', {
 
 if (exports.platform !== 'win32') {
     exports.getgroups = function() {
-        var jarr = Process.getGroups();
+        var groupArray = Process.getGroups();
         var ret = [];
-        for(var a in jarr) {
-            ret.push(jarr[a]);
+        for(var group in groupArray) {
+            ret.push(groupArray[group]);
         }
         return ret;
     }
 
     exports.setgroups = function(groups) {
-        var jarr = Java.to(groups, "java.lang.String[]");
-        Process.setGroups(jarr);
+        var groupArray = Java.to(groups, "java.lang.String[]");
+        Process.setGroups(groupArray);
     }
 
     exports.initgroups = function(user, group) {
