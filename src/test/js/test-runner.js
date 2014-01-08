@@ -40,7 +40,7 @@ if (args.length < 3) {
     stderr.write('  -noredirect to disable stdout/stderr redirection to files\n');
     stderr.write('  -secure to run tests with a security manager\n');
     stderr.write('  -delay ms to pause between each test to give the OS time to cleanup (default: 100)\n');
-    stderr.write('  -timeout s to specify the timeout for each test (default: 60s)\n');
+    stderr.write('  -timeout s to specify the timeout for each test (default: 120s)\n');
     stderr.write('  -drip to enable use of drip to reduce jvm startup time (disables assertions and logging)\n');
     stderr.write(' <args> is some combination of node tests and/or directories\n');
     stderr.write('directories are searched for node tests matching "test-*.js"\n');
@@ -50,7 +50,7 @@ if (args.length < 3) {
 var secure = false;
 var drip = false;
 var delay = 100;
-var timeout = 60 * 1000;
+var timeout = 120 * 1000;
 var assertions = true;
 var deprecations = false;
 var redirect = true;
