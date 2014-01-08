@@ -1,6 +1,8 @@
 test-child-process-detached.js                  https://java.net/jira/browse/AVATAR_JS-124
+test-child-process-fork-net.js                  TODO
 test-fs-realpath.js                             https://java.net/jira/browse/AVATAR_JS-125
 test-fs-symlink-dir-junction.js                 https://java.net/jira/browse/AVATAR_JS-126
+test-http-byteswritten.js                       TODO
 test-http-curl-chunk-problem.js                 https://java.net/jira/browse/AVATAR_JS-127
 test-http-incoming-pipelined-socket-destroy.js  https://java.net/jira/browse/AVATAR_JS-128
 test-listen-fd-ebadf.js                         https://java.net/jira/browse/AVATAR_JS-129
