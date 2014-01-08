@@ -1,13 +1,11 @@
-diff -uwr ../node/test/simple/test-dgram-broadcast-multi-process.js node/test/simple/test-dgram-broadcast-multi-process.js
---- ../node/test/simple/test-dgram-broadcast-multi-process.js   2012-11-09 12:58:16.917929700 -0800
-+++ node/test/simple/test-dgram-broadcast-multi-process.js  2013-03-05 14:17:32.487000100 -0800
+--- ../node/test/simple/test-dgram-broadcast-multi-process.js	2013-12-10 12:33:53.464593079 -0800
++++ test/simple/test-dgram-broadcast-multi-process.js	2014-01-08 11:44:30.042296018 -0800
 @@ -27,7 +27,7 @@
      Buffer = require('buffer').Buffer,
      fork = require('child_process').fork,
      LOCAL_BROADCAST_HOST = '255.255.255.255',
 -    TIMEOUT = 5000,
-+    TIMEOUT = 15000,
++    TIMEOUT = 9000,
      messages = [
        new Buffer('First message to send'),
        new Buffer('Second message to send'),
-
