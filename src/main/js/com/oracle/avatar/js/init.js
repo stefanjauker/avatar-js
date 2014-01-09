@@ -292,7 +292,7 @@ var gc = global.gc;
         return current.apply(this, args);
     }
 
-    if (process._eval) {
+    if (process._eval !== null) { // to handle empty string
         // User passed '-e' or '--eval' arguments to Node.
         evalScript('[eval]');
     } else if (process.argv[1]) {

@@ -64,6 +64,8 @@ public final class Server {
             "\n" +
             "Options:\n" +
             "  -v, --version        print version\n" +
+            "  -uv, --uv-version    print uv version\n" +
+            "  -i, --interactive    force repl\n" +
             "  -e, --eval script    evaluate script\n" +
             "  -p, --print          evaluate script and print result\n" +
             "  --no-deprecation     silence deprecation warnings\n" +
@@ -99,6 +101,10 @@ public final class Server {
 
     private final String version;
     private final String uvVersion;
+
+    private final List<String> userArgs = new ArrayList<>();
+    private final List<String> avatarArgs = new ArrayList<>();
+    private String userFile = null;
 
     static {
         initAssertionStatus();
@@ -151,20 +157,16 @@ public final class Server {
         bindings.put(SECURE_HOLDER, holder);
         try {
             LibUV.disableStdioInheritance();
-            if (args.length == 0) {
+
+            processAllArguments(args);
+
+            if (holder.getForceRepl()) {
                 runREPL();
             } else {
-                boolean isEval = false;
-                for (int i = 0; i < args.length; i++) {
-                    if (isEvalArg(args[i])) {
-                        isEval = true;
-                        break;
-                    }
-                }
-                if (isEval) {
-                    runEval(args);
+                if (holder.getEvalString() != null) {
+                    runEval();
                 } else {
-                    runUserScripts(args);
+                    runUserScripts();
                 }
             }
         } catch (final Exception ex) {
@@ -189,50 +191,16 @@ public final class Server {
         }
     }
 
-    private void runUserScripts(final String... args) throws Exception {
-        String userFile = null;
-        final List<String> userArgs = new ArrayList<>();
-        final List<String> avatarArgs = new ArrayList<>();
-
-        if (args != null && args.length > 0) {
-            for (int i=0; i < args.length; i++) {
-                if (userFile == null) {
-                    if (args[i].startsWith("-")) {
-                        avatarArgs.add(args[i]);
-                    } else {
-                        userFile = args[i];
-                    }
-                } else {
-                    userArgs.add(args[i]);
-                }
-            }
-
-            if (userFile != null) {
-                final Path p = Paths.get(userFile);
-                // prefix with "./" if not absolute
-                userFile = p.isAbsolute() ? p.toString() : Paths.get(".", p.toString()).toString();
-            }
-        }
-
-        log.log("avatar args " + avatarArgs);
-        log.log("user file " + userFile);
-        log.log("user args " + userArgs);
-
-        processArgs(avatarArgs);
-
-        if (userFile == null) {
-            return;
-        }
+    private void runUserScripts() throws Exception {
+        assert userFile != null;
 
         final String[] userFiles = {userFile};
-
         runEventLoop(avatarArgs.toArray(new String[avatarArgs.size()]),
                      userArgs.toArray(new String[userArgs.size()]),
                      userFiles);
     }
 
     private void runREPL() throws Exception {
-        holder.setForceRepl(true);
         runEventLoop(EMPTY_ARRAY, EMPTY_ARRAY, EMPTY_ARRAY);
     }
 
@@ -241,55 +209,7 @@ public final class Server {
                 "--print".equals(arg) || "-pe".equals(arg) || "-p".equals(arg));
     }
 
-    private void runEval(final String... args) throws Exception {
-        final List<String> userArgs = new ArrayList<>();
-        final List<String> avatarArgs = new ArrayList<>();
-
-        for (int i = 0; i < args.length; i++) {
-            final String arg = args[i];
-            if (isEvalArg(arg)) {
-                final boolean isEval = arg.indexOf('e') != -1;
-                final boolean isPrint = arg.indexOf('p') != -1;
-
-                // argument to -p and --print is optional
-                if (isEval && i + 1 >= args.length) {
-                    System.err.println("Error: " + arg + " requires an argument\n");
-                    System.exit(0);
-                }
-
-                holder.setPrintEval(holder.getPrintEval() || isPrint);
-
-                // --eval, -e and -pe always require an argument
-                if (isEval) {
-                    holder.setEvalString(args[++i]);
-                    continue;
-                }
-
-                // next arg is the expression to evaluate unless it starts with:
-                //  - a dash, then it's another switch
-                //  - "\\-", then it's an escaped expression, drop the backslash
-                if (i + 1 >= args.length) {
-                    continue;
-                }
-                if (args[i + 1].charAt(0) == '-') {
-                    continue;
-                }
-                final String evalString = args[++i];
-                holder.setEvalString(evalString);
-                if ("\\-".startsWith(evalString)) {
-                    holder.setEvalString(evalString.substring(1));
-                }
-            } else {
-                if (arg.startsWith("-")) {
-                    avatarArgs.add(arg);
-                } else {
-                    userArgs.add(arg);
-                }
-            }
-        }
-
-        processArgs(avatarArgs);
-
+    private void runEval() throws Exception {
         runEventLoop(avatarArgs.toArray(new String[avatarArgs.size()]),
                 userArgs.toArray(new String[userArgs.size()]),
                 EMPTY_ARRAY);
@@ -348,18 +268,84 @@ public final class Server {
         }
     }
 
+    private void processAllArguments(String... args) {
+        if (args != null && args.length > 0) {
+            for (int i = 0; i < args.length; i++) {
+                final String arg = args[i];
+                if (isEvalArg(arg)) {
+                    final boolean isEval = arg.indexOf('e') != -1;
+                    final boolean isPrint = arg.indexOf('p') != -1;
+
+                    // argument to -p and --print is optional
+                    if (isEval && i + 1 >= args.length) {
+                        System.err.println("Error: " + arg + " requires an argument\n");
+                        System.exit(0);
+                    }
+
+                    holder.setPrintEval(holder.getPrintEval() || isPrint);
+
+                    // --eval, -e and -pe always require an argument
+                    if (isEval) {
+                        holder.setEvalString(args[++i]);
+                        continue;
+                    }
+
+                    // next arg is the expression to evaluate unless it starts with:
+                    //  - a dash, then it's another switch
+                    //  - "\\-", then it's an escaped expression, drop the backslash
+                    if (i + 1 >= args.length) {
+                        continue;
+                    }
+                    if (args[i + 1].charAt(0) == '-') {
+                        continue;
+                    }
+                    final String evalString = args[++i];
+                    holder.setEvalString(evalString);
+                    if ("\\-".startsWith(evalString)) {
+                        holder.setEvalString(evalString.substring(1));
+                    }
+                } else {
+                    if (userFile == null && holder.getEvalString() == null) {
+                        if (args[i].startsWith("-")) {
+                            avatarArgs.add(args[i]);
+                        } else {
+                            userFile = args[i];
+                        }
+                    } else {
+                        userArgs.add(args[i]);
+                    }
+                }
+            }
+            if (userFile != null) {
+                final Path p = Paths.get(userFile);
+                // prefix with "./" if not absolute
+                userFile = p.isAbsolute() ? p.toString() : Paths.get(".", p.toString()).toString();
+            }
+
+            log.log("avatar args " + avatarArgs);
+            log.log("user file " + userFile);
+            log.log("user args " + userArgs);
+            processArgs(avatarArgs);
+        } else {
+            holder.setForceRepl(true);
+        }
+    }
+
     private void processArgs(final List<String> args) {
+        boolean dumpHelp = false;
+        boolean dumpVersion = false;
+        boolean dumpUVVersion = false;
+        String unknownArg = null;
         for (int i=0; i < args.size(); i++) {
             final String arg = args.get(i);
             if ("-h".equals(arg) || "--help".equals(arg)) {
-                System.out.println(HELP);
-                System.exit(0);
+                dumpHelp = true;
             } else if ("-v".equals(arg) || "--version".equals(arg)) {
-                System.out.println("v" + version);
-                System.exit(0);
+                dumpVersion = true;
+                break;
             } else if ("-uv".equals(arg) || "--uv-version".equals(arg)) {
-                System.out.println("v" + uvVersion);
-                System.exit(0);
+                dumpUVVersion = true;
+                break;
             } else if ("--no-deprecation".equals(arg)) {
                 holder.setThrowDeprecation(false);
             } else if ("--trace-deprecation".equals(arg)) {
@@ -370,9 +356,26 @@ public final class Server {
             } else if ("-i".equals(arg) || "--interactive".equals(arg)) {
                 holder.setForceRepl(true);
             } else {
-                System.out.println(HELP);
-                throw new IllegalArgumentException(arg);
+                unknownArg = arg;
+                holder.setForceRepl(true);
             }
+        }
+
+        if (dumpVersion) {
+            System.out.println("v" + version);
+            System.exit(0);
+        }
+        if (dumpUVVersion) {
+            System.out.println("v" + uvVersion);
+            System.exit(0);
+        }
+        if (dumpHelp) {
+            System.out.println(HELP);
+            System.exit(0);
+        }
+        if (unknownArg != null) {
+            System.err.println("Error: unrecognized flag " + unknownArg + "\n" +
+                               "Try --help for options");
         }
     }
 
