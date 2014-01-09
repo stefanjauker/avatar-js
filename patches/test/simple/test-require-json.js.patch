@@ -1,0 +1,11 @@
+--- ../node/test/simple/test-require-json.js	2013-08-22 13:48:54.000000000 +0200
++++ test/simple/test-require-json.js	2014-01-09 11:26:14.000000000 +0100
+@@ -24,7 +24,7 @@
+ try {
+   require('../fixtures/invalid.json');
+ } catch (err) {
+-  var re = /test[\/\\]fixtures[\/\\]invalid.json: Unexpected string/;
++  var re = /test[\/\\]fixtures[\/\\]invalid.json: Invalid JSON:/;
+   var i = err.message.match(re);
+   assert(null !== i, 'require() json error should include path');
+ }
