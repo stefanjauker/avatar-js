@@ -1,0 +1,11 @@
+--- ../nodejs/test/simple/test-cli-eval.js	2013-12-19 22:22:54.418398000 -0800
++++ test/simple/test-cli-eval.js	2014-01-09 14:11:02.036472900 -0800
+@@ -28,7 +28,7 @@
+ var common = require('../common.js'),
+     assert = require('assert'),
+     child = require('child_process'),
+-    nodejs = '"' + process.execPath + '"';
++    nodejs = process.execPath;
+ 
+ 
+ // replace \ by / because windows uses backslashes in paths, but they're still

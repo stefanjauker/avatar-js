@@ -301,7 +301,7 @@ public final class Server {
                     }
                     final String evalString = args[++i];
                     holder.setEvalString(evalString);
-                    if ("\\-".startsWith(evalString)) {
+                    if (evalString.startsWith("\\-")) {
                         holder.setEvalString(evalString.substring(1));
                     }
                 } else {
