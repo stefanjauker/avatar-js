@@ -5,6 +5,7 @@ test-fs-symlink-dir-junction.js                 https://java.net/jira/browse/AVA
 test-http-byteswritten.js                       TODO
 test-http-curl-chunk-problem.js                 https://java.net/jira/browse/AVATAR_JS-127
 test-http-incoming-pipelined-socket-destroy.js  https://java.net/jira/browse/AVATAR_JS-128
+test-http-pipeline-flood.js                     TODO
 test-listen-fd-ebadf.js                         https://java.net/jira/browse/AVATAR_JS-129
 test-regress-GH-3542.js                         https://java.net/jira/browse/AVATAR_JS-131
 test-regress-GH-746.js                          https://java.net/jira/browse/AVATAR_JS-132
