@@ -1,0 +1,11 @@
+--- ../node/test/simple/test-force-repl.js	2013-08-22 13:48:54.000000000 +0200
++++ test/simple/test-force-repl.js	2014-01-09 10:55:51.000000000 +0100
+@@ -28,7 +28,7 @@
+ var gotToEnd = false;
+ var timeoutId = setTimeout(function() {
+   throw new Error('timeout!');
+-}, 1000); // give node + the repl 1 second to boot up
++}, 10000); // give node + the repl 1 second to boot up
+ 
+ cp.stdout.setEncoding('utf8');
+ 

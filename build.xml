@@ -292,6 +292,7 @@
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-dgram-unref.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-domain.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-error-reporting.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-force-repl.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-fs-read-stream.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-fs-readfile-pipe.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-http.js"/>
@@ -387,6 +388,7 @@
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-dgram-unref.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-domain.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-error-reporting.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-force-repl.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-fs-read-stream.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-fs-readfile-pipe.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-http.js"/>
