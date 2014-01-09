@@ -474,6 +474,11 @@ public final class Server {
             return loader;
         }
 
+        public void initArgv(String[] argv) {
+            checkPermission();
+            LibUV.initArgv(argv);
+        }
+
         private void setArgs(final String[] avatarArgs, final String[] userArgs, final String[] userFiles) {
             this.avatarArgs = avatarArgs != null ? avatarArgs.clone() : null;
             this.userArgs = userArgs != null ? userArgs.clone() : null;
