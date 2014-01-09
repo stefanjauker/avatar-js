@@ -282,6 +282,8 @@
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-chdir.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-child-process-fork-dgram.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-child-process-fork-exec-argv.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-child-process-fork-exec-path.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-child-process-fork-net2.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-cluster-http-pipe.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-dgram-address.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-dgram-broadcast-multi-process.js"/>
@@ -374,6 +376,8 @@
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-chdir.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-child-process-fork-dgram.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-child-process-fork-exec-argv.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-child-process-fork-exec-path.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-child-process-fork-net2.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-cluster-http-pipe.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-dgram-address.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-dgram-broadcast-multi-process.js"/>

@@ -1,0 +1,36 @@
+--- ../nodejs/test/simple/test-child-process-fork-exec-path.js	2014-01-06 13:25:28.892762580 -0800
++++ test/simple/test-child-process-fork-exec-path.js	2014-01-08 17:22:08.598482327 -0800
+@@ -26,11 +26,11 @@
+ var common = require('../common');
+ var msg = {test: 'this'};
+ var nodePath = process.execPath;
+-var copyPath = path.join(common.tmpDir, 'node-copy.exe');
++var copyPath = path.join(common.tmpDir, 'node-copy.sh');
+ 
+ if (process.env.FORK) {
+   assert(process.send);
+-  assert.equal(process.argv[0], copyPath);
++  assert.equal(process.argv[0], fs.readFileSync(copyPath));
+   process.send(msg);
+   process.exit();
+ }
+@@ -41,14 +41,17 @@
+   catch (e) {
+     if (e.code !== 'ENOENT') throw e;
+   }
+-  fs.writeFileSync(copyPath, fs.readFileSync(nodePath));
++
++  // Since process.execPath is the java command-line, write the
++  // entire java command-line to copyPath and in the child read it back as the execPath
++  fs.writeFileSync(copyPath, nodePath);
+   fs.chmodSync(copyPath, '0755');
+ 
+   // slow but simple
+   var envCopy = JSON.parse(JSON.stringify(process.env));
+   envCopy.FORK = 'true';
+   var child = require('child_process').fork(__filename, {
+-    execPath: copyPath,
++    execPath: fs.readFileSync(copyPath),
+     env: envCopy
+   });
+   child.on('message', common.mustCall(function(recv) {

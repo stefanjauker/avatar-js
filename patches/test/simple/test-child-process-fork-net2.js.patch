@@ -1,0 +1,20 @@
+--- ../nodejs/test/simple/test-child-process-fork-net2.js	2014-01-06 13:25:28.892762580 -0800
++++ test/simple/test-child-process-fork-net2.js	2014-01-08 16:48:23.402463700 -0800
+@@ -161,14 +161,14 @@
+       child1.send('close');
+       child2.send('close');
+       child3.disconnect();
+-    }, 200);
++    }, 3000);
+   };
+ 
+   process.on('exit', function() {
+     assert.equal(disconnected, count);
+     assert.equal(connected, count);
+     assert.ok(closeEmitted);
+-    assert.ok(timeElasped >= 190 && timeElasped <= 1000,
+-              'timeElasped was not between 190 and 1000 ms');
++    assert.ok(timeElasped >= 190 && timeElasped <= 4000,
++              'timeElasped was not between 190 and 4000 ms');
+   });
+ }
