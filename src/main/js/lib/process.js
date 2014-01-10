@@ -643,7 +643,7 @@ exports._usingDomains = function() {
             }, process.domain)
         }
     });
-        }
+}
 
 Object.defineProperty(exports, 'domain', {
     enumerable : true,

@@ -252,7 +252,7 @@ var gc = global.gc;
             // if we handled an error, then make sure any ticks get processed
             process._needTickCallback();
         }
-        
+
         return caught;
     };
 
