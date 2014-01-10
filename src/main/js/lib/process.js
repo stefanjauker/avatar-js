@@ -526,22 +526,12 @@ Object.defineProperty(exports, 'abort', {
     }
 });
 
-var setup = false;
-function setupArgs() {
-    if (!setup) {
-        __avatar.initArgv(Java.to(exports.argv, "java.lang.String[]"));
-        setup = true;
-    }
-}
-
 Object.defineProperty(exports, 'title', {
     enumerable: true,
     get: function() {
-        setupArgs();
         return LibUV.getTitle();
     },
     set: function(value) {
-        setupArgs();
         LibUV.setTitle(value);
     }
 });

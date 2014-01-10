@@ -1,11 +1,11 @@
---- ../node/test/simple/test-setproctitle.js	2013-08-22 13:48:54.000000000 +0200
-+++ ./test/simple/test-setproctitle.js	2014-01-09 10:37:55.000000000 +0100
+--- ../node/test/simple/test-setproctitle.js	2013-09-09 09:17:35.003856127 -0700
++++ test/simple/test-setproctitle.js	2014-01-10 15:22:54.705208902 -0800
 @@ -40,6 +40,8 @@
  process.title = title;
  assert.equal(process.title, title);
  
-+// On Mac avatar-js java process name can't be changed.
-+if (process.platform !== 'darwin') {
++// java process name can't be changed.
++/*
  exec('ps -p ' + process.pid + ' -o args=', function(error, stdout, stderr) {
    assert.equal(error, null);
    assert.equal(stderr, '');
@@ -13,5 +13,4 @@
    // omitting trailing whitespace and \n
    assert.equal(stdout.replace(/\s+$/, ''), title);
  });
-+}
-\ No newline at end of file
++*/
