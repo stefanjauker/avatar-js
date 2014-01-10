@@ -313,6 +313,7 @@
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-settimeout.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-net-write-slow.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-next-tick.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-next-tick-error-spin.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-os.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-process-exec-argv.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-pipe-head.js"/>
@@ -411,6 +412,7 @@
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-net-settimeout.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-net-write-slow.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-next-tick.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-next-tick-error-spin.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-os.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-process-exec-argv.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-pipe-head.js"/>

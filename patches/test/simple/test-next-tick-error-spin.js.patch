@@ -1,0 +1,11 @@
+--- ../node/test/simple/test-next-tick-error-spin.js	2013-08-22 13:48:54.000000000 +0200
++++ test/simple/test-next-tick-error-spin.js	2014-01-10 09:14:49.000000000 +0100
+@@ -29,7 +29,7 @@
+   });
+   var timer = setTimeout(function() {
+     throw new Error('child is hung');
+-  }, 500);
++  }, 10000);
+   child.on('exit', function(code) {
+     console.error('ok');
+     assert(!code);
