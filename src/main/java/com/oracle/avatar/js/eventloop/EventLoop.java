@@ -72,7 +72,7 @@ public final class EventLoop {
     private Callback isHandlerRegistered = null;
     private Callback uncaughtExceptionHandler = null;
     private Exception pendingException = null;
-
+    private boolean syncEventsProcessing = true;
     private ScriptObjectMirror domain;
 
     public static final class Handle implements AutoCloseable {
@@ -164,8 +164,17 @@ public final class EventLoop {
                 } else {
                     processEvent(event);
                 }
+
+                if (!syncEventsProcessing) {
+                    // Will be handled in an IdleHandle
+                    break;
+                }
             }
         }
+    }
+
+    public void enableSyncEventsProcessing(boolean enable) {
+        syncEventsProcessing = enable;
     }
 
     private void processEvent(final Event event) throws Exception {

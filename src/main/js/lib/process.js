@@ -643,7 +643,7 @@ exports._usingDomains = function() {
             }, process.domain)
         }
     });
-}
+        }
 
 Object.defineProperty(exports, 'domain', {
     enumerable : true,
@@ -669,6 +669,26 @@ checkHandle.unref();
 // Nodejs core.cc
 var idleHandle = new IdleHandle(eventloop.loop());
 idleHandle.setIdleCallback(IdleCallbackHandler);
+
+// Handle the nextTick in a UV callback
+var spinnerHandle = new IdleHandle(eventloop.loop());
+spinnerHandle.setIdleCallback(spin);
+var need_tick_cb = false;
+function spin() {
+    if (!need_tick_cb) {
+        return;
+    }
+    need_tick_cb = false;
+    eventloop.enableSyncEventsProcessing(true);
+    spinnerHandle.stop();
+    exports._tickCallback();
+}
+
+exports._needTickCallback = function() {
+    need_tick_cb = true;
+    eventloop.enableSyncEventsProcessing(false);
+    spinnerHandle.start();
+}
 
 function checkImmediate() {
     // This needs to be treated as a callback, all ticked events need to be handled.

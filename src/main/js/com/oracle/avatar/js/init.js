@@ -248,8 +248,11 @@ var gc = global.gc;
         // exit is handled in the class that is catching the rethrown er
         if (!caught) {
             throw er;
+        } else {
+            // if we handled an error, then make sure any ticks get processed
+            process._needTickCallback();
         }
-
+        
         return caught;
     };
 
