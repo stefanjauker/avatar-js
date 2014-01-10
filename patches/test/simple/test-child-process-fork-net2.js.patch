@@ -5,7 +5,7 @@
        child2.send('close');
        child3.disconnect();
 -    }, 200);
-+    }, 3000);
++    }, 20000);
    };
  
    process.on('exit', function() {
@@ -14,7 +14,7 @@
      assert.ok(closeEmitted);
 -    assert.ok(timeElasped >= 190 && timeElasped <= 1000,
 -              'timeElasped was not between 190 and 1000 ms');
-+    assert.ok(timeElasped >= 190 && timeElasped <= 4000,
-+              'timeElasped was not between 190 and 4000 ms');
++    assert.ok(timeElasped >= 190 && timeElasped <= 25000,
++              'timeElasped was not between 190 and 25000 ms');
    });
  }
