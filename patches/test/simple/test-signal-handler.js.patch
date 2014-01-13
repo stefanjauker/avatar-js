@@ -1,0 +1,12 @@
+--- ../node/test/simple/test-signal-handler.js	2013-12-09 10:27:27.000000000 +0100
++++ ./test/simple/test-signal-handler.js	2014-01-13 18:13:37.000000000 +0100
+@@ -27,6 +27,9 @@
+ 
+ var common = require('../common');
+ var assert = require('assert');
++// Avatar.js specific
++process.signals.start('SIGHUP');
++process.signals.start('SIGUSR1');
+ 
+ console.log('process.pid: ' + process.pid);
+ 

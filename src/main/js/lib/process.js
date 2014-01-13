@@ -65,7 +65,7 @@ var LibUV = Packages.com.oracle.libuv.LibUV;
 var CheckHandle = Packages.com.oracle.libuv.handles.CheckHandle;
 var IdleHandle = Packages.com.oracle.libuv.handles.IdleHandle;
 var SignalHandle = Packages.com.oracle.libuv.handles.SignalHandle;
-
+var Map = java.util.HashMap;
 var Process = Packages.com.oracle.avatar.js.os.Process;
 var Server = Packages.com.oracle.avatar.js.Server;
 var Constants = Packages.com.oracle.libuv.Constants;
@@ -703,13 +703,6 @@ Object.defineProperty(exports, '_needImmediateCallback', {
     }
 });
 
-var signalHandle = new SignalHandle(eventloop.loop());
-// this handle should not keep the event loop from terminating
-signalHandle.unref();
-signalHandle.signalCallback = function(signum) {
-    exports.emit(Constants.getConstantsString().get(signum));
-}
-
 // do not install any signal handlers by default
 // some generate EINVAL (invalid argument)
 // and the JVM installs some of its own and we do not want to cause conflicts
@@ -717,9 +710,23 @@ signalHandle.signalCallback = function(signum) {
 //   process.signals.start('SIGUSR1');
 // or
 //   process.signals.start(43);
-Object.defineProperty(exports, 'signals', {
+exports.signals = { cache: new Map() };
+Object.defineProperty(exports.signals, 'start', {
     enumerable: true,
-    value: signalHandle
+    value: function(signal) {
+        var signalHandle = exports.signals.cache.get(signal);
+        if (!signalHandle) {
+
+            signalHandle = new SignalHandle(eventloop.loop());
+            // this handle should not keep the event loop from terminating
+            signalHandle.unref();
+            signalHandle.signalCallback = function(signum) {
+                exports.emit(Constants.getConstantsString().get(signum));
+            }
+            signalHandle.start(signal);
+            exports.signals.cache.put(signal, signalHandle);
+        }
+    }
 });
 
 if (exports.platform !== 'win32') {
