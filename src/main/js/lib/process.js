@@ -68,7 +68,7 @@ var SignalHandle = Packages.com.oracle.libuv.handles.SignalHandle;
 
 var Process = Packages.com.oracle.avatar.js.os.Process;
 var Server = Packages.com.oracle.avatar.js.Server;
-var Constants = Packages.com.oracle.avatar.js.constants.Constants;
+var Constants = Packages.com.oracle.libuv.Constants;
 
 var ScriptUtils = Packages.jdk.nashorn.api.scripting.ScriptUtils
 
