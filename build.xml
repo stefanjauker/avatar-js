@@ -276,6 +276,7 @@
         <apply-diff src="lib" mod="src/main/js/lib" name="repl.js"/>
         <apply-diff src="lib" mod="src/main/js/lib" name="string_decoder.js"/>
         <apply-diff src="lib" mod="src/main/js/lib" name="tls.js"/>
+        <apply-diff src="lib" mod="src/main/js/lib" name="util.js"/>
         <!-- tests -->
         <apply-diff src="test" mod="${test.dir}" name="common.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-buffer.js"/>
@@ -375,6 +376,7 @@
         <apply-patch-file target="src/main/js/lib" dir="lib" name="repl.js"/>
         <apply-patch-file target="src/main/js/lib" dir="lib" name="string_decoder.js"/>
         <apply-patch-file target="src/main/js/lib" dir="lib" name="tls.js"/>
+        <apply-patch-file target="src/main/js/lib" dir="lib" name="util.js"/>
         <!-- tests -->
         <apply-patch-file target="${test.dir}" dir="test" name="common.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-buffer.js"/>

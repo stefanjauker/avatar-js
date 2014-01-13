@@ -1,6 +1,44 @@
 --- ../node/lib/repl.js	2013-12-16 17:07:31.000000000 +0100
-+++ src/main/js/lib/repl.js	2013-12-16 16:16:00.000000000 +0100
-@@ -923,5 +923,5 @@
++++ ./src/main/js/lib/repl.js	2014-01-13 15:40:15.000000000 +0100
+@@ -236,6 +236,8 @@
+ 
+       // First we attempt to eval as expression with parens.
+       // This catches '{a : 1}' properly.
++
++      try { // do not break for invalid execution
+       self.eval('(' + evalCmd + ')',
+                 self.context,
+                 'repl',
+@@ -251,6 +253,9 @@
+               finish(null, ret);
+             }
+           });
++      } catch(err) {
++          finish(err);
++      }
+ 
+     } else {
+       finish(null);
+@@ -565,7 +570,18 @@
+ 
+           if (obj != null) {
+             if (typeof obj === 'object' || typeof obj === 'function') {
++              try {
+               memberGroups.push(Object.getOwnPropertyNames(obj));
++              } catch(err) {
++                if ((typeof(obj) == 'object' || typeof(obj) == 'function') && !(obj instanceof Object)) { // Completion on java
++                    var arr = obj.class.getMethods()
++                    var methods = [];
++                    for (var m in arr) {
++                        methods.push(arr[m].name);
++                    }
++                    memberGroups.push(methods);
++                }
++              }
+             }
+             // works for non-objects
+             try {
+@@ -923,5 +939,5 @@
        // "strict mode" syntax errors
        !e.match(/^SyntaxError: .*strict mode.*/i) &&
        // JSON.parse() error
