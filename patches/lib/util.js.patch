@@ -1,11 +1,13 @@
 --- ../node/lib/util.js	2013-12-09 10:27:58.000000000 +0100
-+++ ./src/main/js/lib/util.js	2014-01-13 15:51:02.000000000 +0100
-@@ -218,6 +218,12 @@
++++ src/main/js/lib/util.js	2014-01-13 18:53:58.000000000 +0100
+@@ -218,6 +218,14 @@
      return primitive;
    }
  
 +  // Java thing, can be a Dynalink function, a java instance, a java class
-+  if ((typeof(value) == 'object' || typeof(value) == 'function') && !(value instanceof Object)) { // java
++  if (typeof(value.__proto__) === 'undefined' &&
++     (typeof(value) == 'object' || typeof(value) == 'function') &&
++     !(value instanceof Object)) { // java
 +    // equivalent to toString whatever toString exists or not
 +    return "" + value;
 +  }
