@@ -5,7 +5,7 @@
    // kill the connection after a bit, verifying that the
    // flood of requests was eventually halted.
 -  server.setTimeout(200, function(conn) {
-+  server.setTimeout(2000, function(conn) {
++  server.setTimeout(500, function(conn) {
      gotTimeout = true;
      conn.destroy();
    });
