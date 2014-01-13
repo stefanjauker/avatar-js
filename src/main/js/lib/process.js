@@ -406,10 +406,7 @@ Object.defineProperty(exports, '_tickCallback', {
 Object.defineProperty(exports, 'chdir', {
     enumerable: true,
     value: function(dir) {
-        var fs = java.nio.file.FileSystems.getDefault();
-        var path = fs.getPath(dir);
-        var newpath = path.isAbsolute() ? path : fs.getPath(process.cwd(), path.toString()).normalize();
-        eventloop.setWorkDir(newpath.toString());
+        eventloop.setWorkDir(dir);
     }
 });
 
