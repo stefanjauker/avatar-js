@@ -1,0 +1,16 @@
+--- ../node/test/simple/test-util-inspect.js	2013-12-09 10:27:58.000000000 +0100
++++ ./test/simple/test-util-inspect.js	2014-01-14 12:04:38.000000000 +0100
+@@ -71,9 +71,11 @@
+ try {
+   undef();
+ } catch (e) {
+-  assert.equal(util.inspect(e), '[ReferenceError: undef is not defined]');
++  assert.equal(util.inspect(e), '[ReferenceError: \"undef\" is not defined]');
+ }
+-var ex = util.inspect(new Error('FAIL'), true);
++var error = new Error('FAIL');
++Error.captureStackTrace(error);
++var ex = util.inspect(error, true);
+ assert.ok(ex.indexOf('[Error: FAIL]') != -1);
+ assert.ok(ex.indexOf('[stack]') != -1);
+ assert.ok(ex.indexOf('[message]') != -1);

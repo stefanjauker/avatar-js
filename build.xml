@@ -336,6 +336,7 @@
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-string-decoder.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-timers-unref.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-timers-zero-timeout.js"/>
+        <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-util-inspect.js"/>
         <!-- tls tests -->
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-tls-connect-pipe.js"/>
         <apply-diff src="test/simple" mod="${test.dir}/simple" name="test-tls-fast-writing.js"/>
@@ -439,6 +440,7 @@
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-string-decoder.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-timers-unref.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-timers-zero-timeout.js"/>
+        <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-util-inspect.js"/>
         <!-- tls tests -->
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-tls-connect-pipe.js"/>
         <apply-patch-file target="${test.dir}/simple" dir="test/simple" name="test-tls-fast-writing.js"/>
