@@ -1,5 +1,5 @@
 --- ../node/lib/util.js	2013-12-09 10:27:58.000000000 +0100
-+++ src/main/js/lib/util.js	2014-01-13 18:53:58.000000000 +0100
++++ ./src/main/js/lib/util.js	2014-01-14 11:55:17.000000000 +0100
 @@ -218,6 +218,14 @@
      return primitive;
    }
@@ -15,3 +15,22 @@
    // Look up the keys of the object.
    var keys = Object.keys(value);
    var visibleKeys = arrayToHash(keys);
+@@ -226,6 +234,9 @@
+     keys = Object.getOwnPropertyNames(value);
+   }
+ 
++  if (!ctx.showHidden && isError(value)) {
++      return formatError(value);
++  }
+   // Some type of object without properties can be shortcutted.
+   if (keys.length === 0) {
+     if (typeof value === 'function') {
+@@ -364,7 +375,7 @@
+       str = ctx.stylize('[Setter]', 'special');
+     }
+   }
+-  if (!hasOwnProperty(visibleKeys, key)) {
++  if (isError(value) || !hasOwnProperty(visibleKeys, key)) {
+     name = '[' + key + ']';
+   }
+   if (!str) {
