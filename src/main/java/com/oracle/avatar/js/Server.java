@@ -347,10 +347,9 @@ public final class Server {
                 dumpUVVersion = true;
                 break;
             } else if ("--no-deprecation".equals(arg)) {
-                holder.setThrowDeprecation(false);
+                holder.setNoDeprecation(true);
             } else if ("--trace-deprecation".equals(arg)) {
                 holder.setTraceDeprecation(true);
-                holder.setThrowDeprecation(false);
             } else if ("--throw-deprecation".equals(arg)) {
                 holder.setThrowDeprecation(true);
             } else if ("-i".equals(arg) || "--interactive".equals(arg)) {
@@ -444,8 +443,9 @@ public final class Server {
         private String[] userArgs;
         private String[] userFiles;
         private String evalString;
-        private boolean throwDeprecation = true;
+        private boolean throwDeprecation;
         private boolean traceDeprecation;
+        private boolean noDeprecation;
         private boolean forceRepl = false;
         private boolean printEval = false;
         private int exitCode = 0;
@@ -503,6 +503,10 @@ public final class Server {
             this.traceDeprecation = traceDeprecation;
         }
 
+        private void setNoDeprecation(boolean noDeprecation) {
+            this.noDeprecation = noDeprecation;
+        }
+
         private void setForceRepl(boolean forceRepl) {
             this.forceRepl = forceRepl;
         }
@@ -517,6 +521,10 @@ public final class Server {
 
         public boolean getThrowDeprecation() {
             return throwDeprecation;
+        }
+
+        public boolean getNoDeprecation() {
+            return noDeprecation;
         }
 
         public boolean getTraceDeprecation() {

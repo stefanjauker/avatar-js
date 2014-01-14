@@ -85,6 +85,11 @@ Object.defineProperty(exports, 'traceDeprecation', {
     value: __avatar.traceDeprecation
 });
 
+Object.defineProperty(exports, 'noDeprecation', {
+    enumerable: true,
+    value: __avatar.noDeprecation
+});
+
 Object.defineProperty(exports, '_forceRepl', {
     enumerable: true,
     value: __avatar.forceRepl

@@ -157,8 +157,8 @@ var args = ['-server', (assertions ? '-ea' : '-da'), '-Djava.awt.headless=true']
 args.push('-Xcheck:jni');
 args.push('-Djava.library.path=' + target);
 var jarArgs = ['-jar', jar.toString()];
-if (!deprecations) {
-    jarArgs.push('--no-deprecation');
+if (deprecations) {
+    jarArgs.push('--throw-deprecation');
 }
 if (secure) {
     args.push('-Djava.security.manager');
