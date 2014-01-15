@@ -191,8 +191,8 @@ function runNextTest() {
                 ', completion rate: ' + bold + completion.toFixed(0) + '%' + reset +
                 ', total time: ' + bold + ((Date.now() - totalStart) / 1000).toFixed(0) + reset + 's' +
                 '\n');
-        if (failedTests.length > 0) {
-            stderr.write('Failed tests: ' + '\n');
+        if (testsFailed > 0) {
+            stderr.write('Failed tests: ' + failedTests.length + '\n');
             var i = 0;
             failedTests.forEach(function(test) {
                 stderr.write((++i) + ' ' + test + '\n');
