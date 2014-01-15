@@ -1,6 +1,16 @@
---- ../node/test/simple/test-fs-readfile-error.js	2013-12-09 10:27:58.000000000 +0100
-+++ ./test/simple/test-fs-readfile-error.js	2014-01-14 10:21:36.000000000 +0100
-@@ -46,7 +46,9 @@
+--- ../node/test/simple/test-fs-readfile-error.js	2013-12-10 12:34:24.896593368 -0800
++++ test/simple/test-fs-readfile-error.js	2014-01-14 21:20:24.787381278 -0800
+@@ -29,7 +29,8 @@
+ function test(env, cb) {
+   var filename = path.join(common.fixturesDir, 'test-fs-readfile-error.js');
+   var execPath = process.execPath + ' --throw-deprecation ' + filename;
+-  var options = { env: env || {} };
++  // NASHORN: ignore env - resets path, causing older java to be picked up in child
++  var options = {};
+   exec(execPath, options, function(err, stdout, stderr) {
+     assert(err);
+     assert.equal(stdout, '');
+@@ -46,7 +47,9 @@
  
  test({ NODE_DEBUG: 'fs' }, function(data) {
    assert(/EISDIR/.test(data));
