@@ -186,10 +186,10 @@ var totalStart = Date.now();
 function runNextTest() {
     if (testNames.length == 0) {
         var completion = testsToRun == 0 ? 0 : (100 * (testsRun - testsFailed)) / testsToRun;
-        stderr.write('\nTotal tests attempted: ' + bold + testsRun + reset +
-                ', failed: ' + bold + testsFailed + reset +
-                ', completion rate: ' + bold + completion.toFixed(0) + '%' + reset +
-                ', total time: ' + bold + ((Date.now() - totalStart) / 1000).toFixed(0) + reset + 's' +
+        stderr.write('\nTotal tests attempted: ' + testsRun +
+                ', failed: ' + testsFailed +
+                ', completion rate: ' + completion.toFixed(0) + '%' +
+                ', total time: ' + ((Date.now() - totalStart) / 1000).toFixed(0) + 's' +
                 '\n');
         if (testsFailed > 0) {
             stderr.write('Failed tests: ' + failedTests.length + '\n');
