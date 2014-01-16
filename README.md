@@ -1,13 +1,25 @@
 Build Instructions
 ==================
 
-1. Install jdk8, ant, python, C++ compiler and linker
+1. Setup build environment. Install a git client, jdk8, ant, python, C++ compiler and linker
 
    1. Install the latest [jdk8](http://jdk8.java.net/download.html)
    2. Ensure [ant](http://ant.apache.org/) is installed and `ant -version` is _1.8_+
    3. Ensure [python](http://python.org/) is installed and `python --version` is _2.7.5_+ <br/>
       _tip_: __python3__ does __not__ work
    4. Ensure ant, jdk8, python and appropriate platform-specific _C++_ compiler and linker are in the `PATH`
+   5. If needed, install a [git](http://git-scm.com/) client for your OS. Windows users see below
+   6. Extra steps for Windows users
+      1. Install a unix emulation like [cygwin](http://cygwin.com/) or
+         [mingw/msys](http://mingw.org/). If using [Git for Windows](http://msysgit.github.io/),
+         a version of msys is already [included](https://github.com/msysgit/msysgit/wiki/Frequently-Asked-Questions).
+         This unix emulation provides the gnu diff and patch utilities.
+      2. Install [Microsoft Visual Studio](http://www.visualstudio.com/en-us).
+         Any recent version should be OK (2010, 2012, 2013 have been known to work).
+         Express versions will do.
+      3. Ensure that link.exe is the one from Visual Studio and not from cygwin or mingw/msys.
+      4. If a unix user, start `bash --login` from within a Visual Studio Command Prompt to
+         ensure that the Visual Studio environment is inherited.
 
 2. Download [node.js](http://nodejs.org/) source
 
