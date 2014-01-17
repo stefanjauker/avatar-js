@@ -282,7 +282,10 @@ public class PermissionTest {
         bindings.put(SCRIPT_ON_EXIT, true);
         Permissions permissions = new Permissions();
 
-        //platform
+        // On windows: process.env.NODE_PENDING_PIPE_INSTANCES
+        if (OS.startsWith("Windows")) {
+            permissions.add(new RuntimePermission("getenv.*"));
+        }
         permissions.add(new PropertyPermission("os.name", "read"));
         permissions.add(new LibUVPermission("libuv.pipe.connect"));
         permissions.add(new LibUVPermission("libuv.pipe.bind"));
