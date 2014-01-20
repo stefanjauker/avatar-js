@@ -58,15 +58,18 @@ process.features;
 testThrow(function() { process.getgid(); } );
 
 // requires process permission
-testThrow(function() { process.getgroups(); } );
+if (exports.platform !== 'win32') {
+    testThrow(function() { process.getgroups(); } );
+    // requires process permission
+    testThrow(function() { process.initgroups(999, 999); } );
+    // requires process permission
+    testThrow(function() { process.setgroups([999]); } );
+}
 
 // requires process permission
 testThrow(function() { process.getuid(); } );
 
 process.hrtime;
-
-// requires process permission
-testThrow(function() { process.initgroups(999, 999); } );
 
 // requires libUV permission
 testThrow(function() { process.kill(999, 0); } );
@@ -81,8 +84,6 @@ process.pid;
 
 // requires process permission
 testThrow(function() { process.setgid(999); } );
-// requires process permission
-testThrow(function() { process.setgroups([999]); } );
 
 // requires process permission
 testThrow(function() { process.setuid(999); } );
