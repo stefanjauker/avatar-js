@@ -38,7 +38,7 @@ function startPerf(fstart, time) {
     for(var arg in process.argv) {
         switch(process.argv[arg]) {
             case '-duration': {
-                var i = +arg + 1 
+                var i = +arg + 1
                 duration = process.argv[i]
                 break
             }
@@ -96,7 +96,7 @@ function dumpResults() {
 exports.dumpResults = dumpResults;
 function canContinue() {
     if (!go) {
-       doExit(); 
+       doExit();
     }
     return true;
 }
@@ -172,6 +172,6 @@ function run() {
 // Killing the process dumps current status
 // only when using avatarjs
 if(process.signals) {
-    process.signals.setSignalCallback(doExit);
+    process.on('SIGINT', doExit);
     process.signals.start('SIGINT');
 }

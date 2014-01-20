@@ -120,7 +120,7 @@ process.version;
 process.on('exit', function() {
     SCRIPT_OK = true;
 });
-    
+
 function testThrow(f) {
     try {
         f();
@@ -129,6 +129,7 @@ function testThrow(f) {
         if (ex instanceof java.security.AccessControlException) {
             print("Caught expected exception " + ex);
         } else {
+            print("Root exception " + ex.stack);
             throw ex;
         }
     }
