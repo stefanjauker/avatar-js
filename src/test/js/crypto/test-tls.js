@@ -22,7 +22,7 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-var PORT = 9999;
+var PORT = SCRIPT_PORT;
 var assert = require('assert');
 var tls = require('tls');
 var fs = require('fs');

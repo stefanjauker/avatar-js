@@ -25,6 +25,7 @@
 var net = require('net');
 var assert = require('assert');
 var connected = false;
+var closed = false;
 var server = net.Server(function(connection) {
   console.error('SERVER got connection');
   connected = true;
@@ -32,9 +33,11 @@ var server = net.Server(function(connection) {
   server.close();
 });
 
-server.listen(SCRIPT_PORT, function() {
+server.on('close', function() {closed = true;});
+console.log("TCP PORT TO LISTEN TO " + global.SCRIPT_PORT);
+server.listen(global.SCRIPT_PORT, function() {
     var c = net.createConnection({
-            port: SCRIPT_PORT
+            port: global.SCRIPT_PORT
         });
     c.end();
 });
@@ -43,5 +46,14 @@ if(SCRIPT_ON_EXIT) {
     process.on('exit', function() {
         assert.ok(connected);
         SCRIPT_OK = connected;
+        if (!closed) {
+            server.close();
+        }
+    });
+} else {
+    process.on('exit', function() {
+        if (!closed) {
+            server.close();
+        }
     });
 }

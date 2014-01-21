@@ -24,6 +24,6 @@
  */
 
 // tcp can't be loaded, does a connect at load time but we don't have connect permission.
-global.SCRIPT_PORT = 9999;
+global.SCRIPT_PORT = SCRIPT_PORT;
 global.SCRIPT_ON_EXIT = false;
 require("./tcp");

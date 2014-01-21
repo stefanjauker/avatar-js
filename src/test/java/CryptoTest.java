@@ -23,8 +23,13 @@
  * questions.
  */
 
+import com.oracle.avatar.js.Loader;
 import java.io.File;
 import com.oracle.avatar.js.Server;
+import com.oracle.avatar.js.log.Logging;
+import java.util.HashMap;
+import java.util.Map;
+import javax.script.ScriptEngine;
 import org.testng.annotations.Test;
 
 /**
@@ -32,6 +37,9 @@ import org.testng.annotations.Test;
  *
  */
 public class CryptoTest {
+
+    private static int p = 59152;
+    private static final String SCRIPT_PORT = "SCRIPT_PORT";
 
     @Test
     public void testCrypto() throws Exception {
@@ -41,7 +49,10 @@ public class CryptoTest {
             final String[] args = { f.getAbsolutePath() };
             System.out.println("Running " + f.getAbsolutePath());
             try {
-                new Server().run(args);
+                Map<String, Object> bindings = new HashMap<>();
+                bindings.put(SCRIPT_PORT, getPort());
+                ScriptEngine engine = newEngine(bindings);
+                newServer(engine);
                 System.out.println(f + " test passed");
             } catch(Exception ex) {
                 System.out.println(f + " test failure");
@@ -52,5 +63,23 @@ public class CryptoTest {
         if (failed) {
             throw new Exception("Crypto test failed");
         }
+    }
+
+    private static int getPort() {
+        return ++p;
+    }
+
+    private static ScriptEngine newEngine(Map<String, Object> b) throws Exception {
+        ScriptEngine engine = Server.newEngine();
+        for (String k : b.keySet()) {
+            engine.put(k, b.get(k));
+        }
+        return engine;
+    }
+
+    private static Server newServer(ScriptEngine engine) throws Exception {
+        Server server = new Server(engine, new Loader.Core(), new Logging(false),
+                System.getProperty("user.dir"));
+        return server;
     }
 }

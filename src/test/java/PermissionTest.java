@@ -58,7 +58,7 @@ public class PermissionTest {
 
     private static final String OS = System.getProperty("os.name");
     private static final String ADDRESS = "127.0.0.1";
-    private static int p = 49152;
+    private static int p = 61234;
     private static final String SCRIPT_PORT = "SCRIPT_PORT";
     private static final String SCRIPT_ON_EXIT = "SCRIPT_ON_EXIT";
     private static final String SCRIPT_OK = "SCRIPT_OK";
@@ -360,7 +360,7 @@ public class PermissionTest {
         Map<String, Object> bindings = new HashMap<String, Object>();
 
         Permissions permissions = new Permissions();
-
+        bindings.put(SCRIPT_PORT, getPort());
         doFail(bindings, f, permissions);
     }
 
@@ -382,11 +382,11 @@ public class PermissionTest {
             throw new RuntimeException("Should have failed");
         } catch (Throwable ex) {
             if (!(getCause(ex) instanceof AccessControlException)) {
-                System.out.println("UNEXPECTED EXCEPTION " + ex);
+                System.err.println("UNEXPECTED EXCEPTION " + ex);
                 ex.printStackTrace();
                 throw ex;
             } else {
-                System.out.println("Catch expected exception " + ex);
+                System.err.println("Catch expected exception " + ex);
             }
         }
     }
@@ -402,7 +402,7 @@ public class PermissionTest {
         try {
             r.call();
         } catch (Exception ex) {
-            System.out.println("UNEXPECTED EXCEPTION " + ex);
+            System.err.println("UNEXPECTED EXCEPTION " + ex);
             ex.printStackTrace();
             throw ex;
         }
@@ -413,6 +413,8 @@ public class PermissionTest {
     }
 
     private static void doFail(Map<String, Object> bindings, File f, Permissions permissions) throws Exception {
+        // Capture caller
+        System.err.println("Called by " + new Exception().getStackTrace()[1].getMethodName());
         URL location = f.toURI().toURL();
         final String[] args = {f.getAbsolutePath()};
         final ScriptEngine engine = newEngine(bindings);
@@ -431,6 +433,8 @@ public class PermissionTest {
     }
 
     private static void doSuccess(Map<String, Object> bindings, File f, Permissions permissions) throws Exception {
+        // Capture caller
+        System.err.println("Called by " + new Exception().getStackTrace()[1].getMethodName());
         URL location = f.toURI().toURL();
         final String[] args = { f.getAbsolutePath() };
         final ScriptEngine engine = newEngine(bindings);
@@ -449,7 +453,7 @@ public class PermissionTest {
             }
         });
 
-        System.out.println(f + " Auth test passed");
+        System.err.println(f + " Auth test passed");
     }
 
     private static void init(Permissions permissions, URL location) throws Exception {
