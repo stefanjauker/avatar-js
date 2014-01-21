@@ -58,7 +58,7 @@ process.features;
 testThrow(function() { process.getgid(); } );
 
 // requires process permission
-if (exports.platform !== 'win32') {
+if (process.platform !== 'win32') {
     testThrow(function() { process.getgroups(); } );
     // requires process permission
     testThrow(function() { process.initgroups(999, 999); } );
