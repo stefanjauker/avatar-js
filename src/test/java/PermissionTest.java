@@ -368,7 +368,11 @@ public class PermissionTest {
     public void testProcess() throws Exception {
         File f = new File("src/test/js/security/process.js");
         Map<String, Object> bindings = new HashMap<String, Object>();
-
+        String osname = System.getProperty("os.name").toLowerCase();
+        if (osname.startsWith("windows")) {
+            bindings.put("__test_windows", "true");
+        }
+        
         doSuccess(bindings, f, new Permissions());
     }
 

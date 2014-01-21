@@ -58,7 +58,8 @@ process.features;
 testThrow(function() { process.getgid(); } );
 
 // requires process permission
-if (process.platform !== 'win32') {
+if (typeof(__test_windows) === 'undefined') {
+    print("Non windows checks");
     testThrow(function() { process.getgroups(); } );
     // requires process permission
     testThrow(function() { process.initgroups(999, 999); } );
