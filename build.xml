@@ -15,12 +15,15 @@
         </sequential>
     </macrodef>
 
-    <macrodef name="git-pull">
+    <macrodef name="git">
         <attribute name="dir"/>
+        <attribute name="cmd"/>
+        <attribute name="args" default=""/>
         <sequential>
-            <echo>cd @{dir}; git pull</echo>
+            <echo>cd @{dir}; git @{cmd} @{args}</echo>
             <exec dir="@{dir}" executable="git">
-                <arg value="pull"/>
+                <arg value="@{cmd}"/>
+                <arg value="@{args}"/>
             </exec>
         </sequential>
     </macrodef>
@@ -44,9 +47,22 @@
     </target>
 
     <target name="pull-all" depends="init">
-        <git-pull dir="${libuv.home}"/>
-        <git-pull dir="${http-parser.home}"/>
-        <git-pull dir="${basedir}"/>
+        <git dir="${libuv.home}" cmd="pull"/>
+        <git dir="${http-parser.home}" cmd="pull"/>
+        <git dir="${basedir}" cmd="pull"/>
+    </target>
+
+    <target name="rebase-all" depends="init">
+        <git dir="${libuv.home}" cmd="pull" args="--rebase"/>
+        <git dir="${http-parser.home}" cmd="pull" args="--rebase"/>
+        <git dir="${basedir}" cmd="pull" args="--rebase"/>
+    </target>
+
+    <!-- caution: discards all changes, use at your own risk -->
+    <target name="reset-all" depends="init">
+        <git dir="${libuv.home}" cmd="reset" args="--hard"/>
+        <git dir="${http-parser.home}" cmd="reset" args="--hard"/>
+        <git dir="${basedir}" cmd="reset" args="--hard"/>
     </target>
 
     <target name="setup" depends="copy-source-files, patch-source-files"/>
