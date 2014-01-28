@@ -25,7 +25,7 @@ Build Instructions
 
    1. `git clone https://github.com/joyent/node.git source`
    2. `cd source`
-   3. `git checkout v0.10.23` <br/>
+   3. `git checkout v0.10.25` <br/>
       _tip_: run `git pull` to refresh the repo if you get an error saying that this version is unknown
    4. `cd ..`
 
@@ -98,7 +98,7 @@ Build Instructions
 Release Notes
 =============
 
-+ Compatible with Node.js v0.10.23
++ Compatible with Node.js v0.10.25
 
 + Platforms tested. 32-bit variants have not been tested _at all_
   + Ubuntu Linux x64
