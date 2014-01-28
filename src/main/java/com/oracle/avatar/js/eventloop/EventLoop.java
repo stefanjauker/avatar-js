@@ -72,7 +72,7 @@ public final class EventLoop {
 
     private Callback isHandlerRegistered = null;
     private Callback uncaughtExceptionHandler = null;
-    private Exception pendingException = null;
+    private Throwable pendingException = null;
     private boolean syncEventsProcessing = true;
     private ScriptObjectMirror domain;
 
@@ -132,13 +132,13 @@ public final class EventLoop {
         eventQueue.add(event);
     }
 
-    public void run() throws Exception {
+    public void run() throws Throwable {
         assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
         executor.allowCoreThreadTimeOut(true);
         uvLoop.run();
         // throw pending exception, if any
         if (pendingException != null) {
-            final Exception pex = pendingException;
+            final Throwable pex = pendingException;
             pendingException = null;
             throw pex;
         }
@@ -229,7 +229,7 @@ public final class EventLoop {
 
     private static final String UNCAUGHT_EXCEPTION_NAME = "uncaughtException";
 
-    public boolean handleCallbackException(final Exception ex) {
+    public boolean handleCallbackException(final Throwable ex) {
         boolean handled = true;
         // callback to check if an uncaught exception handler has been registered by the user
         final Object[] registeredArgs = {null};
@@ -358,7 +358,7 @@ public final class EventLoop {
                      final Logging logging,
                      final String workDir,
                      final int instanceNumber,
-                     final ThreadPool executor) throws IOException {
+                     final ThreadPool executor) {
         mainThread = Thread.currentThread();
         final String uv = LibUV.version();
         if (!uvVersion.equals(uv)) {
@@ -376,7 +376,7 @@ public final class EventLoop {
 
         this.uvLoop = new LoopHandle(new CallbackExceptionHandler() {
             @Override
-            public void handle(final Exception ex) {
+            public void handle(final Throwable ex) {
                 if (!handleCallbackException(ex)) {
                     if (pendingException == null) {
                         pendingException = ex;

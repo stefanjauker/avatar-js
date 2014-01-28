@@ -25,6 +25,8 @@
 
 import java.io.File;
 import java.io.FilePermission;
+import java.lang.Exception;
+import java.lang.Throwable;
 import java.net.SocketPermission;
 import java.net.URL;
 import java.nio.file.FileSystems;
@@ -140,7 +142,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testTCPNoAuth() throws Exception {
+    public void testTCPNoAuth() throws Throwable {
         int port = getPort();
         File f = new File("src/test/js/security/tcp.js");
         Map<String, Object> bindings = new HashMap<String, Object>();
@@ -150,7 +152,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testTCPNoAccept() throws Exception {
+    public void testTCPNoAccept() throws Throwable {
         int port = getPort();
         File f = new File("src/test/js/security/tcp.js");
         Map<String, Object> bindings = new HashMap<String, Object>();
@@ -163,7 +165,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testTCPNoConnect() throws Exception {
+    public void testTCPNoConnect() throws Throwable {
         int port = getPort();
         File f = new File("src/test/js/security/tcp.js");
         Map<String, Object> bindings = new HashMap<String, Object>();
@@ -175,7 +177,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testTCPAuth() throws Exception {
+    public void testTCPAuth() throws Throwable {
         int port = getPort();
         Permissions permissions = new Permissions();
         permissions.add(new SocketPermission(ADDRESS + ":" + port, "listen"));
@@ -190,7 +192,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testUDPNoAuth() throws Exception {
+    public void testUDPNoAuth() throws Throwable {
         int port = getPort();
         File f = new File("src/test/js/security/udp.js");
         Map<String, Object> bindings = new HashMap<String, Object>();
@@ -201,7 +203,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testUDPAuth() throws Exception {
+    public void testUDPAuth() throws Throwable {
         int port = getPort();
         Permissions permissions = new Permissions();
         // required by dns.js
@@ -216,7 +218,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testSpawnNoAuth() throws Exception {
+    public void testSpawnNoAuth() throws Throwable {
         File f = new File("src/test/js/security/spawn.js");
         Map<String, Object> bindings = new HashMap<String, Object>();
         // exePath
@@ -230,7 +232,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testSpawnAuth() throws Exception {
+    public void testSpawnAuth() throws Throwable {
         Permissions permissions = new Permissions();
         permissions.add(new PropertyPermission("java.class.path", "read"));
         permissions.add(new PropertyPermission("java.library.path", "read"));
@@ -246,7 +248,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testPipeNoAuth() throws Exception {
+    public void testPipeNoAuth() throws Throwable {
         File f = new File("src/test/js/security/pipe.js");
         final String PIPE_NAME;
 
@@ -266,7 +268,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testPipeAuth() throws Exception {
+    public void testPipeAuth() throws Throwable {
         File f = new File("src/test/js/security/pipe.js");
         final String PIPE_NAME;
 
@@ -296,7 +298,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testPipeNoAccept() throws Exception {
+    public void testPipeNoAccept() throws Throwable {
         File f = new File("src/test/js/security/pipe.js");
         final String PIPE_NAME;
 
@@ -321,7 +323,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testPipeNoConnect() throws Exception {
+    public void testPipeNoConnect() throws Throwable {
         File f = new File("src/test/js/security/pipe.js");
         final String PIPE_NAME;
 
@@ -345,7 +347,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testModules() throws Exception {
+    public void testModules() throws Throwable {
         File f = new File("src/test/js/security/modules.js");
         Map<String, Object> bindings = new HashMap<String, Object>();
 
@@ -355,7 +357,7 @@ public class PermissionTest {
     }
 
     @Test
-    public void testModules2() throws Exception {
+    public void testModules2() throws Throwable {
         File f = new File("src/test/js/security/modules2.js");
         Map<String, Object> bindings = new HashMap<String, Object>();
 
@@ -365,14 +367,14 @@ public class PermissionTest {
     }
 
     @Test
-    public void testProcess() throws Exception {
+    public void testProcess() throws Throwable {
         File f = new File("src/test/js/security/process.js");
         Map<String, Object> bindings = new HashMap<String, Object>();
         String osname = System.getProperty("os.name").toLowerCase();
         if (osname.startsWith("windows")) {
             bindings.put("__test_windows", "true");
         }
-        
+
         doSuccess(bindings, f, new Permissions());
     }
 
@@ -408,11 +410,11 @@ public class PermissionTest {
         }
     }
 
-    private static void doFail(Map<String, Object> bindings, File f) throws Exception {
+    private static void doFail(Map<String, Object> bindings, File f) throws Throwable {
         doFail(bindings, f, new Permissions());
     }
 
-    private static void doFail(Map<String, Object> bindings, File f, Permissions permissions) throws Exception {
+    private static void doFail(Map<String, Object> bindings, File f, Permissions permissions) throws Throwable {
         // Capture caller
         System.err.println("Called by " + new Exception().getStackTrace()[1].getMethodName());
         URL location = f.toURI().toURL();
@@ -424,7 +426,13 @@ public class PermissionTest {
         testFailure(new Callable() {
             @Override
             public Object call() throws Exception {
-                server.run(args);
+                try {
+                    server.run(args);
+                } catch (Exception ex) {
+                    throw ex;
+                } catch (Throwable th) {
+                    throw new Exception(th);
+                }
                 return null;
             }
         });
@@ -432,7 +440,7 @@ public class PermissionTest {
         System.out.println(f + " NoAuth test passed");
     }
 
-    private static void doSuccess(Map<String, Object> bindings, File f, Permissions permissions) throws Exception {
+    private static void doSuccess(Map<String, Object> bindings, File f, Permissions permissions) throws Throwable {
         // Capture caller
         System.err.println("Called by " + new Exception().getStackTrace()[1].getMethodName());
         URL location = f.toURI().toURL();
@@ -444,7 +452,13 @@ public class PermissionTest {
         testSuccess(new Callable() {
             @Override
             public Object call() throws Exception {
-                server.run(args);
+                try {
+                    server.run(args);
+                } catch (Exception ex) {
+                    throw ex;
+                } catch (Throwable th) {
+                    throw new Exception(th);
+                }
                 Object obj = engine.get(SCRIPT_OK);
                 if (obj == null) {
                     throw new Exception("TEST FAILURE");

@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
 public class EventLoopTest {
 
     @Test
-    public void testEventLoop() throws Exception {
+    public void testEventLoop() throws Throwable {
         File dir = new File("src/test/js/eventloop/");
         boolean failed = false;
         for (File f : dir.listFiles()) {

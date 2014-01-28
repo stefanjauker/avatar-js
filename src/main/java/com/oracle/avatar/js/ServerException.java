@@ -38,14 +38,15 @@ import com.oracle.libuv.NativeException;
  * are not filtered out. The cause of this exception is the originally thrown
  * exception.
  */
-public final class ServerException extends Exception {
+public final class ServerException extends Throwable {
 
     private static final long serialVersionUID = 8930713476760671228L;
+
     private final Throwable orig;
     private final StackTraceElement[] elems;
     private final NashornException nex;
 
-    ServerException(Throwable orig) {
+    ServerException(final Throwable orig) {
         // No LibUV NativeException should be received,
         // these are translated by wrap scripts onto native JS Error.
         assert !(orig instanceof NativeException);

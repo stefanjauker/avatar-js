@@ -110,7 +110,7 @@ public final class Server {
         initAssertionStatus();
     }
 
-    public static void main(final String... args) throws Exception {
+    public static void main(final String... args) throws Throwable {
         new Server().run(args);
     }
 
@@ -136,7 +136,7 @@ public final class Server {
                   final String workDir,
                   final ScriptContext context,
                   final int instanceNumber,
-                  final ThreadPool threadPool) throws Exception {
+                  final ThreadPool threadPool) {
         this.engine = engine;
         this.context = context;
         this.bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
@@ -150,7 +150,7 @@ public final class Server {
         this.holder = new SecureHolder(eventLoop, loader, (Invocable) engine);
     }
 
-    public void run(final String... args) throws ServerException {
+    public void run(final String... args) throws Throwable {
         // No Server instance can be accessed from user scripts.
         // Although this public method is not accessible, do a permission check.
         checkPermission();
@@ -191,7 +191,7 @@ public final class Server {
         }
     }
 
-    private void runUserScripts() throws Exception {
+    private void runUserScripts() throws Throwable {
         assert userFile != null;
 
         final String[] userFiles = {userFile};
@@ -200,7 +200,7 @@ public final class Server {
                      userFiles);
     }
 
-    private void runREPL() throws Exception {
+    private void runREPL() throws Throwable {
         runEventLoop(EMPTY_ARRAY, EMPTY_ARRAY, EMPTY_ARRAY);
     }
 
@@ -209,19 +209,20 @@ public final class Server {
                 "--print".equals(arg) || "-pe".equals(arg) || "-p".equals(arg));
     }
 
-    private void runEval() throws Exception {
-        runEventLoop(avatarArgs.toArray(new String[avatarArgs.size()]),
+    private void runEval() throws Throwable {
+        runEventLoop(
+                avatarArgs.toArray(new String[avatarArgs.size()]),
                 userArgs.toArray(new String[userArgs.size()]),
                 EMPTY_ARRAY);
     }
 
-    private void runEventLoop(final String[] avatarArgs, final String[] userArgs, final String[] userFiles) throws Exception {
-        Exception rootCause = null;
+    private void runEventLoop(final String[] avatarArgs, final String[] userArgs, final String[] userFiles) throws Throwable {
+        Throwable rootCause = null;
         holder.setArgs(avatarArgs, userArgs, userFiles);
 
         try {
             runSystemScript(SYSTEM_INIT_SCRIPTS);
-        } catch(Exception ex) {
+        } catch (Throwable ex) {
             if (!eventLoop.handleCallbackException(ex)) {
                 rootCause = ex;
                 throw ex;
@@ -231,7 +232,7 @@ public final class Server {
                 try {
                     // emit the process.exit event
                     runSystemScript(SYSTEM_FINALIZATION_SCRIPTS);
-                } catch (Exception ex) {
+                } catch (Throwable ex) {
                     if (!eventLoop.handleCallbackException(ex)) {
                         rootCause.addSuppressed(ex);
                         throw rootCause;
@@ -243,7 +244,7 @@ public final class Server {
         // the process can continue. For example some timer events can be fired.
         try {
             eventLoop.run();
-        } catch(Exception ex) {
+        } catch (Throwable ex) {
             boolean rethrow = false;
             if (!eventLoop.handleCallbackException(ex)) {
                 rethrow = true;
@@ -258,7 +259,7 @@ public final class Server {
             try {
                 // emit the process.exit event
                 runSystemScript(SYSTEM_FINALIZATION_SCRIPTS);
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 if (rootCause != null) {
                     rootCause.addSuppressed(ex);
                     throw rootCause;

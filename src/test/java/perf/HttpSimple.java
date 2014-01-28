@@ -45,6 +45,7 @@
 
 package perf;
 
+import java.lang.Throwable;
 import java.nio.ByteBuffer;
 import com.oracle.httpparser.HttpParser;
 import com.oracle.httpparser.HttpParserSettings;
@@ -67,7 +68,7 @@ public class HttpSimple {
         private String[] headers;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Throwable {
         LibUV.cwd();
         final LoopHandle loop = new LoopHandle();
         final TCPHandle server = new TCPHandle(loop);
