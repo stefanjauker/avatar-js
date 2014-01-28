@@ -67,6 +67,7 @@ public final class EventLoop {
     private final BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
     private final AtomicInteger hooks = new AtomicInteger(0);
     private final AsyncHandle asyncHandle;
+    private final AsyncHandle interruptMainLoopHandle;
     private final Thread mainThread;
 
     private Callback isHandlerRegistered = null;
@@ -382,7 +383,8 @@ public final class EventLoop {
                     } else {
                         pendingException.addSuppressed(ex);
                     }
-                    stop();
+                    // interrupt uvLoop.run() so that pending exception can be thrown synchronously
+                    interruptMainLoopHandle.send();
                 }
             }
         },
@@ -411,8 +413,8 @@ public final class EventLoop {
 
         LibUV.chdir(workDir);
         LOG = logger("eventloop");
-        asyncHandle = new AsyncHandle(uvLoop);
 
+        asyncHandle = new AsyncHandle(uvLoop);
         asyncHandle.setAsyncCallback(new AsyncCallback() {
             @Override
             public void onSend(int status) throws Exception {
@@ -423,9 +425,16 @@ public final class EventLoop {
                 }
             }
         });
-
         asyncHandle.unref();
 
+        interruptMainLoopHandle = new AsyncHandle(uvLoop);
+        interruptMainLoopHandle.setAsyncCallback(new AsyncCallback() {
+            @Override
+            public void onSend(int status) throws Exception {
+                stop();
+            }
+        });
+        interruptMainLoopHandle.unref();
     }
 
     public String version() {
