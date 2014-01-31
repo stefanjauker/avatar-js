@@ -1,26 +1,27 @@
 /*
- * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
+ * The contents of this file are subject to the terms of the GNU General
+ * Public License Version 2 only ("GPL"). You may not use this file except
+ * in compliance with the License.  You can obtain a copy of the License at
+ * https://avatar.java.net/license.html or legal/LICENSE.txt.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * When distributing the software, include this License Header Notice in each
+ * file and include the License file at legal/LICENSE.txt.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * GPL Classpath Exception:
+ * Oracle designates this particular file as subject to the "Classpath"
+ * exception as provided by Oracle in the GPL Version 2 section of the License
+ * file that accompanied this code.
+ *
+ * Modifications:
+ * If applicable, add the following below the License Header, with the fields
+ * enclosed by brackets [] replaced by your own identifying information:
+ * "Portions Copyright [year] [name of copyright owner]"
  */
 
 package com.oracle.avatar.js;
@@ -34,7 +35,6 @@ import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -48,9 +48,7 @@ import com.oracle.avatar.js.eventloop.EventLoop;
 import com.oracle.avatar.js.eventloop.ThreadPool;
 import com.oracle.avatar.js.log.Logger;
 import com.oracle.avatar.js.log.Logging;
-
 import com.oracle.libuv.LibUV;
-
 import jdk.nashorn.api.scripting.URLReader;
 
 /**
@@ -127,7 +125,7 @@ public final class Server {
                   final Loader loader,
                   final Logging logging,
                   final String workDir) throws Exception {
-        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.getInstance());
+        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.getInstance(), false);
     }
 
     public Server(final ScriptEngine engine,
@@ -136,7 +134,8 @@ public final class Server {
                   final String workDir,
                   final ScriptContext context,
                   final int instanceNumber,
-                  final ThreadPool threadPool) {
+                  final ThreadPool executor,
+                  final boolean sharedExecutor) throws Exception {
         this.engine = engine;
         this.context = context;
         this.bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
@@ -146,7 +145,7 @@ public final class Server {
         assert version != null;
         uvVersion = loader.getBuildProperty(LIBUV_VERSION_BUILD_PROPERTY);
         assert uvVersion != null;
-        this.eventLoop = new EventLoop(version, uvVersion, logging, workDir, instanceNumber, threadPool);
+        this.eventLoop = new EventLoop(version, uvVersion, logging, workDir, instanceNumber, executor, sharedExecutor);
         this.holder = new SecureHolder(eventLoop, loader, (Invocable) engine);
     }
 
@@ -183,11 +182,12 @@ public final class Server {
         eventLoop.stop();
     }
 
-    private void runSystemScript(final SystemScriptRunner... scripts)
-            throws FileNotFoundException, ScriptException {
-        for (final SystemScriptRunner scriptRunner : scripts) {
-            log.log("loading system script " + scriptRunner.script);
-            scriptRunner.run(context);
+    private void runSystemScript(final SystemScriptRunner... scripts) throws FileNotFoundException, ScriptException {
+        if (!eventLoop.stopped()) {
+            for (final SystemScriptRunner scriptRunner : scripts) {
+                log.log("loading system script " + scriptRunner.script);
+                scriptRunner.run(context);
+            }
         }
     }
 

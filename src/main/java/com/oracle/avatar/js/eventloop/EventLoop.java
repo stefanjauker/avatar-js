@@ -1,26 +1,27 @@
 /*
- * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
+ * The contents of this file are subject to the terms of the GNU General
+ * Public License Version 2 only ("GPL"). You may not use this file except
+ * in compliance with the License.  You can obtain a copy of the License at
+ * https://avatar.java.net/license.html or legal/LICENSE.txt.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * When distributing the software, include this License Header Notice in each
+ * file and include the License file at legal/LICENSE.txt.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ * GPL Classpath Exception:
+ * Oracle designates this particular file as subject to the "Classpath"
+ * exception as provided by Oracle in the GPL Version 2 section of the License
+ * file that accompanied this code.
+ *
+ * Modifications:
+ * If applicable, add the following below the License Header, with the fields
+ * enclosed by brackets [] replaced by your own identifying information:
+ * "Portions Copyright [year] [name of copyright owner]"
  */
 
 package com.oracle.avatar.js.eventloop;
@@ -35,24 +36,25 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.script.ScriptException;
 
-import jdk.nashorn.api.scripting.NashornException;
-import jdk.nashorn.internal.runtime.ECMAException;
-import jdk.nashorn.internal.runtime.ScriptObject;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import com.oracle.avatar.js.dns.DNS;
 import com.oracle.avatar.js.log.Logger;
 import com.oracle.avatar.js.log.Logging;
 import com.oracle.libuv.LibUV;
 import com.oracle.libuv.cb.AsyncCallback;
 import com.oracle.libuv.cb.CallbackExceptionHandler;
-import com.oracle.libuv.cb.ContextProvider;
 import com.oracle.libuv.cb.CallbackHandler;
 import com.oracle.libuv.cb.CallbackHandlerFactory;
+import com.oracle.libuv.cb.ContextProvider;
 import com.oracle.libuv.handles.AsyncHandle;
 import com.oracle.libuv.handles.LoopHandle;
+import jdk.nashorn.api.scripting.NashornException;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import jdk.nashorn.internal.runtime.ECMAException;
+import jdk.nashorn.internal.runtime.ScriptObject;
 
 public final class EventLoop {
 
@@ -69,6 +71,8 @@ public final class EventLoop {
     private final AsyncHandle asyncHandle;
     private final AsyncHandle interruptMainLoopHandle;
     private final Thread mainThread;
+    private final boolean sharedExecutor;
+    private final AtomicBoolean stopped = new AtomicBoolean(false);
 
     private Callback isHandlerRegistered = null;
     private Callback uncaughtExceptionHandler = null;
@@ -115,7 +119,6 @@ public final class EventLoop {
     }
 
     public void nextTick(final Callback cb) {
-        assert Thread.currentThread() == mainThread : "called from non-event thread " + Thread.currentThread().getName();
         eventQueue.add(new Event("nextTick", cb));
     }
 
@@ -209,14 +212,24 @@ public final class EventLoop {
     }
 
     public void stop() {
-        executor.shutdown();
-        asyncHandle.close();
-        uvLoop.stop();
+        if (stopped.compareAndSet(false, true)) {
+            if (!sharedExecutor) {
+                executor.shutdown();
+            }
+            asyncHandle.close();
+            uvLoop.stop();
+        }
     }
 
     public void release() {
         hooks.set(0);
-        executor.clearQueuedTasks();
+        if (!sharedExecutor) {
+            executor.clearQueuedTasks();
+        }
+    }
+
+    public boolean stopped() {
+        return stopped.get();
     }
 
     // filename, line, column, name, message
@@ -358,7 +371,8 @@ public final class EventLoop {
                      final Logging logging,
                      final String workDir,
                      final int instanceNumber,
-                     final ThreadPool executor) {
+                     final ThreadPool executor,
+                     final boolean sharedExecutor) throws IOException {
         mainThread = Thread.currentThread();
         final String uv = LibUV.version();
         if (!uvVersion.equals(uv)) {
@@ -410,6 +424,7 @@ public final class EventLoop {
 
         this.instanceNumber = instanceNumber;
         this.executor = executor;
+        this.sharedExecutor = sharedExecutor;
 
         LibUV.chdir(workDir);
         LOG = logger("eventloop");
