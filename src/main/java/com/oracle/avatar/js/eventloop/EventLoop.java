@@ -95,14 +95,15 @@ public final class EventLoop {
             this.hooks = hooks;
             this.refHandle = refHandle;
             this.unrefHandle = unrefHandle;
-            if (hooks.incrementAndGet() == 1) {
+
+            if (this.hooks.incrementAndGet() == 1) {
                 this.refHandle.send();
             }
         }
 
         @Override
         public void close() {
-            if (hooks.decrementAndGet() == 0) {
+            if (this.hooks.decrementAndGet() == 0) {
                 this.unrefHandle.send();
             }
         }
@@ -156,7 +157,10 @@ public final class EventLoop {
                 pendingException = null;
                 throw pex;
             }
-        } while (hooks.get() > 0 || eventQueue.peek() != null);
+        } while (hooks.get() > 0 ||
+                eventQueue.peek() != null ||
+                executor.hasActiveTasks() ||
+                executor.hasQueuedTasks());
     }
 
     /**
