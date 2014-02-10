@@ -1,11 +1,19 @@
---- ../node/test/simple/test-http-pipeline-flood.js	2013-12-16 14:49:26.000000000 +0100
-+++ test/simple/test-http-pipeline-flood.js	2014-01-07 11:08:54.000000000 +0100
+--- ../node/test/simple/test-http-pipeline-flood.js	2014-01-28 15:48:17 -0800
++++ test/simple/test-http-pipeline-flood.js	2014-02-10 14:25:29 -0800
 @@ -52,7 +52,7 @@
  
    // kill the connection after a bit, verifying that the
    // flood of requests was eventually halted.
 -  server.setTimeout(200, function(conn) {
-+  server.setTimeout(500, function(conn) {
++  server.setTimeout(1000, function(conn) {
      gotTimeout = true;
      conn.destroy();
+   });
+@@ -77,6 +77,7 @@
+     // however, to avoid being unnecessarily tied to a specific magic number,
+     // and making the test brittle, just assert that it's "a lot", which we
+     // can safely assume is more than 500.
++    console.log('requests: ' + requests);
+     assert(requests >= 500);
+     console.log('ok');
    });
