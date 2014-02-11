@@ -42,6 +42,7 @@ if (args.length < 3) {
     stderr.write('  -delay ms to pause between each test to give the OS time to cleanup (default: 100)\n');
     stderr.write('  -timeout s to specify the timeout for each test (default: 120s)\n');
     stderr.write('  -drip to enable use of drip to reduce jvm startup time (disables assertions and logging)\n');
+    stderr.write('  -mx N to specify the maximum jvm heap size for each test (default: 1g)\n');
     stderr.write(' <args> is some combination of node tests and/or directories\n');
     stderr.write('directories are searched for node tests matching "test-*.js"\n');
     process.exit(-1);
@@ -51,6 +52,7 @@ var secure = false;
 var drip = false;
 var delay = 100;
 var timeout = 120 * 1000;
+var maxheap = '1g';
 var assertions = true;
 var deprecations = false;
 var redirect = true;
@@ -88,6 +90,7 @@ for (var i=0; i < testlen; i++) {
             case '-secure': secure = true; break;
             case '-drip': drip = true; break;
             case '-delay': delay = Number(tests[++i]); break;
+            case '-mx': maxheap = tests[++i]; break;
             case '-timeout': timeout = Number(tests[++i]) * 1000; break;
         }
         continue;
@@ -154,6 +157,7 @@ var bold = colorize ? escape + 1 + 'm' : '';
 var reset = colorize ? escape + 0 + 'm' : '';
 
 var args = ['-server', (assertions ? '-ea' : '-da'), '-Djava.awt.headless=true'];
+args.push('-Xmx' + maxheap);
 args.push('-Xcheck:jni');
 args.push('-Djava.library.path=' + target);
 var jarArgs = ['-jar', jar.toString()];
