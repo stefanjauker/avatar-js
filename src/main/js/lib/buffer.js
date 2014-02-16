@@ -46,6 +46,7 @@
 
 var assert = require('assert');
 var JavaBuffer = Packages.com.oracle.avatar.js.buffer.Buffer;
+var setIndexedPropertiesToExternalArrayData = Object.setIndexedPropertiesToExternalArrayData;
 
 function Buffer(subject, encoding, offset) {
 
@@ -110,7 +111,20 @@ function Buffer(subject, encoding, offset) {
         }
     }
 
-    return this._init();
+    if (setIndexedPropertiesToExternalArrayData) {
+        // this function is available in jdk8u20+ and jdk9+ (JDK-8011964)
+        setIndexedPropertiesToExternalArrayData(this, this._impl.underlying());
+        this.length = this._impl.capacity();
+    } else {
+        // use slower JSAdapter wrapper in earlier releases
+        return this._init();
+    }
+}
+
+// make certain Array methods available on Buffers
+// only those Array methods that make no structural changes are supported
+if (setIndexedPropertiesToExternalArrayData) {
+    require('util').inherits(Buffer, Array);
 }
 
 exports.Buffer = Buffer;
@@ -596,16 +610,14 @@ Buffer.prototype.writeDoubleBE = function(value, offset, noAssert) {
     this._impl.writeDoubleBE(value, offset);
 }
 
-var _INSPECT_MAX_BYTES = 50;
+var INSPECT_MAX_BYTES = 50;
 
 Buffer.prototype.inspect = function() {
-    return this._impl.inspect(_INSPECT_MAX_BYTES, this._slow ? true : false);
+    return this._impl.inspect(INSPECT_MAX_BYTES, this._slow ? true : false);
 }
 
 Buffer.isBuffer = function(obj) {
-    return obj &&
-           ((obj._this && obj._this instanceof Buffer) &&
-            (obj._impl && obj._impl instanceof JavaBuffer));
+    return obj && obj._impl && (obj._impl instanceof JavaBuffer);
 }
 
 Buffer.byteLength = function(string, encoding) {
