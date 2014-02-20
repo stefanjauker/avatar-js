@@ -125,7 +125,7 @@ public final class Server {
                   final Loader loader,
                   final Logging logging,
                   final String workDir) throws Exception {
-        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.getInstance(), true);
+        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.newInstance(), false);
     }
 
     public Server(final ScriptEngine engine,
