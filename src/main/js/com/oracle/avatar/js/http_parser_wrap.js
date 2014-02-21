@@ -120,19 +120,12 @@
     HTTPParser.prototype.reinitialize = function(type) {
         if (this._parser) {
             this._parser.free();
+        } else {
+            this._parser = new Parser();
         }
-        delete this._parser;
-        this._got_exception = null;
-
-        Object.defineProperty(this, '_parser', {
-            value : new Parser(),
-            configurable : true
-        });
-        Object.defineProperty(this, '_type', {
-            value : type,
-            writable : true
-        });
+        this._type = type;
         this._parser.init(valueOf(typeClass, type));
+        this._got_exception = null;
     }
 
     HTTPParser.prototype.execute = function(data, start, length) {
