@@ -30,23 +30,36 @@ import com.oracle.httpparser.HttpParserSettings;
 public final class ParserSettings extends HttpParserSettings {
 
     public interface ParserDataFunction {
-        public int call(int offset, int length);
+        public int call(int offset,
+                        int length);
     }
 
     public interface ParserFunction {
         public int call();
     }
 
-     public interface ParserHeadersFunction {
-        public int call(String url, String[] headers);
+    public interface ParserHeadersFunction {
+        public int call(String url,
+                        String[] headers);
     }
 
-    final ParserHeadersFunction onHeadersComplete;
+    public interface ParserHeadersCompleteFunction {
+        public int call(String url,
+                        String[] headers,
+                        String method,
+                        int status,
+                        int httpVersionMajor,
+                        int httpVersionMinor,
+                        boolean shouldKeepAlive,
+                        boolean upgrade);
+    }
+
+    final ParserHeadersCompleteFunction onHeadersComplete;
     final ParserDataFunction onBody;
     final ParserFunction onMessageComplete;
     final ParserHeadersFunction onHeaders;
 
-    public ParserSettings(final ParserHeadersFunction onHeadersComplete,
+    public ParserSettings(final ParserHeadersCompleteFunction onHeadersComplete,
                           final ParserDataFunction onBody,
                           final ParserFunction onMessageComplete,
                           final ParserHeadersFunction onHeaders) {
@@ -57,16 +70,25 @@ public final class ParserSettings extends HttpParserSettings {
     }
 
     @Override
-    public int onHeadersComplete(String url, String[] headers) {
-        return onHeadersComplete.call(url, headers);
+    public int onHeadersComplete(String url,
+                                 String[] headers,
+                                 String method,
+                                 int status,
+                                 int httpVersionMajor,
+                                 int httpVersionMinor,
+                                 boolean shouldKeepAlive,
+                                 boolean upgrade) {
+        return onHeadersComplete.call(url, headers, method, status, httpVersionMajor, httpVersionMinor, shouldKeepAlive, upgrade);
     }
     @Override
-    public int onHeaders(String url, String[] headers) {
+    public int onHeaders(String url,
+                         String[] headers) {
         return onHeaders.call(url, headers);
     }
 
     @Override
-    public int onBody(int offset, int length) {
+    public int onBody(int offset,
+                      int length) {
         return onBody.call(offset, length);
     }
 

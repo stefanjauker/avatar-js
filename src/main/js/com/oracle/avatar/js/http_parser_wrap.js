@@ -37,38 +37,26 @@
 
     function HTTPParser(type) {
         this.reinitialize(type);
-        Object.defineProperty(this, 'minor', {
-            get : function() {
-                this._parser.minor()
-            }
-        });
-        Object.defineProperty(this, 'major', {
-            get : function() {
-                this._parser.major()
-            }
-        });
-
         var that = this;
-
         Object.defineProperty(this, '_settings', {
             value : new ParserSettings(
             // on_headers_complete
-            function(url, jheaders) {
+            function(url, jheaders, method, status, httpVersionMajor, httpVersionMinor, shouldKeepAlive, upgrade) {
                 var headers = Java.from(jheaders);
                 var info = {
                     headers : headers,
-                    versionMinor : that._parser.minor(),
-                    versionMajor : that._parser.major(),
-                    shouldKeepAlive : that._parser.shouldKeepAlive(),
-                    upgrade : that._parser.upgrade()
+                    versionMinor : httpVersionMinor,
+                    versionMajor : httpVersionMajor,
+                    shouldKeepAlive : shouldKeepAlive,
+                    upgrade : upgrade
                 };
 
                 if (that._type === HTTPParser.REQUEST) {
                     info.url = url;
-                    info.method = that._parser.method();
+                    info.method = method;
                 }
                 if (that._type === HTTPParser.RESPONSE) {
-                    info.statusCode = that._parser.statusCode();
+                    info.statusCode = status;
                 }
 
                 var response;
