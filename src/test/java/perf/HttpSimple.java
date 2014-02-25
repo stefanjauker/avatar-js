@@ -91,7 +91,7 @@ public class HttpSimple {
 
                             HttpParserSettings settings = new HttpParserSettings() {
                                 @Override
-                                public int onHeadersComplete(String url, String[] headers) {
+                                public int onHeaders(String url, String[] headers) {
                                     req.url = url;
                                     req.headers = headers;
                                     return 0;
