@@ -139,6 +139,7 @@ JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1setGid
  */
 JNIEXPORT jint JNICALL Java_com_oracle_avatar_js_os_Process__1umask
   (JNIEnv *env, jclass cls, jint mask) {
+
   return umask(static_cast<mode_t>(mask));
 }
 
@@ -149,6 +150,7 @@ JNIEXPORT jint JNICALL Java_com_oracle_avatar_js_os_Process__1umask
  */
 JNIEXPORT jint JNICALL Java_com_oracle_avatar_js_os_Process__1getUmask
   (JNIEnv *env, jclass cls) {
+
   unsigned int old = umask(0);
   umask((mode_t)old);
   return old;
@@ -167,21 +169,24 @@ JNIEXPORT jintArray JNICALL Java_com_oracle_avatar_js_os_Process__1getGroups
   (JNIEnv *env, jclass cls) {
 
   int ngroups = getgroups(0, NULL);
-
   if (ngroups == -1) {
     ThrowException(env, "getgroups");
+    return NULL;
   }
 
   gid_t* groups = new gid_t[ngroups];
-
   ngroups = getgroups(ngroups, groups);
-
   if (ngroups == -1) {
     delete[] groups;
     ThrowException(env, "getgroups");
+    return NULL;
   }
 
   jintArray array = env->NewIntArray(ngroups);
+  if (!array) {
+    return NULL;
+  }
+
   jint *arr = env->GetIntArrayElements(array, NULL);
   bool seen_egid = false;
   gid_t egid = getegid();
@@ -192,7 +197,6 @@ JNIEXPORT jintArray JNICALL Java_com_oracle_avatar_js_os_Process__1getGroups
   }
 
   env->ReleaseIntArrayElements(array, arr, 0);
-
   delete[] groups;
 
   if (seen_egid == false) {
@@ -201,7 +205,7 @@ JNIEXPORT jintArray JNICALL Java_com_oracle_avatar_js_os_Process__1getGroups
     jint *arr2 = env->GetIntArrayElements(array2, NULL);
     arr2[ngroups] = egid;
     env->ReleaseIntArrayElements(array2, arr2, 0);
-    delete array;
+    env->DeleteLocalRef(array);
     array = array2;
   }
 
@@ -253,18 +257,20 @@ JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1setGroups
 
   jsize size = env->GetArrayLength(array);
   gid_t* groups = new gid_t[size];
+
   for (size_t i = 0; i < (size_t)size; i++) {
     jstring str = (jstring) env->GetObjectArrayElement(array, i);
     const char *content = env->GetStringUTFChars(str, 0);
     gid_t gid = gid_by_name(content);
-
+    env->ReleaseStringUTFChars(str, content);
     if (gid == gid_not_found) {
       delete[] groups;
-      ThrowException(env, "getgrnam_r");
+      ThrowException(env, "gid_by_name");
+      return;
     }
-
     groups[i] = gid;
   }
+
   int rc = setgroups(size, groups);
   delete[] groups;
   if (rc == -1) {
@@ -284,16 +290,19 @@ JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1initGroups_1S_1S
   const char* g = env->GetStringUTFChars(group, 0);
 
   gid_t extra_group = gid_by_name(g);
-
   if (extra_group == gid_not_found) {
-    ThrowException(env, "getgrnam_r");
+    ThrowException(env, "gid_by_name");
+    env->ReleaseStringUTFChars(user, u);
+    env->ReleaseStringUTFChars(group, g);
+    return;
   }
 
   int rc = initgroups(u, extra_group);
-
   if (rc) {
     ThrowException(env, "initgroups");
   }
+  env->ReleaseStringUTFChars(user, u);
+  env->ReleaseStringUTFChars(group, g);
 }
 
 /*
@@ -303,14 +312,15 @@ JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1initGroups_1S_1S
  */
 JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1initGroups_1I_1I
   (JNIEnv *env, jclass cls, jint user, jint group) {
+
   gid_t extra_group = group;
   const char* u = name_by_uid(user);
   if (u == NULL) {
-    ThrowException(env, "getpwuid_r");
+    ThrowException(env, "name_by_uid");
+    return;
   }
 
   int rc = initgroups(u, extra_group);
-
   if (rc) {
     ThrowException(env, "initgroups");
   }
@@ -323,21 +333,24 @@ JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1initGroups_1I_1I
  */
 JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1initGroups_1I_1S
   (JNIEnv *env, jclass cls, jint user, jstring group) {
+
     const char* u = name_by_uid(user);
     if (u == NULL) {
-        ThrowException(env, "getpwuid_r");
+        ThrowException(env, "name_by_uid");
+        return;
     }
 
     const char* g = env->GetStringUTFChars(group, 0);
     gid_t extra_group = gid_by_name(g);
     if (extra_group == gid_not_found) {
-        ThrowException(env, "getgrnam_r");
+        ThrowException(env, "gid_by_name");
+        return;
     }
 
     int rc = initgroups(u, extra_group);
-
     if (rc) {
         ThrowException(env, "initgroups");
+        return;
     }
 }
 
@@ -348,13 +361,19 @@ JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1initGroups_1I_1S
  */
 JNIEXPORT void JNICALL Java_com_oracle_avatar_js_os_Process__1initGroups_1S_1I
   (JNIEnv *env, jclass cls, jstring user, jint group) {
+
     const char* u = env->GetStringUTFChars(user, 0);
+    if (u == NULL) {
+        ThrowException(env, "_initGroups_S_I");
+        env->ReleaseStringUTFChars(user, u);
+        return;
+    }
 
     int rc = initgroups(u, group);
-
     if (rc) {
         ThrowException(env, "initgroups");
     }
+    env->ReleaseStringUTFChars(user, u);
 }
 #endif
 
