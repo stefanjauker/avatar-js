@@ -137,6 +137,13 @@ public abstract class Loader {
     }
 
     /**
+     * Called to inform loader on success.
+     * @param id The module id.
+     */
+    public void loadSucceeded(final String id) {
+    }
+
+    /**
      * Returns a {@code URL} for the specified id.
      * @param id The id.
      * @return The {@code URL} or {@code null} if not found.

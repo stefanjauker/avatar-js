@@ -134,6 +134,7 @@ var gc = global.gc;
                 fn(that.exports, NativeModule.require, that, that.filename);
             }
         });
+        __avatar.loader.loadSucceeded(this.id);
         this.loaded = true;
     };
 
