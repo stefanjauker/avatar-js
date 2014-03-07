@@ -375,21 +375,36 @@ public final class Server {
         }
         if (unknownArg != null) {
             System.err.println("Error: unrecognized flag " + unknownArg + "\n" +
-                               "Try --help for options");
+                    "Try --help for options");
         }
     }
 
-    private Object eval(final String fileName, final URL url,
-            final ScriptContext context) throws FileNotFoundException, ScriptException {
+    private Object eval(final String fileName,
+                        final URL url,
+                        final ScriptContext context) throws FileNotFoundException, ScriptException {
+        return eval(fileName, url, engine, context);
+    }
+
+    public static Object eval(final String fileName,
+                              final URL url,
+                              final ScriptEngine scriptEngine,
+                              final ScriptContext context) throws FileNotFoundException, ScriptException {
         assert fileName != null;
+        assert scriptEngine != null;
+
         if (url == null) {
             throw new FileNotFoundException(fileName);
         }
-        assert bindings != null;
-        bindings.put(ScriptEngine.FILENAME, fileName);
-        return context == null ?
-            engine.eval(new URLReader(url)) :
-            engine.eval(new URLReader(url), context);
+
+        if (context == null) {
+            scriptEngine.put(ScriptEngine.FILENAME, fileName);
+            return scriptEngine.eval(new URLReader(url));
+        } else {
+            final Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+            assert bindings != null;
+            bindings.put(ScriptEngine.FILENAME, fileName);
+            return scriptEngine.eval(new URLReader(url), context);
+        }
     }
 
     public static ScriptEngine newEngine() {

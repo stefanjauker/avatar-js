@@ -92,28 +92,27 @@
         this._tty.readStop();
     }
 
-    TTY.prototype.writeBuffer = function(data) {
+    TTY.prototype.writeBuffer = function(req, data) {
         if (data._impl) data = data._impl; // unwrap if necessary
-        var wrapper = {bytes: data.underlying().capacity()};
-        this._writeWrappers.push(wrapper);
-        this._tty.write(data.underlying());
-        return wrapper;
+        req.bytes = data.underlying().capacity();
+        this._writeWrappers.push(req);
+        return this._tty.write(data.underlying());
     }
 
-    TTY.prototype._writeString = function(string, encoding) {
-        return this.writeBuffer(new JavaBuffer(string, encoding));
+    TTY.prototype._writeString = function(req, string, encoding) {
+        return this.writeBuffer(req, new JavaBuffer(string, encoding));
     }
 
-    TTY.prototype.writeUtf8String = function(string) {
-        return this._writeString(string, 'utf8');
+    TTY.prototype.writeUtf8String = function(req, string) {
+        return this._writeString(req, string, 'utf8');
     }
 
-    TTY.prototype.writeAsciiString = function(data) {
-        return this._writeString(data, 'ascii');
+    TTY.prototype.writeAsciiString = function(req, data) {
+        return this._writeString(req, data, 'ascii');
     }
 
-    TTY.prototype.writeUcs2String = function(data) {
-        return this._writeString(data, 'ucs2');
+    TTY.prototype.writeUcs2String = function(req, data) {
+        return this._writeString(req, data, 'ucs2');
     }
 
     TTY.prototype.close = function(callback) {

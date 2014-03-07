@@ -2,7 +2,7 @@
 
 <project name="avatar-js" default="build" basedir=".">
 
-    <property file="${user.home}/.avatar-js.properties"/>
+    <property file="${user.home}/.avatar-js-unstable.properties"/>
     <property file="${basedir}/project.properties"/>
     <import file="${avatar-js.home}/common.xml"/>
 

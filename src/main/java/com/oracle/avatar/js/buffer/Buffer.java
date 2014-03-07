@@ -313,6 +313,26 @@ public final class Buffer {
         }
     }
 
+    public void fillBytes(final byte[] source, final int start, final int end) {
+        final int length = source.length;
+        final byte[] data = new byte[end - start];
+        final int tocopy = Math.min(length, data.length);
+        System.arraycopy(source, start, data, 0, tocopy);
+        if (length >= data.length) {
+            return;
+        }
+        int copied = tocopy;
+        while (copied + tocopy < data.length) {
+            System.arraycopy(source, start, data, copied, tocopy);
+            copied += tocopy;
+        }
+        System.arraycopy(source, start, data, copied, Math.min(tocopy, data.length - copied));
+        final ByteBuffer dup = byteBuffer.duplicate();
+        dup.clear();
+        dup.position(start);
+        dup.put(data, 0, data.length);
+    }
+
     public int readInt8(final int off) {
         return byteBuffer.get(off);
     }
@@ -441,15 +461,17 @@ public final class Buffer {
         }
     }
 
-    public void writeInt8(final int value, final int off) {
+    public int writeInt8(final int value, final int off) {
         byteBuffer.put(off, (byte) value);
+        return off + 1;
     }
 
-    public void writeUInt8(final int value, final int off) {
+    public int writeUInt8(final int value, final int off) {
         byteBuffer.put(off, (byte) (value & 0xff));
+        return off + 1;
     }
 
-    public void writeInt16LE(final int value, final int off) {
+    public int writeInt16LE(final int value, final int off) {
         final ByteOrder obo = byteBuffer.order();
         try {
             byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -457,9 +479,10 @@ public final class Buffer {
         } finally {
             byteBuffer.order(obo);
         }
+        return off + 2;
     }
 
-    public void writeUInt16LE(final int value, final int off) {
+    public int writeUInt16LE(final int value, final int off) {
         final ByteOrder obo = byteBuffer.order();
         try {
             byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -467,9 +490,10 @@ public final class Buffer {
         } finally {
             byteBuffer.order(obo);
         }
+        return off + 2;
     }
 
-    public void writeInt16BE(final int value, final int off) {
+    public int writeInt16BE(final int value, final int off) {
         final ByteOrder obo = byteBuffer.order();
         try {
             byteBuffer.order(ByteOrder.BIG_ENDIAN);
@@ -477,9 +501,10 @@ public final class Buffer {
         } finally {
             byteBuffer.order(obo);
         }
+        return off + 2;
     }
 
-    public void writeUInt16BE(final int value, final int off) {
+    public int writeUInt16BE(final int value, final int off) {
         final ByteOrder obo = byteBuffer.order();
         try {
             byteBuffer.order(ByteOrder.BIG_ENDIAN);
@@ -487,9 +512,10 @@ public final class Buffer {
         } finally {
             byteBuffer.order(obo);
         }
+        return off + 2;
     }
 
-    public void writeInt32LE(final long value, final int off) {
+    public int writeInt32LE(final long value, final int off) {
         final ByteOrder obo = byteBuffer.order();
         try {
             byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -497,9 +523,10 @@ public final class Buffer {
         } finally {
             byteBuffer.order(obo);
         }
+        return off + 4;
     }
 
-    public void writeUInt32LE(final long value, final int off) {
+    public int writeUInt32LE(final long value, final int off) {
         final ByteOrder obo = byteBuffer.order();
         try {
             byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -507,9 +534,10 @@ public final class Buffer {
         } finally {
             byteBuffer.order(obo);
         }
+        return off + 4;
     }
 
-    public void writeInt32BE(final long value, final int off) {
+    public int writeInt32BE(final long value, final int off) {
         final ByteOrder obo = byteBuffer.order();
         try {
             byteBuffer.order(ByteOrder.BIG_ENDIAN);
@@ -517,9 +545,10 @@ public final class Buffer {
         } finally {
             byteBuffer.order(obo);
         }
+        return off + 4;
     }
 
-    public void writeUInt32BE(final long value, final int off) {
+    public int writeUInt32BE(final long value, final int off) {
         final ByteOrder obo = byteBuffer.order();
         try {
             byteBuffer.order(ByteOrder.BIG_ENDIAN);
@@ -527,9 +556,10 @@ public final class Buffer {
         } finally {
             byteBuffer.order(obo);
         }
+        return off + 4;
     }
 
-    public void writeFloatLE(final float value, final int off) {
+    public int writeFloatLE(final float value, final int off) {
         final ByteOrder obo = byteBuffer.order();
         try {
             byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -537,9 +567,10 @@ public final class Buffer {
         } finally {
             byteBuffer.order(obo);
         }
+        return off + 4;
     }
 
-    public void writeFloatBE(final float value, final int off) {
+    public int writeFloatBE(final float value, final int off) {
         final ByteOrder obo = byteBuffer.order();
         try {
             byteBuffer.order(ByteOrder.BIG_ENDIAN);
@@ -547,9 +578,10 @@ public final class Buffer {
         } finally {
             byteBuffer.order(obo);
         }
+        return off + 4;
     }
 
-    public void writeDoubleLE(final double value, final int off) {
+    public int writeDoubleLE(final double value, final int off) {
         final ByteOrder obo = byteBuffer.order();
         try {
             byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -557,9 +589,10 @@ public final class Buffer {
         } finally {
             byteBuffer.order(obo);
         }
+        return off + 8;
     }
 
-    public void writeDoubleBE(final double value, final int off) {
+    public int writeDoubleBE(final double value, final int off) {
         final ByteOrder obo = byteBuffer.order();
         try {
             byteBuffer.order(ByteOrder.BIG_ENDIAN);
@@ -567,6 +600,7 @@ public final class Buffer {
         } finally {
             byteBuffer.order(obo);
         }
+        return off + 8;
     }
 
     public String inspect(final int maxBytes, final boolean slow) {

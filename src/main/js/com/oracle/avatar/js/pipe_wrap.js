@@ -223,7 +223,7 @@
         this._pipe.readStop();
     }
 
-    Pipe.prototype.writeUtf8String = function(message, handle) {
+    Pipe.prototype.writeUtf8String = function(req, message, handle) {
         if (handle) {
             var send_handle;
             if (handle instanceof net.Socket ||
@@ -237,32 +237,30 @@
                 send_handle = handle._udp;
             }
             var buffer  = new JavaBuffer(message, 'utf8');
-            var wrapper = {bytes: buffer.array().length};
-            this._writeWrappers.push(wrapper);
-            this._pipe.write2(buffer.toStringContent(), send_handle);
-            return wrapper;
+            req.bytes = buffer.array().length;
+            this._writeWrappers.push(req);
+            return this._pipe.write2(buffer.toStringContent(), send_handle);
         }
-        return this._writeString(message, 'utf8');
+        return this._writeString(req, message, 'utf8');
      }
 
-    Pipe.prototype.writeBuffer = function(message) {
+    Pipe.prototype.writeBuffer = function(req, message) {
         if (message._impl) message = message._impl; // unwrap if necessary
-        var wrapper = {bytes: message.underlying().capacity()};
-        this._writeWrappers.push(wrapper);
-        this._pipe.write(message.underlying());
-        return wrapper;
+        req.bytes = message.underlying().capacity();
+        this._writeWrappers.push(req);
+        return this._pipe.write(message.underlying());
     }
 
-    Pipe.prototype._writeString = function(string, encoding) {
-        return this.writeBuffer(new JavaBuffer(string, encoding));
+    Pipe.prototype._writeString = function(req, string, encoding) {
+        return this.writeBuffer(req, new JavaBuffer(string, encoding));
     }
 
-    Pipe.prototype.writeAsciiString = function(data) {
-        return this._writeString(data, 'ascii');
+    Pipe.prototype.writeAsciiString = function(req, data) {
+        return this._writeString(req, data, 'ascii');
     }
 
-    Pipe.prototype.writeUcs2String = function(data) {
-        return this._writeString(data, 'ucs2');
+    Pipe.prototype.writeUcs2String = function(req, data) {
+        return this._writeString(req, data, 'ucs2');
     }
 
     Pipe.prototype.close = function(callback) {

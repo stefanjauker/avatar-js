@@ -48,67 +48,49 @@ var assert = require('assert');
 var JavaBuffer = Packages.com.oracle.avatar.js.buffer.Buffer;
 var setIndexedPropertiesToExternalArrayData = Object.setIndexedPropertiesToExternalArrayData;
 
-function Buffer(subject, encoding, offset) {
+function Buffer(subject, encoding) {
 
     if (!(this instanceof Buffer)) {
         return new Buffer(subject, encoding);
     }
 
-    // Are we slicing?
-    if (typeof offset === 'number') {
-        if (!Buffer.isBuffer(subject)) {
-            throw new TypeError('First argument must be a Buffer when slicing');
-        }
-        var start = +encoding > 0 ? Math.ceil(encoding) : 0;
-        var end = offset;
-        if (offset < 0) { // from end of subject
-            end = subject._impl.capacity() + offset;
-        }
-        if (end <= 0) {
-            throw new RangeError("Invalid slice end " + end);
-        }
-        this._impl = subject._impl.slice(start, end);
-    } else {
-        // Find the length
-        switch (typeof subject) {
-            case 'number':
-                var size = +subject > 0 ? Math.ceil(subject) : 0;
-                if (size < 0) {
-                    throw new TypeError('Buffer size negative (' + size + ')');
-                } else if (size > java.lang.Integer.MAX_VALUE && size <= 0xffffffff) {
-                    throw new RangeError('Buffer size too large for signed integer (' + size + ')');
-                } else if (size > 0xffffffff) {
-                    throw new TypeError('Buffer size too large (' + size + ')');
-                }
-                this._impl = new JavaBuffer(size);
-                break;
+    switch (typeof subject) {
+        case 'number':
+            var size = subject > 0 ? subject >>> 0 : 0;
+            if (size < 0) {
+                throw new TypeError('Buffer size negative (' + size + ')');
+            } else if (size > java.lang.Integer.MAX_VALUE && size <= 0xffffffff) {
+                throw new RangeError('Buffer size too large for signed integer (' + size + ')');
+            } else if (size > 0xffffffff) {
+                throw new TypeError('Buffer size too large (' + size + ')');
+            }
+            this._impl = new JavaBuffer(size);
+            break;
 
-            case 'string':
-                if (typeof encoding != 'undefined' && typeof encoding != 'string') {
-                    throw new TypeError('invalid encoding: ' + encoding);
-                }
-                this._impl = new JavaBuffer(subject, Buffer._javaEncoding(encoding));
-                break;
+        case 'string':
+            if (typeof encoding != 'undefined' && typeof encoding != 'string') {
+                throw new TypeError('invalid encoding: ' + encoding);
+            }
+            this._impl = new JavaBuffer(subject, Buffer._javaEncoding(encoding));
+            break;
 
-            case 'object':
-                if (subject.length == undefined) {
-                    // this is a Java Buffer from slice()
-                    this._impl = subject;
-                } else { // subject is an array or a Buffer
-                    // round up and truncate to integer if fractional
-                    var len = +subject.length > 0 ? Math.ceil(subject.length) : 0;
-                    var a = java.lang.reflect.Array.newInstance(java.lang.Double.class, len);
-                    for (var i=0; i < len; i++) {
-                        a[i] = subject[i];
-                    }
-                    this._impl = new JavaBuffer(a);
+        case 'object':
+            if (subject.length == undefined) {
+                // this is a Java Buffer from slice()
+                this._impl = subject;
+            } else { // subject is an array or a Buffer
+                // round up and truncate to integer if fractional
+                var len = +subject.length > 0 ? Math.floor(+subject.length) : 0;
+                var a = java.lang.reflect.Array.newInstance(java.lang.Double.class, len);
+                for (var i=0; i < len; i++) {
+                    a[i] = subject[i];
                 }
-                break;
+                this._impl = new JavaBuffer(a);
+            }
+            break;
 
-            default:
-                throw new TypeError('First argument needs to be a number, ' +
-                    'array or string.');
-        }
+        default:
+            throw new TypeError('First argument needs to be a number, buffer, array or string.');
     }
 
     if (setIndexedPropertiesToExternalArrayData) {
@@ -263,16 +245,11 @@ Buffer.prototype.write = function(string, offset, length, encoding) {
     }
     var capacity = this._impl.capacity();
     var off = offset || 0;
-    var len = length == undefined || isNaN(length) ? capacity - off : length;
 
     var remaining = capacity - off;
-    var len = length == undefined || isNaN(length) ? remaining : length;
-    if (len > remaining) {
-        len = remaining;
-    }
-
-    if (string.length > 0 && (len < 0 || off < 0)) {
-        throw new RangeError('attempt to write beyond buffer bounds');
+    var len = length == undefined || isNaN(length) || len > remaining ? remaining : length;
+    if (len < 0 || off < 0) {
+        throw new RangeError('attempt to write outside buffer bounds');
     }
 
     if (off >= capacity) {
@@ -290,31 +267,28 @@ Buffer.prototype.copy = function(targetBuffer, targetStart, sourceStart, sourceE
     var ts = targetStart || 0;
     var ss = sourceStart || 0;
     var se = sourceEnd == undefined ? len : sourceEnd;
+
     if (se - ss == 0) {
         return 0;
     }
-
-    if (ss < 0) {
-        ss = 0;
-    }
-
     if (se > len) {
         se = len;
     }
-
-    if (se < ss) {
-        throw new RangeError('sourceEnd < sourceStart');
-    }
-    if (ts < 0 || ts >= targetBuffer.length) {
+    if (ts < 0) {
         throw new RangeError('targetStart out of bounds');
     }
-    if (ss < 0 || ss >= se || ss >= len) {
+    if (ss < 0 || ss >= len) {
         throw new RangeError('sourceStart out of bounds');
     }
-    if (se > len) {
+    if (se < 0 || se > len) {
         throw new RangeError('sourceEnd out of bounds');
     }
-
+    if (se <= ss) {
+        return 0;
+    }
+    if (ts >= targetBuffer.length) {
+        return 0;
+    }
     if (targetBuffer.length - ts < se - ss) {
         se = targetBuffer.length - ts + ss;
     }
@@ -372,12 +346,28 @@ Buffer.prototype.fill = function(value, start, end) {
     var capacity = this._impl.capacity();
     var off = start || 0;
     var endpos = end == undefined ? capacity : (end > capacity ? capacity : end);
-    if (typeof value == 'string') {
-        value = value.charCodeAt(0);
-    } else if (!(typeof value == 'number') || isNaN(value)) {
-        throw new Error('value is not a number');
+
+    var type = typeof value;
+    if (type == 'number') {
+        this._impl.fill(value, off, endpos);
+    } else if (type == 'string') {
+        var len = value.length;
+        if (len == 1) {
+            var charCode = value.codePointAt(0);
+            if (charCode < 0xff) { // optimize for single byte
+                this._impl.fill(charCode, off, endpos);
+            } else {
+                this._impl.fillBytes(value.getBytes("utf-8"), off, endpos);
+            }
+        } else {
+            this._impl.fillBytes(value.getBytes("utf-8"), off, endpos);
+        }
+    } else {
+        throw new Error('value is not a number or string');
     }
-    this._impl.fill(value, off, endpos);
+}
+
+Buffer.prototype.toArrayBuffer = function() {
 }
 
 Buffer.concat = function(list, length) {
@@ -512,14 +502,14 @@ Buffer.prototype.writeInt8 = function(value, offset, noAssert) {
         checkInt(this, value, offset, 1, 0x7f, -0x80);
     }
     if (value < 0) value = 0xff + value + 1;
-    this._impl.writeInt8(value, offset);
+    return this._impl.writeInt8(value, offset);
 }
 
 Buffer.prototype.writeUInt8 = function(value, offset, noAssert) {
     if (!noAssert) {
         checkInt(this, value, offset, 1, 0xff, 0);
     }
-    this._impl.writeUInt8(value, offset);
+    return this._impl.writeUInt8(value, offset);
 }
 
 Buffer.prototype.writeInt16LE = function(value, offset, noAssert) {
@@ -527,14 +517,14 @@ Buffer.prototype.writeInt16LE = function(value, offset, noAssert) {
         checkInt(this, value, offset, 2, 0x7fff, -0x8000);
     }
     if (value < 0) value = 0xffff + value + 1;
-    this._impl.writeInt16LE(value, offset);
+    return this._impl.writeInt16LE(value, offset);
 }
 
 Buffer.prototype.writeUInt16LE = function(value, offset, noAssert) {
     if (!noAssert) {
         checkInt(this, value, offset, 2, 0xffff, 0);
     }
-    this._impl.writeUInt16LE(value, offset);
+    return this._impl.writeUInt16LE(value, offset);
 }
 
 Buffer.prototype.writeInt16BE = function(value, offset, noAssert) {
@@ -542,14 +532,14 @@ Buffer.prototype.writeInt16BE = function(value, offset, noAssert) {
         checkInt(this, value, offset, 2, 0x7fff, -0x8000);
     }
     if (value < 0) value = 0xffff + value + 1;
-    this._impl.writeInt16BE(value, offset);
+    return this._impl.writeInt16BE(value, offset);
 }
 
 Buffer.prototype.writeUInt16BE = function(value, offset, noAssert) {
     if (!noAssert) {
         checkInt(this, value, offset, 2, 0xffff, 0);
     }
-    this._impl.writeUInt16BE(value, offset);
+    return this._impl.writeUInt16BE(value, offset);
 }
 
 Buffer.prototype.writeInt32LE = function(value, offset, noAssert) {
@@ -557,14 +547,14 @@ Buffer.prototype.writeInt32LE = function(value, offset, noAssert) {
         checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
     }
     if (value < 0) value = 0xffffffff + value + 1;
-    this._impl.writeInt32LE(value, offset);
+    return this._impl.writeInt32LE(value, offset);
 }
 
 Buffer.prototype.writeUInt32LE = function(value, offset, noAssert) {
     if (!noAssert) {
         checkInt(this, value, offset, 4, 0xffffffff, 0);
     }
-    this._impl.writeUInt32LE(value, offset);
+    return this._impl.writeUInt32LE(value, offset);
 }
 
 Buffer.prototype.writeInt32BE = function(value, offset, noAssert) {
@@ -572,42 +562,42 @@ Buffer.prototype.writeInt32BE = function(value, offset, noAssert) {
         checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
     }
     if (value < 0) value = 0xffffffff + value + 1;
-    this._impl.writeInt32BE(value, offset);
+    return this._impl.writeInt32BE(value, offset);
 }
 
 Buffer.prototype.writeUInt32BE = function(value, offset, noAssert) {
     if (!noAssert) {
         checkInt(this, value, offset, 4, 0xffffffff, 0);
     }
-    this._impl.writeUInt32BE(value, offset);
+    return this._impl.writeUInt32BE(value, offset);
 }
 
 Buffer.prototype.writeFloatLE = function(value, offset, noAssert) {
     if (!noAssert) {
         checkOffset(offset, 4, this._impl.capacity());
     }
-    this._impl.writeFloatLE(value, offset);
+    return this._impl.writeFloatLE(value, offset);
 }
 
 Buffer.prototype.writeFloatBE = function(value, offset, noAssert) {
     if (!noAssert) {
         checkOffset(offset, 4, this._impl.capacity());
     }
-    this._impl.writeFloatBE(value, offset);
+    return this._impl.writeFloatBE(value, offset);
 }
 
 Buffer.prototype.writeDoubleLE = function(value, offset, noAssert) {
     if (!noAssert) {
         checkOffset(offset, 8, this._impl.capacity());
     }
-    this._impl.writeDoubleLE(value, offset);
+    return this._impl.writeDoubleLE(value, offset);
 }
 
 Buffer.prototype.writeDoubleBE = function(value, offset, noAssert) {
     if (!noAssert) {
         checkOffset(offset, 8, this._impl.capacity());
     }
-    this._impl.writeDoubleBE(value, offset);
+    return this._impl.writeDoubleBE(value, offset);
 }
 
 var INSPECT_MAX_BYTES = 50;

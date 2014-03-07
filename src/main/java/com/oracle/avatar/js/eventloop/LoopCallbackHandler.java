@@ -371,10 +371,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleProcessExitCallback(ProcessExitCallback cb, int status, int signal, Exception error) {
+    public void handleProcessExitCallback(ProcessExitCallback cb, long status, int signal) {
         try {
             if (shouldCall()) {
-                cb.onExit(status, signal, error);
+                cb.onExit(status, signal);
                 post();
             }
         } catch (Exception ex) {
