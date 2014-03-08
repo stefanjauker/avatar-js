@@ -64,11 +64,11 @@
             if (byteBuffer) {
                process._errno = undefined;
                var data = new Buffer(new JavaBuffer(byteBuffer));
-               that.onread(data, 0, data.length);
+               that.onread(data.length, data, 0);
             } else {
                 var errno = 'EOF';
                 process._errno = errno;
-                that.onread(undefined, 0, 0);
+                that.onread(0, undefined, 0);
             }
         }
 
@@ -87,7 +87,7 @@
                         }
                     }, avatarContext, LibUVPermission.HANDLE);
                    var p = new Pipe(true, pipeHandle);
-                   that.onread(data, 0, data.length, p);
+                   that.onread(data.length, data, 0, p);
                } else if (type == UV_TCP) {
                    var socket = AccessController.doPrivileged(new PrivilegedAction() {
                         run: function() {
@@ -96,7 +96,7 @@
                     }, avatarContext, LibUVPermission.HANDLE);
                    var tcp = new TCP(socket);
                    tcp._connected = true;
-                   that.onread(data, 0, data.length, tcp);
+                   that.onread(data.length, data, 0, tcp);
                } else if (type == UV_UDP) {
                    var datagram = AccessController.doPrivileged(new PrivilegedAction() {
                         run: function() {
@@ -104,14 +104,14 @@
                         }
                     }, avatarContext, LibUVPermission.HANDLE);
                    var udp = new UDP(datagram);
-                   that.onread(data, 0, data.length, udp);
+                   that.onread(data.length, data, 0, udp);
                } else {
-                   that.onread(data, 0, data.length);
+                   that.onread(data.length, data, 0);
                }
             } else {
                 var errno = 'EOF';
                 process._errno = errno;
-                that.onread(undefined, 0, 0);
+                that.onread(0, undefined, 0);
             }
         }
 
