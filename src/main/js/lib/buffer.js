@@ -354,7 +354,7 @@ Buffer.prototype.fill = function(value, start, end) {
         var len = value.length;
         if (len == 1) {
             var charCode = value.codePointAt(0);
-            if (charCode < 0xff) { // optimize for single byte
+            if (charCode <= 0xff) { // optimize for single byte
                 this._impl.fill(charCode, off, endpos);
             } else {
                 this._impl.fillBytes(value.getBytes("utf-8"), off, endpos);
@@ -368,6 +368,7 @@ Buffer.prototype.fill = function(value, start, end) {
 }
 
 Buffer.prototype.toArrayBuffer = function() {
+    // TODO https://bugs.openjdk.java.net/browse/JDK-8036743
 }
 
 Buffer.concat = function(list, length) {
