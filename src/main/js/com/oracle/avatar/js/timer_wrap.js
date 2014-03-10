@@ -103,6 +103,10 @@
         }
     }
 
+    Timer.now = function() {
+        return loop.updateTime(); // also returns value of now()
+    }
+
     exports.Timer = Timer;
 
 });
