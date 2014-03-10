@@ -297,13 +297,13 @@ Buffer.prototype.copy = function(targetBuffer, targetStart, sourceStart, sourceE
 }
 
 Buffer.prototype.toJSON = function() {
-    var js = [];
+    var js = {type:'Buffer', data:[]};
     var impl = this._impl;
     impl.rewind();
     var length = impl.remaining();
     impl.mark();
     for (var i=0; i < length; i++) {
-        js.push(impl.getByteAt(i));
+        js.data.push(impl.getByteAt(i));
     }
     impl.reset();
     return js;
@@ -365,6 +365,7 @@ Buffer.prototype.fill = function(value, start, end) {
     } else {
         throw new Error('value is not a number or string');
     }
+    return this;
 }
 
 Buffer.prototype.toArrayBuffer = function() {
