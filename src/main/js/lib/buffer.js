@@ -45,6 +45,8 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 var assert = require('assert');
+var smalloc = require('smalloc');
+
 var JavaBuffer = Packages.com.oracle.avatar.js.buffer.Buffer;
 var setIndexedPropertiesToExternalArrayData = Object.setIndexedPropertiesToExternalArrayData;
 
@@ -61,8 +63,8 @@ function Buffer(subject, encoding) {
                 throw new TypeError('Buffer size negative (' + size + ')');
             } else if (size > java.lang.Integer.MAX_VALUE && size <= 0xffffffff) {
                 throw new RangeError('Buffer size too large for signed integer (' + size + ')');
-            } else if (size > 0xffffffff) {
-                throw new TypeError('Buffer size too large (' + size + ')');
+            } else if (size > smalloc.kMaxLength) {
+                throw new RangeError('Buffer size too large (' + size + ')');
             }
             this._impl = new JavaBuffer(size);
             break;

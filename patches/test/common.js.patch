@@ -1,6 +1,6 @@
---- ../node/test/common.js	2013-08-22 13:48:54.000000000 +0200
-+++ test/common.js	2013-09-20 09:37:44.000000000 +0200
-@@ -55,7 +55,7 @@
+--- ../node/test/common.js	2014-03-12 11:18:16 -0700
++++ test/common.js	2014-03-12 13:52:56 -0700
+@@ -60,7 +60,7 @@
  exports.ddCommand = function(filename, kilobytes) {
    if (process.platform === 'win32') {
      var p = path.resolve(exports.fixturesDir, 'create-file.js');
@@ -9,19 +9,20 @@
             filename + '" ' + (kilobytes * 1024);
    } else {
      return 'dd if=/dev/zero of="' + filename + '" bs=1024 count=' + kilobytes;
-@@ -135,7 +135,8 @@
-     knownGlobals.push(Uint32Array);
-     knownGlobals.push(Float32Array);
-     knownGlobals.push(Float64Array);
--    knownGlobals.push(DataView);
-+    //nashorn https://jbs.oracle.com/bugs/browse/JDK-8015958
-+    //knownGlobals.push(DataView);
-   }
+@@ -125,6 +125,10 @@
+   knownGlobals.push(COUNTER_HTTP_CLIENT_RESPONSE);
+ }
  
-   for (var x in global) {
-@@ -198,3 +199,12 @@
-     return fn.apply(this, arguments);
-   };
++// ArrayBuffer is not fully implemented in nashorn (as of jdk8)
++// https://bugs.openjdk.java.net/browse/JDK-8015958
++// https://bugs.openjdk.java.net/browse/JDK-8036743
++global.ArrayBuffer = undefined;
+ if (global.ArrayBuffer) {
+   knownGlobals.push(ArrayBuffer);
+   knownGlobals.push(Int8Array);
+@@ -219,3 +223,12 @@
+   assert.strictEqual(ret.status, 0);
+   assert.strictEqual(ret.error, undefined);
  };
 +
 +exports.isIPv6Enabled = true;

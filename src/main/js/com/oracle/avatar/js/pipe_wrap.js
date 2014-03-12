@@ -60,19 +60,7 @@
             }
         }, avatarContext, LibUVPermission.HANDLE);
 
-        this._pipe.readCallback = function(byteBuffer) {
-            if (byteBuffer) {
-               process._errno = undefined;
-               var data = new Buffer(new JavaBuffer(byteBuffer));
-               that.onread(data.length, data, 0);
-            } else {
-                var errno = 'EOF';
-                process._errno = errno;
-                that.onread(0, undefined, 0);
-            }
-        }
-
-        this._pipe.read2Callback = function(byteBuffer, handle, type) {
+        this._pipe.readCallback = function(byteBuffer, handle, type) {
             if (byteBuffer) {
                process._errno = undefined;
                var data = new Buffer(new JavaBuffer(byteBuffer));
@@ -261,6 +249,10 @@
 
     Pipe.prototype.writeUcs2String = function(req, data) {
         return this._writeString(req, data, 'ucs2');
+    }
+
+    Pipe.prototype.setBlocking = function(blocking) {
+        return this._pipe.setBlocking(blocking);
     }
 
     Pipe.prototype.close = function(callback) {

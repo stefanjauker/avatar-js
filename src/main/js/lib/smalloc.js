@@ -23,8 +23,4 @@
  * questions.
  */
 
-(function(exports) {
-
-    exports.kMaxLength = 0x3FFFFFFF; // max buffer size, see fs.js
-
-});
+exports.kMaxLength = 0x3FFFFFFF; // max buffer size, see fs.js

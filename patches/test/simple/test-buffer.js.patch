@@ -1,6 +1,6 @@
---- ../node/test/simple/test-buffer.js	2014-03-07 14:04:54 -0800
-+++ test/simple/test-buffer.js	2014-03-10 16:32:12 -0700
-@@ -276,15 +276,15 @@
+--- ../node/test/simple/test-buffer.js	2014-03-12 11:18:16 -0700
++++ test/simple/test-buffer.js	2014-03-12 14:11:27 -0700
+@@ -277,15 +277,15 @@
  var b = new Buffer(5);
  var c = b.slice(0, 4);
  var d = c.slice(0, 2);
@@ -20,7 +20,7 @@
  
  
  
-@@ -953,7 +953,7 @@
+@@ -954,7 +954,7 @@
    // make sure a zero length slice doesn't set the .parent attribute
    assert.equal(Buffer(5).slice(0,0).parent, undefined);
    // and make sure a proper slice does have a parent
@@ -29,24 +29,21 @@
  })();
  
  // Make sure byteLength properly checks for base64 padding
-@@ -985,11 +985,12 @@
+@@ -983,6 +983,8 @@
+   }
+ })();
+ 
++// TODO https://bugs.openjdk.java.net/browse/JDK-8036743
++/*
  // Test Buffers to ArrayBuffers
  var b = new Buffer(5).fill('abcdf');
  var c = b.toArrayBuffer();
--assert.equal(c.byteLength, 5);
--assert.equal(Object.prototype.toString.call(c), '[object ArrayBuffer]');
--var d = new Uint8Array(c);
--for (var i = 0; i < 5; i++)
--  assert.equal(d[i], b[i]);
--b.fill('ghijk');
--for (var i = 0; i < 5; i++)
--  assert.notEqual(d[i], b[i]);
-+// TODO https://bugs.openjdk.java.net/browse/JDK-8036743
-+// assert.equal(c.byteLength, 5);
-+// assert.equal(Object.prototype.toString.call(c), '[object ArrayBuffer]');
-+// var d = new Uint8Array(c);
-+// for (var i = 0; i < 5; i++)
-+//   assert.equal(d[i], b[i]);
-+// b.fill('ghijk');
-+// for (var i = 0; i < 5; i++)
-+//   assert.notEqual(d[i], b[i]);
+@@ -994,7 +996,7 @@
+ b.fill('ghijk');
+ for (var i = 0; i < 5; i++)
+   assert.notEqual(d[i], b[i]);
+-
++*/
+ 
+ assert.throws(function () {
+   new Buffer(smalloc.kMaxLength + 1);
