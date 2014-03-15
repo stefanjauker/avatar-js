@@ -183,6 +183,7 @@ public final class Server {
         if (eventLoop.stopped()) {
             return;
         }
+
         final SystemScriptRunner processScriptRunner = new ProcessScriptRunner();
         final SystemScriptRunner nodeScriptRunner = new NodeScriptRunner();
 
@@ -205,12 +206,14 @@ public final class Server {
         if (eventLoop.stopped()) {
             return;
         }
+
+        final Object global = engine.eval("this");
         final SystemScriptRunner finalScriptRunner = new FinalScriptRunner();
         final Object finalReturn = finalScriptRunner.run(context);
         assert finalReturn  != null && finalReturn instanceof ScriptObjectMirror;
         final ScriptObjectMirror finalMirror = (ScriptObjectMirror) finalReturn;
         assert finalMirror.isFunction();
-        finalMirror.call(null);
+        finalMirror.call(global);
     }
 
     private void runUserScripts() throws Throwable {
@@ -599,7 +602,6 @@ public final class Server {
          * targeted for Java code.
          */
         public Object require(String moduleName) throws Exception {
-          //  System.err.println("require " + moduleName +", nativeModule "+nativeModule);
             return invocable.invokeMethod(nativeModule, "require", moduleName);
         }
     }
