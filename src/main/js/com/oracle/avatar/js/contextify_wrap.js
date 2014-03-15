@@ -28,7 +28,6 @@
     var Server = Packages.com.oracle.avatar.js.Server;
 
     function ContextifyScript(code, options) {
-        print('contextify code: ' + code + ', options: ' + JSON.stringify(options));
         this._code = code;
         this._filename = options.filename;
     }
@@ -36,7 +35,6 @@
     exports.ContextifyScript = ContextifyScript;
 
     ContextifyScript.prototype.runInThisContext = function(options) {
-        print('contextify.runInThisContext options: ' + JSON.stringify(options));
        if (this._code == null) {
            return load(__avatar.loader.wrapURL(this._filename));
        } else {

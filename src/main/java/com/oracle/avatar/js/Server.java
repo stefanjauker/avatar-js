@@ -35,6 +35,8 @@ import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -49,6 +51,8 @@ import com.oracle.avatar.js.eventloop.ThreadPool;
 import com.oracle.avatar.js.log.Logger;
 import com.oracle.avatar.js.log.Logging;
 import com.oracle.libuv.LibUV;
+
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.api.scripting.URLReader;
 
 /**
@@ -69,14 +73,6 @@ public final class Server {
             "  --no-deprecation     silence deprecation warnings\n" +
             "  --trace-deprecation  trace deprecation warnings\n" +
             "\n";
-
-    private final SystemScriptRunner[] SYSTEM_INIT_SCRIPTS = {
-            new InitScriptRunner()
-    };
-
-    private final SystemScriptRunner[] SYSTEM_FINALIZATION_SCRIPTS = {
-            new FinalScriptRunner()
-    };
 
     private static final String ENGINE_NAME = System.getProperty("avatar.scriptEngine", "nashorn");
     private static final ScriptEngineManager MANAGER = new ScriptEngineManager();
@@ -136,10 +132,11 @@ public final class Server {
                   final int instanceNumber,
                   final ThreadPool executor,
                   final boolean sharedExecutor) throws Exception {
-        this.engine = engine;
-        this.context = context;
+        this.engine = Objects.requireNonNull(engine);
+        Objects.requireNonNull(loader);
+        this.context = Objects.requireNonNull(context);
         this.bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
-        this.logging = logging;
+        this.logging = Objects.requireNonNull(logging);
         this.log = logging.getDefault(); // server-wide log
         version = loader.getBuildProperty(VERSION_BUILD_PROPERTY);
         assert version != null;
@@ -182,18 +179,44 @@ public final class Server {
         eventLoop.stop();
     }
 
-    private void runSystemScript(final SystemScriptRunner... scripts) throws FileNotFoundException, ScriptException {
-        if (!eventLoop.stopped()) {
-            for (final SystemScriptRunner scriptRunner : scripts) {
-                log.log("loading system script " + scriptRunner.script);
-                scriptRunner.run(context);
-            }
+    private void runSystemInitScripts() throws FileNotFoundException, ScriptException {
+        if (eventLoop.stopped()) {
+            return;
         }
+        final SystemScriptRunner processScriptRunner = new ProcessScriptRunner();
+        final SystemScriptRunner nodeScriptRunner = new NodeScriptRunner();
+
+        final Object global = engine.eval("this");
+
+        final Object processReturn = processScriptRunner.run(context);
+        assert processReturn != null && processReturn instanceof ScriptObjectMirror;
+        final ScriptObjectMirror processMirror = (ScriptObjectMirror) processReturn;
+        assert processMirror.isFunction();
+        processMirror.call(global, processMirror);
+
+        final Object nodeReturn = nodeScriptRunner.run(context);
+        assert nodeReturn != null && nodeReturn instanceof ScriptObjectMirror;
+        final ScriptObjectMirror nodeMirror = (ScriptObjectMirror) nodeReturn;
+        assert nodeMirror.isFunction();
+        nodeMirror.call(global, processMirror);
+    }
+
+    private void runSystemFinalScripts() throws FileNotFoundException, ScriptException {
+        if (eventLoop.stopped()) {
+            return;
+        }
+        final SystemScriptRunner finalScriptRunner = new FinalScriptRunner();
+        final Object finalReturn = finalScriptRunner.run(context);
+        assert finalReturn  != null && finalReturn instanceof ScriptObjectMirror;
+        final ScriptObjectMirror finalMirror = (ScriptObjectMirror) finalReturn;
+        assert finalMirror.isFunction();
+        finalMirror.call(null);
     }
 
     private void runUserScripts() throws Throwable {
         assert userFile != null;
 
+        log.log("loading user script " + userFile);
         final String[] userFiles = {userFile};
         runEventLoop(avatarArgs.toArray(new String[avatarArgs.size()]),
                      userArgs.toArray(new String[userArgs.size()]),
@@ -221,7 +244,7 @@ public final class Server {
         holder.setArgs(avatarArgs, userArgs, userFiles);
 
         try {
-            runSystemScript(SYSTEM_INIT_SCRIPTS);
+            runSystemInitScripts();
         } catch (Throwable ex) {
             if (!eventLoop.handleCallbackException(ex)) {
                 rootCause = ex;
@@ -231,7 +254,7 @@ public final class Server {
             if (rootCause != null) {
                 try {
                     // emit the process.exit event
-                    runSystemScript(SYSTEM_FINALIZATION_SCRIPTS);
+                    runSystemFinalScripts();
                 } catch (Throwable ex) {
                     if (!eventLoop.handleCallbackException(ex)) {
                         rootCause.addSuppressed(ex);
@@ -258,7 +281,7 @@ public final class Server {
         } finally {
             try {
                 // emit the process.exit event
-                runSystemScript(SYSTEM_FINALIZATION_SCRIPTS);
+                runSystemFinalScripts();
             } catch (Throwable ex) {
                 if (rootCause != null) {
                     rootCause.addSuppressed(ex);
@@ -396,15 +419,11 @@ public final class Server {
             throw new FileNotFoundException(fileName);
         }
 
-        if (context == null) {
-            scriptEngine.put(ScriptEngine.FILENAME, fileName);
-            return scriptEngine.eval(new URLReader(url));
-        } else {
-            final Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
-            assert bindings != null;
-            bindings.put(ScriptEngine.FILENAME, fileName);
-            return scriptEngine.eval(new URLReader(url), context);
-        }
+        assert context != null;
+        final Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+        assert bindings != null;
+        bindings.put(ScriptEngine.FILENAME, fileName);
+        return scriptEngine.eval(new URLReader(url), context);
     }
 
     public static ScriptEngine newEngine() {
@@ -567,9 +586,9 @@ public final class Server {
             return exitCode;
         }
 
-        public void installNativeModule(Object nativeModule) {
+        public void installNativeModule(final Object nativeModule) {
             checkPermission();
-            if(this.nativeModule != null) {
+            if (this.nativeModule != null) {
                 throw new RuntimeException("NativeModule already set");
             }
             this.nativeModule = nativeModule;
@@ -580,6 +599,7 @@ public final class Server {
          * targeted for Java code.
          */
         public Object require(String moduleName) throws Exception {
+          //  System.err.println("require " + moduleName +", nativeModule "+nativeModule);
             return invocable.invokeMethod(nativeModule, "require", moduleName);
         }
     }
@@ -609,6 +629,18 @@ public final class Server {
     private final class FinalScriptRunner extends SystemScriptRunner {
         private FinalScriptRunner() {
             super(PACKAGE + "/final.js");
+        }
+    }
+
+    private final class ProcessScriptRunner extends SystemScriptRunner {
+        private ProcessScriptRunner() {
+            super("/lib/process.js");
+        }
+    }
+
+    private final class NodeScriptRunner extends SystemScriptRunner {
+        private NodeScriptRunner() {
+            super("/node.js");
         }
     }
 

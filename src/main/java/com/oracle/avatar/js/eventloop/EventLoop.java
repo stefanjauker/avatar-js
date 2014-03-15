@@ -33,6 +33,7 @@ import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -391,6 +392,11 @@ public final class EventLoop {
                      final int instanceNumber,
                      final ThreadPool executor,
                      final boolean sharedExecutor) throws IOException {
+        Objects.requireNonNull(version);
+        Objects.requireNonNull(uvVersion);
+        Objects.requireNonNull(logging);
+        Objects.requireNonNull(workDir);
+        Objects.requireNonNull(executor);
         mainThread = Thread.currentThread();
         final String uv = LibUV.version();
         if (!uvVersion.equals(uv)) {

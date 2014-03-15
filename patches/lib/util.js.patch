@@ -1,6 +1,6 @@
---- ../node/lib/util.js	2013-12-09 10:27:58.000000000 +0100
-+++ ./src/main/js/lib/util.js	2014-01-14 11:55:17.000000000 +0100
-@@ -218,6 +218,14 @@
+--- ../node/lib/util.js	2014-03-12 11:18:16 -0700
++++ src/main/js/lib/util.js	2014-03-13 13:07:27 -0700
+@@ -231,6 +231,14 @@
      return primitive;
    }
  
@@ -15,8 +15,8 @@
    // Look up the keys of the object.
    var keys = Object.keys(value);
    var visibleKeys = arrayToHash(keys);
-@@ -226,6 +234,9 @@
-     keys = Object.getOwnPropertyNames(value);
+@@ -261,6 +269,9 @@
+     });
    }
  
 +  if (!ctx.showHidden && isError(value)) {
@@ -24,8 +24,8 @@
 +  }
    // Some type of object without properties can be shortcutted.
    if (keys.length === 0) {
-     if (typeof value === 'function') {
-@@ -364,7 +375,7 @@
+     if (isFunction(value)) {
+@@ -439,7 +450,7 @@
        str = ctx.stylize('[Setter]', 'special');
      }
    }
@@ -34,3 +34,12 @@
      name = '[' + key + ']';
    }
    if (!str) {
+@@ -582,7 +593,7 @@
+ exports.isPrimitive = isPrimitive;
+ 
+ function isBuffer(arg) {
+-  return arg instanceof Buffer;
++  return Buffer.isBuffer(arg);
+ }
+ exports.isBuffer = isBuffer;
+ 

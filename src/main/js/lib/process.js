@@ -44,18 +44,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var events = require("events");
-var NativeModule = require('native_module');
-
-// process is an EventEmitter - copy EventEmitter methods to process
-for (var f in events.EventEmitter.prototype) {
-    exports[f] = events.EventEmitter.prototype[f];
-}
-
-// events export are re-exported by process
-for (var f in events) {
-    exports[f] = events[f];
-}
+(function(exports) {
 
 var eventloop = __avatar.eventloop;
 var System = java.lang.System;
@@ -74,6 +63,69 @@ var ScriptUtils = Packages.jdk.nashorn.api.scripting.ScriptUtils
 
 var separator = exports.platform === 'win32' ? ';' : ':';
 var pathSeparator = exports.platform === 'win32' ? '\\' : '/';
+
+'use strict';
+
+// load definitions of __defineGetter__, __defineSetter__, __proto__, etc
+load("nashorn:mozilla_compat.js");
+
+// injected reference becomes readonly.
+Object.defineProperty(this, '__avatar',  { writable: false,  configurable: false, enumerable: false});
+
+// global is a reference to the current global scope.
+var global = this;
+
+global.gc = function() {
+    java.lang.System.gc();
+};
+
+// utility method to print stack dumps
+Error.prototype.dumpStack = function() {
+    if (!this.stack) {
+        Error.captureStackTrace(this);
+    }
+    print(this.stack);
+};
+
+__avatar.eventloop.setUncaughtExceptionHandler(
+    function(name, args) {
+        var listeners = process.listeners('uncaughtException');
+        if (listeners.length > 0) {
+            args[0] = true; // return non-null value to indicate user handler present
+        }
+    },
+    function(name, args) {
+        var e = new Error();
+        var ex = args[0];
+        for (var k in ex) {
+            e[k] = ex[k];
+        }
+        process._fatalException(e);
+    }
+);
+
+// with v8, splice called with a single argument means remove from index to length
+// with nashorn, splice called with a single argument means remove nothing
+// this is a redefinition of splice to emulate v8 behavior
+var current = Array.prototype.splice;
+Array.prototype.splice = function() {
+    var args = arguments.length === 1 ? [arguments[0], this.length] : arguments;
+    return current.apply(this, args);
+}
+
+exports._setupAsyncListener = function(asyncFlags, runAsyncQueue, loadAsyncQueue, unloadAsyncQueue) {
+    // TODO
+}
+
+exports._setupNextTick = function(tickInfo, _tickCallback) {
+    // TODO
+}
+
+exports.moduleLoadList = [];
+
+exports._rawDebug = function(s) {
+    print(s);
+}
 
 Object.defineProperty(exports, 'throwDeprecation', {
     enumerable: true,
@@ -103,169 +155,6 @@ Object.defineProperty(exports, '_print_eval', {
 Object.defineProperty(exports, '_eval', {
     enumerable: true,
     value: __avatar.evalString
-});
-
-var stdin;
-Object.defineProperty(exports, 'stdin', {
-    enumerable: true,
-    get: function() {
-        if (!stdin) {
-            // From Node.js
-            var tty_wrap = process.binding('tty_wrap');
-            var fd = 0;
-
-            var handleType = tty_wrap.guessHandleType(fd);
-            switch (handleType) {
-                case 'TTY':
-                  var tty = NativeModule.require('tty');
-                  stdin = new tty.ReadStream(fd, {
-                      highWaterMark: 0,
-                      readable: true,
-                      writable: false
-                  });
-                  break;
-                case 'FILE':
-                  var fs = NativeModule.require('fs');
-                  stdin = new fs.ReadStream(null, { fd: fd });
-                  break;
-                case 'PIPE':
-                case 'TCP':
-                  var net = NativeModule.require('net');
-                  stdin = new net.Socket({
-                      fd: fd,
-                      readable: true,
-                      writable: false
-                  });
-                  break;
-
-                default:
-                    // Probably an error on in uv_guess_handle()
-                    throw new Error('Unknown stdin handle type ' + handleType);
-            }
-
-            // For supporting legacy API we put the FD here.
-            stdin.fd = fd;
-
-            // stdin starts out life in a paused state, but node doesn't
-            // know yet.  Explicitly to readStop() it to put it in the
-            // not-reading state.
-            if (stdin._handle && stdin._handle.readStop) {
-                stdin._handle.reading = false;
-                stdin._readableState.reading = false;
-                stdin._handle.readStop();
-            }
-
-            // if the user calls stdin.pause(), then we need to stop reading
-            // immediately, so that the process can close down.
-            stdin.on('pause', function() {
-                if (!stdin._handle) {
-                    return;
-                }
-                stdin._readableState.reading = false;
-                stdin._handle.reading = false;
-                stdin._handle.readStop();
-            });
-            return stdin;
-        }
-        return stdin;
-    },
-    set: function(value) {
-        stdin = value;
-    }
-});
-
-var wrapStdOutputStream = function(fd) {
-    // From Node.js
-    var stream;
-    var tty_wrap = process.binding('tty_wrap');
-    var handleType = tty_wrap.guessHandleType(fd);
-    switch (handleType) {
-        case 'TTY':
-            var tty = NativeModule.require('tty');
-            stream = new tty.WriteStream(fd);
-            stream._type = 'tty';
-
-            // Hack to have stream not keep the event loop alive.
-            // See https://github.com/joyent/node/issues/1726
-            if (stream._handle && stream._handle.unref) {
-              stream._handle.unref();
-            }
-            break;
-        case 'FILE':
-            var fs = NativeModule.require('fs');
-            stream = new fs.SyncWriteStream(fd);
-            stream._type = 'fs';
-            break;
-        case 'TCP':
-        case 'PIPE':
-            var net = NativeModule.require('net');
-            stream = new net.Socket({
-              fd: fd,
-              readable: false,
-              writable: true
-            });
-
-            // FIXME Should probably have an option in net.Socket to create a
-            // stream from an existing fd which is writable only. But for now
-            // we'll just add this hack and set the `readable` member to false.
-            // Test: ./node test/fixtures/echo.js < /etc/passwd
-            stream.readable = false;
-            stream.read = null;
-            stream._type = 'pipe';
-
-            // FIXME Hack to have stream not keep the event loop alive.
-            // See https://github.com/joyent/node/issues/1726
-            if (stream._handle && stream._handle.unref) {
-              stream._handle.unref();
-            }
-            stream.fd = fd;
-            stream._isStdio = true;
-            break;
-        default:
-            throw new Error('Unknown stdout handle type ' + handleType);
-    }
-    stream.fd = fd;
-    stream._isStdio = true;
-    return stream;
-}
-
-var stdout;
-Object.defineProperty(exports, 'stdout', {
-    enumerable: true,
-    get: function() {
-        if (stdout) return stdout;
-        stdout = wrapStdOutputStream(1);
-        stdout.destroy = stdout.destroySoon = function(er) {
-            er = er || new Error('process.stdout cannot be closed.');
-            stdout.emit('error', er);
-        };
-        if (stdout.isTTY) {
-            process.on('SIGWINCH', function() {
-                stdout._refreshSize();
-            });
-        }
-        return stdout;
-    },
-    set: function(value) {
-        stdout = value;
-    }
-});
-
-var stderr;
-Object.defineProperty(exports, 'stderr', {
-    enumerable: true,
-    get: function() {
-        if (stderr) return stderr;
-        stderr = wrapStdOutputStream(2);
-        stderr.destroy = stderr.destroySoon = function(er) {
-            er = er || new Error('process.stderr cannot be closed.');
-            stderr.emit('error', er);
-        };
-        return stderr;
-    },
-    set: function(value) {
-        stderr = value;
-    }
 });
 
 var _execPath;
@@ -513,6 +402,7 @@ Object.defineProperty(exports, 'binding', {
                     throw new Error('binding not found for module ' + module);
                 }
                 var f = load(url);
+                var NativeModule = __avatar.require('native_module');
                 f(exports, NativeModule.require);
             }
         });
@@ -756,3 +646,5 @@ if (exports.platform !== 'win32') {
         Process.initGroups(user, group);
     }
 }
+
+});

@@ -97,6 +97,12 @@
         <mkdir dir="${test.dir}"/>
 
         <!-- copy modules -->
+        <property name="source.src.dir" value="${source.home}/src"/>
+        <available type="dir" file="${source.src.dir}" property="source.src.dir.available"/>
+        <fail message="source src dir not found at ${source.src.dir}" unless="source.src.dir.available"/>
+        <copy todir="src/main/js/" overwrite="true">
+            <filelist dir="${source.src.dir}" files="${source.modules}"/>
+        </copy>
         <property name="source.lib.dir" value="${source.home}/lib"/>
         <available type="dir" file="${source.lib.dir}" property="source.lib.dir.available"/>
         <fail message="source lib dir not found at ${source.lib.dir}" unless="source.lib.dir.available"/>
@@ -281,6 +287,7 @@
     <target name="diff-source-files" depends="init"
             description="generate patch files listing changes to source files">
         <mkdir dir="${patches.dir}"/>
+        <apply-diff src="lib" mod="src/main/js/" name="node.js"/>
         <!-- modules -->
         <apply-diff src="lib" mod="src/main/js/lib" name="fs.js"/>
         <apply-diff src="lib" mod="src/main/js/lib" name="http.js"/>
@@ -385,6 +392,7 @@
 
     <!-- keep sorted and synchronized with diff-source-files -->
     <target name="patch-source-files" depends="init" description="apply patches to source files">
+        <apply-patch-file target="src/main/js/" dir="." name="node.js"/>
         <!-- modules -->
         <apply-patch-file target="src/main/js/lib" dir="lib" name="fs.js"/>
         <apply-patch-file target="src/main/js/lib" dir="lib" name="http.js"/>

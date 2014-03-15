@@ -1,0 +1,133 @@
+--- ../node/src/node.js	2014-03-12 11:18:16 -0700
++++ src/main/js/node.js	2014-03-14 22:14:45 -0700
+@@ -28,16 +28,16 @@
+   this.global = this;
+ 
+   function startup() {
++    var NativeModule = __avatar.require('native_module');
+     var EventEmitter = NativeModule.require('events').EventEmitter;
+ 
+-    process.__proto__ = Object.create(EventEmitter.prototype, {
+-      constructor: {
+-        value: process.constructor
++    var events = __avatar.require("events");
++    for (var f in events.EventEmitter.prototype) {
++      process[f] = events.EventEmitter.prototype[f];
++    }
++    for (var f in events) {
++      process[f] = events[f];
+       }
+-    });
+-    EventEmitter.call(process);
+-
+-    process.EventEmitter = EventEmitter; // process.EventEmitter is deprecated
+ 
+     // Setup the tracing module
+     NativeModule.require('tracing')._nodeInitialization(process);
+@@ -269,6 +269,7 @@
+   };
+ 
+   startup.processConfig = function() {
++    /*
+     // used for `process.config`, but not a real module
+     var config = NativeModule._source.config;
+     delete NativeModule._source.config;
+@@ -281,6 +282,7 @@
+       if (value === 'false') return false;
+       return value;
+     });
++    */
+   };
+ 
+   startup.processNextTick = function() {
+@@ -725,11 +727,10 @@
+   // core modules found in lib/*.js. All core modules are compiled into the
+   // node binary, so they can be loaded faster.
+ 
+-  var ContextifyScript = process.binding('contextify').ContextifyScript;
+-  function runInThisContext(code, options) {
+-    var script = new ContextifyScript(code, options);
+-    return script.runInThisContext();
+-  }
++  var AccessController = java.security.AccessController;
++  var PrivilegedAction = java.security.PrivilegedAction;
++  var avatarPermission = new java.lang.RuntimePermission("avatar-js");
++  var avatarContext = __avatar.controlContext;
+ 
+   function NativeModule(id) {
+     this.filename = id + '.js';
+@@ -738,7 +739,7 @@
+     this.loaded = false;
+   }
+ 
+-  NativeModule._source = process.binding('natives');
++  NativeModule._source = {};
+   NativeModule._cache = {};
+ 
+   NativeModule.require = function(id) {
+@@ -767,18 +768,22 @@
+ 
+   NativeModule.getCached = function(id) {
+     return NativeModule._cache[id];
+-  }
++  };
+ 
+   NativeModule.exists = function(id) {
+-    return NativeModule._source.hasOwnProperty(id);
++    return AccessController.doPrivileged(new PrivilegedAction() {
++        run: function() {
++            return __avatar.loader.exists(id);
+   }
++    }, avatarContext, avatarPermission);
++  };
+ 
+   NativeModule.getSource = function(id) {
+     return NativeModule._source[id];
+-  }
++  };
+ 
+   NativeModule.wrap = function(script) {
+-    return NativeModule.wrapper[0] + script + NativeModule.wrapper[1];
++    return Packages.com.oracle.avatar.js.Loader.wrap(script);
+   };
+ 
+   NativeModule.wrapper = [
+@@ -786,13 +791,24 @@
+     '\n});'
+   ];
+ 
+-  NativeModule.prototype.compile = function() {
+-    var source = NativeModule.getSource(this.id);
+-    source = NativeModule.wrap(source);
+-
+-    var fn = runInThisContext(source, { filename: this.filename });
+-    fn(this.exports, NativeModule.require, this, this.filename);
++  NativeModule.getURL = function(id) {
++    return AccessController.doPrivileged(new PrivilegedAction() {
++      run: function() {
++        return __avatar.loader.getURL(id);
++      }
++    });
++  };
+ 
++  NativeModule.prototype.compile = function() {
++    var url = NativeModule.getURL(this.id);
++    var that = this;
++    AccessController.doPrivileged(new PrivilegedAction() {
++      run: function() {
++        var fn = load(url);
++        fn(that.exports, NativeModule.require, that, that.filename);
++      }
++    });
++    __avatar.loader.loadSucceeded(this.id);
+     this.loaded = true;
+   };
+ 
+@@ -800,5 +816,7 @@
+     NativeModule._cache[this.id] = this;
+   };
+ 
++  __avatar.installNativeModule(NativeModule);
++
+   startup();
+ });
