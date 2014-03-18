@@ -121,6 +121,10 @@ exports._setupNextTick = function(tickInfo, _tickCallback) {
     // TODO
 }
 
+exports._setupDomainUse = function(domain, domain_flag) {
+    // TODO
+}
+
 exports.moduleLoadList = [];
 
 exports._rawDebug = function(s) {
@@ -201,11 +205,8 @@ Object.defineProperty(exports, 'argv', {
         if (!_argv) {
             _argv = [];
             _argv.push(exports.execPath);
-            var uf = __avatar.userFiles;
-            var flen = uf ? uf.length : 0;
-            for (var i=0; i < flen; i++) {
-                _argv.push(uf[i]);
-            }
+            _argv.push(__avatar.userFile);
+
             var ua = __avatar.userArgs;
             var alen = ua ? ua.length : 0;
             for (var j=0; j < alen; j++) {
@@ -529,6 +530,7 @@ exports._usingDomains = function() {
 
 Object.defineProperty(exports, 'domain', {
     enumerable : true,
+    configurable: true,
     set : function(domain) {
         if (domain) {
             eventloop.domain = domain;

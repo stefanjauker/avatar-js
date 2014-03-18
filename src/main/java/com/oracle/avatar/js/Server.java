@@ -220,14 +220,13 @@ public final class Server {
         assert userFile != null;
 
         log.log("loading user script " + userFile);
-        final String[] userFiles = {userFile};
         runEventLoop(avatarArgs.toArray(new String[avatarArgs.size()]),
                      userArgs.toArray(new String[userArgs.size()]),
-                     userFiles);
+                     userFile);
     }
 
     private void runREPL() throws Throwable {
-        runEventLoop(EMPTY_ARRAY, EMPTY_ARRAY, EMPTY_ARRAY);
+        runEventLoop(EMPTY_ARRAY, EMPTY_ARRAY, null);
     }
 
     private boolean isEvalArg(String arg) {
@@ -239,12 +238,12 @@ public final class Server {
         runEventLoop(
                 avatarArgs.toArray(new String[avatarArgs.size()]),
                 userArgs.toArray(new String[userArgs.size()]),
-                EMPTY_ARRAY);
+                null);
     }
 
-    private void runEventLoop(final String[] avatarArgs, final String[] userArgs, final String[] userFiles) throws Throwable {
+    private void runEventLoop(final String[] avatarArgs, final String[] userArgs, final String userFile) throws Throwable {
         Throwable rootCause = null;
-        holder.setArgs(avatarArgs, userArgs, userFiles);
+        holder.setArgs(avatarArgs, userArgs, userFile);
 
         try {
             runSystemInitScripts();
@@ -479,7 +478,7 @@ public final class Server {
         private final Loader loader;
         private String[] avatarArgs;
         private String[] userArgs;
-        private String[] userFiles;
+        private String userFile;
         private String evalString;
         private boolean throwDeprecation;
         private boolean traceDeprecation;
@@ -515,10 +514,10 @@ public final class Server {
             return loader;
         }
 
-        private void setArgs(final String[] avatarArgs, final String[] userArgs, final String[] userFiles) {
+        private void setArgs(final String[] avatarArgs, final String[] userArgs, final String userFile) {
             this.avatarArgs = avatarArgs != null ? avatarArgs.clone() : null;
             this.userArgs = userArgs != null ? userArgs.clone() : null;
-            this.userFiles = userFiles != null ? userFiles.clone() : null;
+            this.userFile = userFile;
         }
 
         public String[] getAvatarArgs() {
@@ -529,8 +528,8 @@ public final class Server {
             return userArgs;
         }
 
-        public String[] getUserFiles() {
-            return userFiles;
+        public String getUserFile() {
+            return userFile;
         }
 
         private void setThrowDeprecation(boolean throwDeprecation) {

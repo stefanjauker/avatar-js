@@ -1,16 +1,16 @@
---- ../node/src/node.js	2014-03-12 11:18:16 -0700
-+++ src/main/js/node.js	2014-03-14 22:14:45 -0700
-@@ -28,16 +28,16 @@
+--- ../node/src/node.js	2014-03-17 10:14:10.545771799 -0700
++++ src/main/js/node.js	2014-03-18 14:44:01.651894957 -0700
+@@ -28,16 +28,15 @@
    this.global = this;
  
    function startup() {
+-    var EventEmitter = NativeModule.require('events').EventEmitter;
 +    var NativeModule = __avatar.require('native_module');
-     var EventEmitter = NativeModule.require('events').EventEmitter;
++    var events = NativeModule.require('events');
  
 -    process.__proto__ = Object.create(EventEmitter.prototype, {
 -      constructor: {
 -        value: process.constructor
-+    var events = __avatar.require("events");
 +    for (var f in events.EventEmitter.prototype) {
 +      process[f] = events.EventEmitter.prototype[f];
 +    }
@@ -24,23 +24,26 @@
  
      // Setup the tracing module
      NativeModule.require('tracing')._nodeInitialization(process);
-@@ -269,6 +269,7 @@
-   };
+@@ -50,7 +49,7 @@
+     startup.globalConsole();
  
-   startup.processConfig = function() {
-+    /*
-     // used for `process.config`, but not a real module
-     var config = NativeModule._source.config;
-     delete NativeModule._source.config;
-@@ -281,6 +282,7 @@
-       if (value === 'false') return false;
-       return value;
-     });
-+    */
-   };
+     startup.processAssert();
+-    startup.processConfig();
++    // startup.processConfig();
+     startup.processNextTick();
+     startup.processStdio();
+     startup.processKillAndExit();
+@@ -60,7 +59,8 @@
  
-   startup.processNextTick = function() {
-@@ -725,11 +727,10 @@
+     startup.processRawDebug();
+ 
+-    startup.resolveArgv0();
++    // not needed for avatar.js since argv[0] is plain 'java'
++    // startup.resolveArgv0();
+ 
+     // There are various modes that Node can run in. The most common two
+     // are running from a script and running the REPL - but there are a few
+@@ -725,11 +725,10 @@
    // core modules found in lib/*.js. All core modules are compiled into the
    // node binary, so they can be loaded faster.
  
@@ -56,7 +59,7 @@
  
    function NativeModule(id) {
      this.filename = id + '.js';
-@@ -738,7 +739,7 @@
+@@ -738,7 +737,7 @@
      this.loaded = false;
    }
  
@@ -65,7 +68,7 @@
    NativeModule._cache = {};
  
    NativeModule.require = function(id) {
-@@ -767,18 +768,22 @@
+@@ -767,18 +766,22 @@
  
    NativeModule.getCached = function(id) {
      return NativeModule._cache[id];
@@ -92,7 +95,7 @@
    };
  
    NativeModule.wrapper = [
-@@ -786,13 +791,24 @@
+@@ -786,13 +789,24 @@
      '\n});'
    ];
  
@@ -123,7 +126,7 @@
      this.loaded = true;
    };
  
-@@ -800,5 +816,7 @@
+@@ -800,5 +814,7 @@
      NativeModule._cache[this.id] = this;
    };
  
