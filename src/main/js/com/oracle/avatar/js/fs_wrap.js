@@ -28,6 +28,7 @@
     var Files = Packages.com.oracle.libuv.Files;
     var FilePollHandle = Packages.com.oracle.libuv.handles.FilePollHandle;
     var JavaBuffer = Packages.com.oracle.avatar.js.buffer.Buffer;
+    var ByteBuffer = java.nio.ByteBuffer;
     var loop = __avatar.eventloop.loop();
     var fs = new Files(loop);
 
@@ -122,7 +123,7 @@
         }
     });
 
-    exports.write = function(fd, buffer, offset, length, position, callback) {
+    exports.writeBuffer = function(fd, buffer, offset, length, position, callback) {
         if (position == null || position == undefined) {
             position = -1;
         } else if (position % 1 != 0) {
@@ -134,6 +135,27 @@
         } else {
             try {
                 return fs.write(fd, buffer._impl.underlying(), offset, length, position);
+            } catch(e) {
+                throw newError(e);
+            }
+        }
+    }
+
+    exports.writeString = function(fd, string, position, encoding, callback) {
+        if (position == null || position == undefined) {
+            position = -1;
+        } else if (position % 1 != 0) {
+            throw new TypeError("Not an integer");
+        }
+
+        encoding == encoding || 'utf-8';
+        var buffer = ByteBuffer.wrap(String(string).getBytes(encoding));
+        var length = buffer.capacity();
+        if (typeof callback === 'function') {
+            var r = fs.write(fd, buffer, 0, length, position, callback);
+        } else {
+            try {
+                return fs.write(fd, buffer, 0, length, position);
             } catch(e) {
                 throw newError(e);
             }
