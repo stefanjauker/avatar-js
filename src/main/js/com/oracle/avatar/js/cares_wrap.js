@@ -50,13 +50,13 @@
         return error;
     }
 
-    exports.getHostByAddr = function(address, callback) {
+    exports.getHostByAddr = function(req, name) {
+        var address = name;
         if (!net.isIP(address)) {
             var error = new Error(address);
             error.errno = 'ENOTIMP';
-            throw error;
+            return error;
         }
-        var wrapper = new RequestWrapper();
         dns.getHostByAddress(address, function(name, args) {
             var results = args[1];
             var values = [];
@@ -64,30 +64,22 @@
             for (var i = 0; i < len; i++) {
                 values[i] = results[i];
             }
-            callback(mapJavaException(args[0]), values);
+            req.callback(mapJavaException(args[0]), values);
         });
-        return wrapper;
+        return null;
     }
 
-    exports.getaddrinfo = function(hostname) {
-        var wrapper = new RequestWrapper();
+    exports.getaddrinfo = exports.queryA = exports.queryAaaa = function(req, hostname, family) {
         dns.getAddressByHost(hostname, function(name, args) {
-            var callback = wrapper.oncomplete;
-            var ex = args[0];
-            if (ex) {
-                mapJavaException(ex);
-                callback();
-            } else {
-                var results = args[1];
-                var values = [];
-                var len = results ? results.length : 0;
-                for (var i = 0; i < len; i++) {
-                    values[i] = results[i];
-                }
-                callback(values);
+            var results = args[1];
+            var values = [];
+            var len = results ? results.length : 0;
+            for (var i = 0; i < len; i++) {
+                values[i] = results[i];
             }
+            req.callback(mapJavaException(args[0]), values, family);
         });
-        return wrapper;
+        return null;
     }
 
     exports.isIP = function(input) {
@@ -108,9 +100,6 @@
             }
             return 0;
         }
-    }
-
-    function RequestWrapper() {
     }
 
 });
