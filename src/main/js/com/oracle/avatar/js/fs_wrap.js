@@ -148,7 +148,7 @@
             throw new TypeError("Not an integer");
         }
 
-        encoding == encoding || 'utf-8';
+        encoding = encoding || 'utf-8';
         var buffer = ByteBuffer.wrap(String(string).getBytes(encoding));
         var length = buffer.capacity();
         if (typeof callback === 'function') {
