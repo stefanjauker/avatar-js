@@ -42,8 +42,6 @@
 
     function TCP(socket) {
 
-        Object.defineProperty(this, '_writeWrappers', { value: [] });
-
         // User context, used to check accept permission.
         Object.defineProperty(this, '_callerContext', { value: AccessController.getContext() });
 
@@ -96,14 +94,13 @@
             }
         }
 
-        this._connection.writeCallback = function(status, nativeException) {
+        this._connection.writeCallback = function(status, nativeException, req) {
             if (status == -1) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
-            var wrapper = that._writeWrappers.shift();
-            if (wrapper && wrapper.oncomplete) {
-                wrapper.oncomplete(status, that, wrapper);
+            if (req && req.oncomplete) {
+                req.oncomplete(status, that, req);
             }
         }
 
@@ -133,7 +130,7 @@
         try {
             this._connection.bind(address, port);
         } catch (err) {
-            if(!err.errnoString) {
+            if (!err.errnoString) {
                 throw err;
             }
             process._errno = err.errnoString();
@@ -151,7 +148,7 @@
         try {
             this._connection.listen(backlog);
         } catch (err) {
-            if(!err.errnoString) {
+            if (!err.errnoString) {
                 throw err;
             }
             process._errno = err.errnoString();
@@ -165,26 +162,25 @@
         return this.connect(address, port);
     }
 
-    TCP.prototype.connect = function(address, port) {
-        var wrapper = {address: address, port: port};
-        Object.defineProperty(this, '_connectWrapper', {value: wrapper});
+    TCP.prototype.connect = function(req, address, port) {
+        Object.defineProperty(this, '_connectWrapper', {value: req});
         try {
             this._connection.connect(address, port);
-        }catch(err) {
-            if(!err.errnoString) {
+        } catch (err) {
+            if (!err.errnoString) {
                 throw err;
             }
             process._errno = err.errnoString();
             return null;
         }
-        return this._connectWrapper;
+        return null;
     }
 
     TCP.prototype.open = function(fd) {
         try {
             this._connection.open(fd);
         } catch (err) {
-            if(!err.errnoString) {
+            if (!err.errnoString) {
                 throw err;
             }
             process._errno = err.errnoString();
@@ -204,29 +200,25 @@
         this._connection.readStop();
     }
 
-    TCP.prototype.writeBuffer = function(data) {
+    TCP.prototype.writeBuffer = function(req, data) {
         if (data._impl) data = data._impl; // unwrap if necessary
-        var wrapper = {bytes: data.underlying().capacity()};
-        this._writeWrappers.push(wrapper);
-        Object.defineProperty(wrapper, '_socketHandle', { value: this.owner });
-        this._connection.write(data.underlying());
-        return wrapper;
+        return this._connection.write(data.underlying(), req);
     }
 
-    TCP.prototype._writeString = function(string, encoding) {
-        return this.writeBuffer(new JavaBuffer(string, encoding));
+    TCP.prototype._writeString = function(req, string, encoding) {
+        return this.writeBuffer(req, new JavaBuffer(string, encoding));
     }
 
-    TCP.prototype.writeUtf8String = function(string) {
-        return this._writeString(string, 'utf8');
+    TCP.prototype.writeUtf8String = function(req, string) {
+        return this._writeString(req, string, 'utf8');
     }
 
-    TCP.prototype.writeAsciiString = function(data) {
-        return this._writeString(data, 'ascii');
+    TCP.prototype.writeAsciiString = function(req, data) {
+        return this._writeString(req, data, 'ascii');
     }
 
-    TCP.prototype.writeUcs2String = function(data) {
-        return this._writeString(data, 'ucs2');
+    TCP.prototype.writeUcs2String = function(req, data) {
+        return this._writeString(req, data, 'ucs2');
     }
 
     TCP.prototype.setNoDelay = function(enable) {

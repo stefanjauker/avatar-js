@@ -67,18 +67,15 @@
             }
         }
 
-        this._tty.writeCallback = function(status, nativeException) {
+        this._tty.writeCallback = function(status, nativeException, req) {
             if (status == -1) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
-            var wrapper = that._writeWrappers.shift();
-            if (wrapper && wrapper.oncomplete) {
-                wrapper.oncomplete(status, that, wrapper);
+            if (req && req.oncomplete) {
+                req.oncomplete(status, that, req);
             }
         }
-
-        Object.defineProperty(this, '_writeWrappers', { value: [] });
 
         Object.defineProperty(this, 'writeQueueSize', { enumerable: true,
             get : function() {  return that._tty ? that._tty.writeQueueSize() : 0 } } );
@@ -94,9 +91,7 @@
 
     TTY.prototype.writeBuffer = function(req, data) {
         if (data._impl) data = data._impl; // unwrap if necessary
-        req.bytes = data.underlying().capacity();
-        this._writeWrappers.push(req);
-        return this._tty.write(data.underlying());
+        return this._tty.write(data.underlying(), req);
     }
 
     TTY.prototype._writeString = function(req, string, encoding) {

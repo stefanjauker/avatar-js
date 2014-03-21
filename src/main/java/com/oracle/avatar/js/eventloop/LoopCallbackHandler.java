@@ -153,10 +153,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleStreamWriteCallback(final StreamWriteCallback cb, final int status, final Exception error) {
+    public void handleStreamWriteCallback(final StreamWriteCallback cb, final Object context, final int status, final Exception error) {
         try {
             if (shouldCall()) {
-                cb.onWrite(status, error);
+                cb.onWrite(status, error, context);
                 post();
             }
         } catch (Exception ex) {

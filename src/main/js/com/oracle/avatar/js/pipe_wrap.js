@@ -103,14 +103,13 @@
             }
         }
 
-        this._pipe.writeCallback = function(status, nativeException) {
+        this._pipe.writeCallback = function(status, nativeException, req) {
             if (status == -1) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
-            var wrapper = that._writeWrappers.shift();
-            if (wrapper && wrapper.oncomplete) {
-                wrapper.oncomplete(status, that, wrapper);
+            if (req && req.oncomplete) {
+                req.oncomplete(status, that, req);
             }
         }
 
@@ -157,8 +156,6 @@
                 that._shutdownWrapper.oncomplete(status, that, undefined);
             }
         }
-
-        Object.defineProperty(this, '_writeWrappers', { value: [] });
 
         Object.defineProperty(this, 'writeQueueSize', { enumerable: true,
             get : function() {  return that._pipe ? that._pipe.writeQueueSize() : 0 } } );
@@ -225,18 +222,14 @@
                 send_handle = handle._udp;
             }
             var buffer  = new JavaBuffer(message, 'utf8');
-            req.bytes = buffer.array().length;
-            this._writeWrappers.push(req);
-            return this._pipe.write2(buffer.toStringContent(), send_handle);
+            return this._pipe.write2(buffer.toStringContent(), send_handle, req);
         }
         return this._writeString(req, message, 'utf8');
      }
 
     Pipe.prototype.writeBuffer = function(req, message) {
         if (message._impl) message = message._impl; // unwrap if necessary
-        req.bytes = message.underlying().capacity();
-        this._writeWrappers.push(req);
-        return this._pipe.write(message.underlying());
+        return this._pipe.write(message.underlying(), req);
     }
 
     Pipe.prototype._writeString = function(req, string, encoding) {
