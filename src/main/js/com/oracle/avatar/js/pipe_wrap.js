@@ -113,14 +113,14 @@
             }
         }
 
-        this._pipe.connectCallback = function(status, nativeException) {
+        this._pipe.connectCallback = function(status, nativeException, req) {
             if (status == -1) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             } else {
                 that._pipe.readStart();
             }
-            that._connectWrapper.oncomplete(status, that, that, true, true);
+            req.oncomplete(status, that, req, true, true);
         }
 
         this._pipe.connectionCallback = function(status, nativeException) {
@@ -167,11 +167,8 @@
         this._pipe.open(fd);
     }
 
-    Pipe.prototype.connect = function(name) {
-        var wrapper =  {};
-        Object.defineProperty(this, '_connectWrapper', {value: wrapper});
-        this._pipe.connect(name);
-        return this._connectWrapper;
+    Pipe.prototype.connect = function(req, name) {
+        return this._pipe.connect(name, req);
     }
 
     Pipe.prototype.bind = function(address) {

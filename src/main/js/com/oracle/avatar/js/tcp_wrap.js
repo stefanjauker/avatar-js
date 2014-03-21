@@ -72,7 +72,7 @@
             that.onconnection(status == -1 ? undefined : clientHandle);
         }
 
-        this._connection.connectCallback = function(status, nativeException) {
+        this._connection.connectCallback = function(status, nativeException, req) {
             if (status == -1) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
@@ -80,7 +80,7 @@
                 that._connection.readStart();
                 Object.defineProperty(that, '_connected', {value: true});
             }
-            that._connectWrapper.oncomplete(status, that, that._connectWrapper, true, true);
+            req.oncomplete(status, that, req, true, true);
         }
 
         this._connection.readCallback = function(byteBuffer) {
@@ -163,17 +163,15 @@
     }
 
     TCP.prototype.connect = function(req, address, port) {
-        Object.defineProperty(this, '_connectWrapper', {value: req});
         try {
-            this._connection.connect(address, port);
+            return this._connection.connect(address, port, req);
         } catch (err) {
             if (!err.errnoString) {
                 throw err;
             }
             process._errno = err.errnoString();
-            return null;
+            return err;
         }
-        return null;
     }
 
     TCP.prototype.open = function(fd) {
