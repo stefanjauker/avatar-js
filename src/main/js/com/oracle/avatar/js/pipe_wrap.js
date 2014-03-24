@@ -140,21 +140,16 @@
 
         this._pipe.closeCallback = function() {
             if (that._closeCallback) {
-                // net.js, line 422, fireErrorCallbacks uses nextTick to do
-                // error handling. error handling MUST be handled before this close callback is called
-                // otherwise all error handlers are removed and error handlers are not called.
                 process.nextTick(that._closeCallback);
             }
         }
 
-        this._pipe.shutdownCallback = function(status, nativeException) {
+        this._pipe.shutdownCallback = function(status, nativeException, req) {
             if (status == -1) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
-            if (that._shutdownWrapper) {
-                that._shutdownWrapper.oncomplete(status, that, undefined);
-            }
+            req.oncomplete(status, that, req);
         }
 
         Object.defineProperty(this, 'writeQueueSize', { enumerable: true,
@@ -255,11 +250,8 @@
         }
     }
 
-    Pipe.prototype.shutdown = function() {
-        var wrapper = {};
-        Object.defineProperty(this, '_shutdownWrapper', { value: wrapper });
-        this._pipe.closeWrite();
-        return wrapper;
+    Pipe.prototype.shutdown = function(req) {
+        return this._pipe.shutdown(req);
     }
 
     Pipe.prototype.ref = function() {

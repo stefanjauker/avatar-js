@@ -106,21 +106,16 @@
 
         this._connection.closeCallback = function() {
             if (that._closeCallback) {
-                // net.js, line 422, fireErrorCallbacks uses nextTick to do
-                // error handling. error handling MUST be handled before this close callback is called
-                // otherwise all error handlers are removed and error handlers are not called.
                 process.nextTick(that._closeCallback);
             }
         }
 
-        this._connection.shutdownCallback = function(status, nativeException) {
+        this._connection.shutdownCallback = function(status, nativeException, req) {
             if (status == -1) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
-            if (that._shutdownWrapper) {
-                that._shutdownWrapper.oncomplete(status, that, that._shutdownWrapper);
-            }
+            req.oncomplete(status, that, req);
         }
     }
 
@@ -257,12 +252,8 @@
         }
     }
 
-    TCP.prototype.shutdown = function() {
-        var wrapper = {};
-        Object.defineProperty(wrapper, '_socketHandle', { value: this.owner });
-        Object.defineProperty(this, '_shutdownWrapper', { value: wrapper });
-        this._connection.closeWrite();
-        return wrapper;
+    TCP.prototype.shutdown = function(req) {
+        return this._connection.shutdown(req);
     }
 
     TCP.prototype.ref = function() {
