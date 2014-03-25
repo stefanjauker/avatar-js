@@ -129,10 +129,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleStreamReadCallback(final StreamReadCallback cb, final ByteBuffer data) {
+    public void handleStreamReadCallback(final StreamReadCallback cb, final int status, final Exception error, final ByteBuffer data) {
         try {
             if (shouldCall()) {
-                cb.onRead(data);
+                cb.onRead(status, error, data);
                 post();
             }
         } catch (Exception ex) {
@@ -141,10 +141,10 @@ final class LoopCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handleStreamRead2Callback(final StreamRead2Callback cb, final ByteBuffer data, final long handle, final int type) {
+    public void handleStreamRead2Callback(final StreamRead2Callback cb, final int status, final Exception error, final ByteBuffer data, final long handle, final int type) {
         try {
             if (shouldCall()) {
-                cb.onRead2(data, handle, type);
+                cb.onRead2(status, error, data, handle, type);
                 post();
             }
         } catch (Exception ex) {

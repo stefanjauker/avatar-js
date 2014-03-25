@@ -56,7 +56,7 @@
         }, avatarContext, LibUVPermission.HANDLE);
 
         this._connection.connectionCallback = function(status, nativeException) {
-            if (status == -1) {
+            if (status < 0) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
@@ -69,11 +69,11 @@
 
             Object.defineProperty(clientHandle, '_connected', {value: true});
             clientHandle._connection.readStart();
-            that.onconnection(status == -1 ? undefined : clientHandle);
+            that.onconnection(status, clientHandle);
         }
 
         this._connection.connectCallback = function(status, nativeException, req) {
-            if (status == -1) {
+            if (status < 0) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             } else {
@@ -95,7 +95,7 @@
         }
 
         this._connection.writeCallback = function(status, nativeException, req) {
-            if (status == -1) {
+            if (status < 0) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
@@ -111,7 +111,7 @@
         }
 
         this._connection.shutdownCallback = function(status, nativeException, req) {
-            if (status == -1) {
+            if (status < 0) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }

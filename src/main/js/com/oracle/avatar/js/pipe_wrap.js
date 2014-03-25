@@ -60,12 +60,12 @@
             }
         }, avatarContext, LibUVPermission.HANDLE);
 
-        this._pipe.readCallback = function(byteBuffer, handle, type) {
+        this._pipe.readCallback = function(status, error, byteBuffer, handle, type) {
             if (byteBuffer) {
                process._errno = undefined;
                var data = new Buffer(new JavaBuffer(byteBuffer));
-               // Defined in uv.h
-               var UV_NAMED_PIPE = 7
+               // Defined in uv.h (see UV_HANDLE_TYPE_MAP)
+               var UV_NAMED_PIPE = 7;
                var UV_TCP = 12;
                var UV_UDP = 15;
                if (type == UV_NAMED_PIPE) {
@@ -94,17 +94,21 @@
                    var udp = new UDP(datagram);
                    that.onread(data.length, data, 0, udp);
                } else {
-                   that.onread(data.length, data, 0);
+                   if (that.onread) {
+                     that.onread(data.length, data, 0);
+                   } else {
+                     print('WARNING: pipe.onread undefined'); // TODO
+                   }
                }
             } else {
                 var errno = 'EOF';
                 process._errno = errno;
-                that.onread(0, undefined, 0);
+                that.onread(status, undefined);
             }
         }
 
         this._pipe.writeCallback = function(status, nativeException, req) {
-            if (status == -1) {
+            if (status < 0) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
@@ -114,7 +118,7 @@
         }
 
         this._pipe.connectCallback = function(status, nativeException, req) {
-            if (status == -1) {
+            if (status < 0) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             } else {
@@ -124,18 +128,21 @@
         }
 
         this._pipe.connectionCallback = function(status, nativeException) {
-            if (status == -1) {
+            if (status < 0) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
+            } else {
+                var clientHandle = new Pipe();
+                AccessController.doPrivileged(new PrivilegedAction() {
+                    run: function() {
+                        that._pipe.accept(clientHandle._pipe);
+                    }
+                }, that._callerContext);
+                clientHandle._pipe.readStart();
             }
-            var clientHandle = new Pipe();
-            AccessController.doPrivileged(new PrivilegedAction() {
-                run: function() {
-                    that._pipe.accept(clientHandle._pipe);
-                }
-            }, that._callerContext);
-            clientHandle._pipe.readStart();
-            that.onconnection(status == -1 ? undefined : clientHandle);
+            if (that.onconnection) {
+                that.onconnection(status, clientHandle);
+            }
         }
 
         this._pipe.closeCallback = function() {
@@ -145,7 +152,7 @@
         }
 
         this._pipe.shutdownCallback = function(status, nativeException, req) {
-            if (status == -1) {
+            if (status < 0) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }

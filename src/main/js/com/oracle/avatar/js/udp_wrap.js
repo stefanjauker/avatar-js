@@ -54,7 +54,7 @@
         }
 
         this._udp.sendCallback = function(status, nativeException) {
-            if (status == -1) {
+            if (status < 0) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }

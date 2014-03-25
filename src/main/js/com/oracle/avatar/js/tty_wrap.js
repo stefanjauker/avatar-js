@@ -68,7 +68,7 @@
         }
 
         this._tty.writeCallback = function(status, nativeException, req) {
-            if (status == -1) {
+            if (status < 0) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
