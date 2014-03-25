@@ -75,7 +75,7 @@
                         }
                     }, avatarContext, LibUVPermission.HANDLE);
                    var p = new Pipe(true, pipeHandle);
-                   that.onread(data.length, data, 0, p);
+                   that.onread(status, data, 0, p);
                } else if (type == UV_TCP) {
                    var socket = AccessController.doPrivileged(new PrivilegedAction() {
                         run: function() {
@@ -84,7 +84,7 @@
                     }, avatarContext, LibUVPermission.HANDLE);
                    var tcp = new TCP(socket);
                    tcp._connected = true;
-                   that.onread(data.length, data, 0, tcp);
+                   that.onread(status, data, 0, tcp);
                } else if (type == UV_UDP) {
                    var datagram = AccessController.doPrivileged(new PrivilegedAction() {
                         run: function() {
@@ -92,10 +92,10 @@
                         }
                     }, avatarContext, LibUVPermission.HANDLE);
                    var udp = new UDP(datagram);
-                   that.onread(data.length, data, 0, udp);
+                   that.onread(status, data, 0, udp);
                } else {
                    if (that.onread) {
-                     that.onread(data.length, data, 0);
+                     that.onread(status, data);
                    } else {
                      print('WARNING: pipe.onread undefined'); // TODO
                    }

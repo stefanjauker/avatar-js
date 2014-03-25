@@ -56,14 +56,14 @@
             }
         }, avatarContext, LibUVPermission.HANDLE);
 
-        this._tty.readCallback = function(byteBuffer) {
+        this._tty.readCallback = function(status, nativeException, byteBuffer) {
             if (byteBuffer) {
                 var buffer = new Buffer(new JavaBuffer(byteBuffer));
                 that.onread(buffer, 0, buffer.length);
             } else {
-                var errno = loop.getLastError().errnoString();
+                var errno = nativeException.errnoString();
                 process._errno = errno;
-                that.onread(undefined, 0, 0);
+                that.onread(status);
             }
         }
 

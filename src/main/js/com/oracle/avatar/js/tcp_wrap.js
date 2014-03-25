@@ -83,14 +83,13 @@
             req.oncomplete(status, that, req, true, true);
         }
 
-        this._connection.readCallback = function(byteBuffer) {
+        this._connection.readCallback = function(status, nativeException, byteBuffer) {
             if (byteBuffer) {
                 var buffer = new Buffer(new JavaBuffer(byteBuffer));
-                that.onread(buffer, 0, buffer.length);
+                that.onread(status, buffer);
             } else {
-                var errno = loop.getLastError().errnoString();
-                process._errno = errno;
-                that.onread(undefined, 0, 0);
+                process._errno = nativeException.errnoString();
+                that.onread(status);
             }
         }
 
