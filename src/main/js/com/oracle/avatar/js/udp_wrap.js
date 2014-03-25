@@ -39,7 +39,6 @@
     function UDP(dgram) {
         var that = this;
 
-        Object.defineProperty(this, '_writeWrappers', { value: [] });
         AccessController.doPrivileged(new PrivilegedAction() {
             run: function() {
                 Object.defineProperty(that, '_udp',
@@ -50,17 +49,17 @@
 
         this._udp.recvCallback = function(nread, data, rinfo) {
             var buffer = new Buffer(new JavaBuffer(data));
-            that.onmessage(that, buffer, 0, buffer.length, { address: rinfo.getIp(), port: rinfo.getPort() })
+            that.onmessage(nread, that, buffer, { address: rinfo.getIp(), port: rinfo.getPort() })
         }
 
-        this._udp.sendCallback = function(status, nativeException) {
+        this._udp.sendCallback = function(status, nativeException, req) {
             if (status < 0) {
                 var errno = nativeException.errnoString();
                 process._errno = errno;
             }
-            var wrapper = that._writeWrappers.shift();
-            if (wrapper && wrapper.oncomplete) {
-                wrapper.oncomplete(status, that, wrapper, wrapper._buffer);
+            var callback = req.oncomplete;
+            if (callback) {
+                callback.call(req, status);
             }
         }
     }
@@ -87,18 +86,12 @@
         }
     }
 
-    UDP.prototype.send = function(buffer, offset, length, port, ip) {
-        var wrapper = {_buffer: buffer};
-        this._writeWrappers.push(wrapper);
-        this._udp.send(buffer._impl.underlying(), offset, length, port, ip);
-        return wrapper;
+    UDP.prototype.send = function(req, buffer, offset, length, port, ip, callback) {
+        return this._udp.send(buffer._impl.underlying(), offset, length, port, ip, req);
     }
 
-    UDP.prototype.send6 = function(buffer, offset, length, port, ip) {
-        var wrapper = {_buffer: buffer};
-        this._writeWrappers.push(wrapper);
-        this._udp.send6(buffer._impl.underlying(), offset, length, port, ip);
-        return wrapper;
+    UDP.prototype.send6 = function(req, buffer, offset, length, port, ip, callback) {
+        return this._udp.send6(buffer._impl.underlying(), offset, length, port, ip, req);
     }
 
     UDP.prototype.recvStart = function() {
