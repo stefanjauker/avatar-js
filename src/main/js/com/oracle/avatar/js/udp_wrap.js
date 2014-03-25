@@ -67,8 +67,8 @@
     UDP.prototype.bind = function(address, port, flags) {
         try {
             return this._udp.bind(port, address);
-        } catch(err) {
-            if(!err.errnoString) {
+        } catch (err) {
+            if (!err.errnoString) {
                 throw err;
             }
             throw newError(err);
@@ -78,8 +78,8 @@
     UDP.prototype.bind6 = function(address, port, flags) {
         try {
             return this._udp.bind6(port, address);
-        } catch(err) {
-            if(!err.errnoString) {
+        } catch (err) {
+            if (!err.errnoString) {
                 throw err;
             }
             throw newError(err);
@@ -106,13 +106,11 @@
         this._udp.close();
     }
 
-    UDP.prototype.getsockname = function() {
+    UDP.prototype.getsockname = function(out) {
         var address = this._udp.address();
-        return {
-            address: address.getIp(),
-            port: address.getPort(),
-            family: address.getFamily()
-        };
+        out.address = address.getIp();
+        out.port = address.getPort();
+        out.family = address.getFamily();
     }
 
     UDP.prototype.setMulticastTTL = function(ttl) {
