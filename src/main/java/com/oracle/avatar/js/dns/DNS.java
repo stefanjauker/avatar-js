@@ -25,8 +25,12 @@
 
 package com.oracle.avatar.js.dns;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.oracle.avatar.js.eventloop.Callback;
 import com.oracle.avatar.js.eventloop.Event;
@@ -63,6 +67,7 @@ public final class DNS {
     }
 
     public void getAddressByHost(final String hostname,
+                                 final int family,
                                  final Callback callback) {
         final EventLoop.Handle handle = eventLoop.acquire();
         eventLoop.submit(new Runnable() {
@@ -70,11 +75,24 @@ public final class DNS {
             public void run() {
                 try {
                     final InetAddress[] hostAddresses = InetAddress.getAllByName(hostname);
-                    final String[] addresses = new String[hostAddresses.length];
+                    final List<String> addresses = new ArrayList<>(hostAddresses.length);
                     for (int i = 0; i < hostAddresses.length; i++) {
-                        addresses[i] = hostAddresses[i].getHostAddress();
+                        final InetAddress address = hostAddresses[i];
+                        switch (family) {
+                            case 4:
+                                if (address instanceof Inet4Address) {
+                                    addresses.add(address.getHostAddress());
+                                }
+                                break;
+
+                            case 6:
+                                if (address instanceof Inet6Address) {
+                                    addresses.add(address.getHostAddress());
+                                }
+                                break;
+                        }
                     }
-                    eventLoop.post(new Event("dns.address", callback, null, addresses));
+                    eventLoop.post(new Event("dns.address", callback, null, addresses.toArray(new String[addresses.size()])));
                 } catch (final UnknownHostException e) {
                     eventLoop.post(new Event("dns.address.error", callback, e, null));
                 } finally {

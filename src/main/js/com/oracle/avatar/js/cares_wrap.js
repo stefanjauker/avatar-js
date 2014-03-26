@@ -70,7 +70,7 @@
     }
 
     exports.getaddrinfo = exports.queryA = exports.queryAaaa = function(req, hostname, family) {
-        dns.getAddressByHost(hostname, function(name, args) {
+        dns.getAddressByHost(hostname, family, function(name, args) {
             var results = args[1];
             var values = [];
             var len = results ? results.length : 0;
