@@ -46,10 +46,14 @@ public final class ServerException extends Throwable {
     private final StackTraceElement[] elems;
     private final NashornException nex;
 
-    ServerException(final Throwable orig) {
+    ServerException(final Throwable orig) throws Throwable {
         // No LibUV NativeException should be received,
         // these are translated by wrap scripts onto native JS Error.
-        assert !(orig instanceof NativeException);
+        if (!(orig instanceof NativeException)) {
+            if (Server.assertions()) {
+                throw orig;
+            }
+        }
 
         this.orig = orig;
         nex = retrieveNashornException(orig);
