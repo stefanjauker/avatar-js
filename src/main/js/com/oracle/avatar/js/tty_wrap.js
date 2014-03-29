@@ -59,22 +59,14 @@
         this._tty.readCallback = function(status, nativeException, byteBuffer) {
             if (byteBuffer) {
                 var buffer = new Buffer(new JavaBuffer(byteBuffer));
-                that.onread(buffer, 0, buffer.length);
+                that.onread(status, buffer);
             } else {
-                var errno = nativeException.errnoString();
-                process._errno = errno;
                 that.onread(status);
             }
         }
 
         this._tty.writeCallback = function(status, nativeException, req) {
-            if (status < 0) {
-                var errno = nativeException.errnoString();
-                process._errno = errno;
-            }
-            if (req && req.oncomplete) {
-                req.oncomplete(status, that, req);
-            }
+            req.oncomplete(status, that, req);
         }
 
         Object.defineProperty(this, 'writeQueueSize', { enumerable: true,
@@ -82,11 +74,11 @@
     }
 
     TTY.prototype.readStart = function() {
-        this._tty.readStart();
+        return this._tty.readStart();
     }
 
     TTY.prototype.readStop = function() {
-        this._tty.readStop();
+        return this._tty.readStop();
     }
 
     TTY.prototype.writeBuffer = function(req, data) {
@@ -113,18 +105,19 @@
     TTY.prototype.close = function(callback) {
         if (this._tty) {
             this._tty.readStop();
-            this._tty.close();
+            var r = this._tty.close();
             if (callback) {
                 callback();
             }
+            return r;
         }
     }
 
     TTY.prototype.setRawMode = function(mode) {
         if (mode == 0) {
-            this._tty.setMode(Mode.NORMAL);
+            return this._tty.setMode(Mode.NORMAL);
         } else if (mode == 1) {
-            this._tty.setMode(Mode.RAW);
+            return this._tty.setMode(Mode.RAW);
         }
     }
 
@@ -133,11 +126,11 @@
     }
 
     TTY.prototype.ref = function() {
-        this._tty.ref();
+        return this._tty.ref();
     }
 
     TTY.prototype.unref = function() {
-        this._tty.unref();
+        return this._tty.unref();
     }
 
 });

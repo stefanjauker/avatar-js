@@ -28,9 +28,34 @@
     var Files = Packages.com.oracle.libuv.Files;
     var FilePollHandle = Packages.com.oracle.libuv.handles.FilePollHandle;
     var JavaBuffer = Packages.com.oracle.avatar.js.buffer.Buffer;
+    var JavaStats = Packages.com.oracle.libuv.Stats;
     var ByteBuffer = java.nio.ByteBuffer;
     var loop = __avatar.eventloop.loop();
     var fs = new Files(loop);
+    var uv = process.binding('uv_wrap');
+
+    function Stats() {
+    }
+
+    // update self from instance of java stats
+    Stats.prototype.update = function(stats) {
+        this.dev = stats ? stats.getDev() : undefined;
+        this.ino = stats ? stats.getIno() : undefined;
+        this.mode = stats ? stats.getMode() : undefined;
+        this.nlink = stats ? stats.getNlink() : undefined;
+        this.uid = stats ? stats.getUid() : undefined;
+        this.gid = stats ? stats.getGid() : undefined;
+        this.rdev = stats ? stats.getRdev() : undefined;
+        this.size = stats ? stats.getSize() : undefined;
+        this.blksize = stats ? stats.getBlksize() : undefined;
+        this.blocks = stats ? stats.getBlocks() : undefined;
+        this.atime = stats ? new Date(stats.getAtime()) : undefined;
+        this.mtime = stats ? new Date(stats.getMtime()) : undefined;
+        this.ctime = stats ? new Date(stats.getMtime()) : undefined;
+        return this;
+    }
+
+    exports.Stats = Stats;
 
     fs.setCloseCallback(function(cb, fd, nativeException) {
         if (nativeException) {
@@ -44,11 +69,9 @@
         if (typeof callback === 'function') {
             return fs.close(fd, callback);
         } else {
-            try {
-                return fs.close(fd);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.close(fd);
+            if (r < 0) throw newErrnoError(r, fd);
+            return r;
         }
     }
 
@@ -64,11 +87,9 @@
         if (typeof callback === 'function') {
             return fs.open(path, flags, mode, callback);
         } else {
-            try {
-                return fs.open(path, flags, mode);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.open(path, flags, mode);
+            if (r < 0) throw newErrnoError(r, path);
+            return r;
         }
     }
 
@@ -87,16 +108,14 @@
         if (typeof callback === 'function') {
             return fs.read(fd, buffer._impl.underlying(), offset, length, position, callback);
         } else {
-            try {
-                return fs.read(fd, buffer._impl.underlying(), offset, length, position);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.read(fd, buffer._impl.underlying(), offset, length, position);
+            if (r < 0) throw newErrnoError(r, fd);
+            return r;
         }
     }
 
     fs.setUnlinkCallback(function(cb, nativeException) {
-        if(nativeException) {
+        if (nativeException) {
             cb(newError(nativeException));
         } else {
             cb();
@@ -107,11 +126,9 @@
         if (typeof callback === 'function') {
             return fs.unlink(path, callback);
         } else {
-            try {
-                return fs.unlink(path);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.unlink(path);
+            if (r < 0) throw newErrnoError(r, path);
+            return r;
         }
     }
 
@@ -131,13 +148,11 @@
         }
 
         if (typeof callback === 'function') {
-            var r = fs.write(fd, buffer._impl.underlying(), offset, length, position, callback);
+            return fs.write(fd, buffer._impl.underlying(), offset, length, position, callback);
         } else {
-            try {
-                return fs.write(fd, buffer._impl.underlying(), offset, length, position);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.write(fd, buffer._impl.underlying(), offset, length, position);
+            if (r < 0) throw newErrnoError(r, fd);
+            return r;
         }
     }
 
@@ -151,14 +166,13 @@
         encoding = encoding || 'utf-8';
         var buffer = ByteBuffer.wrap(String(string).getBytes(encoding));
         var length = buffer.capacity();
+
         if (typeof callback === 'function') {
-            var r = fs.write(fd, buffer, 0, length, position, callback);
+            return fs.write(fd, buffer, 0, length, position, callback);
         } else {
-            try {
-                return fs.write(fd, buffer, 0, length, position);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.write(fd, buffer, 0, length, position);
+            if (r < 0) throw newErrnoError(r, fd);
+            return r;
         }
     }
 
@@ -174,11 +188,9 @@
         if (typeof callback === 'function') {
             return fs.mkdir(path, mode, callback);
         } else {
-            try {
-                return fs.mkdir(path, mode);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.mkdir(path, mode);
+            if (r < 0) throw newErrnoError(r, path);
+            return r;
         }
     }
 
@@ -194,11 +206,9 @@
         if (typeof callback === 'function') {
             return fs.rmdir(path, callback);
         } else {
-            try {
-                return fs.rmdir(path);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.rmdir(path);
+            if (r < 0) throw newErrnoError(r, path);
+            return r;
         }
     }
 
@@ -232,45 +242,45 @@
         }
     }
 
+    var _stats = new exports.Stats();
     fs.setStatCallback(function(cb, stats, nativeException) {
         if (nativeException) {
             cb(newError(nativeException));
         } else {
-            cb(undefined, new exports.Stats(stats));
+            cb(undefined, _stats.update(stats)); // stats === _jstats
         }
     });
 
+    var _jstats = new JavaStats();
     exports.stat = function(path, callback) {
         if (typeof callback === 'function') {
-            return fs.stat(path, callback);
+            return fs.stat(path, _jstats, callback);
         } else {
-            try {
-                var stats = fs.stat(path);
-                return new exports.Stats(stats);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.stat(path, _jstats);
+            _stats.update(_jstats);
+            if (r < 0) throw newErrnoError(r, path);
+            return _stats;
         }
     }
 
+    var _fstats = new exports.Stats();
     fs.setFStatCallback(function(cb, stats, nativeException) {
         if (nativeException) {
             cb(newError(nativeException));
         } else {
-            cb(undefined, new exports.Stats(stats));
+            cb(undefined, _fstats.update(stats)); // stats === _fjstats
         }
     });
 
+    var _fjstats = new JavaStats();
     exports.fstat = function(fd, callback) {
         if (typeof callback === 'function') {
-            return fs.fstat(fd, callback);
+            return fs.fstat(fd, _fjstats, callback);
         } else {
-            try {
-                var stats = fs.fstat(fd);
-                return new exports.Stats(stats);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.fstat(fd, _fjstats);
+            _fstats.update(_fjstats);
+            if (r < 0) throw newErrnoError(r, fd);
+            return _fstats;
         }
     }
 
@@ -286,11 +296,9 @@
         if (typeof callback === 'function') {
             return fs.rename(oldPath, newPath, callback);
         } else {
-            try {
-                return fs.rename(oldPath, newPath);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.rename(oldPath, newPath);
+            if (r < 0) throw newErrnoError(r, oldPath, newPath);
+            return r;
         }
     }
 
@@ -306,11 +314,9 @@
         if (typeof callback === 'function') {
             return fs.fsync(fd, callback);
         } else {
-            try {
-                return fs.fsync(fd);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.fsync(fd);
+            if (r < 0) throw newErrnoError(r, fd);
+            return r;
         }
     }
 
@@ -326,11 +332,9 @@
         if (typeof callback === 'function') {
             return fs.fdatasync(fd, callback);
         } else {
-            try {
-                return fs.fdatasync(fd);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.fdatasync(fd);
+            if (r < 0) throw newErrnoError(r, fd);
+            return r;
         }
     }
 
@@ -346,11 +350,9 @@
         if (typeof callback === 'function') {
             return fs.ftruncate(fd, length, callback);
         } else {
-            try {
-                return fs.ftruncate(fd, length);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.ftruncate(fd, length);
+            if (r < 0) throw newErrnoError(r, fd);
+            return r;
         }
     }
 
@@ -366,11 +368,9 @@
         if (typeof callback === 'function') {
             return fs.chmod(path, mode, callback);
         } else {
-            try {
-                return fs.chmod(path, mode);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.chmod(path, mode);
+            if (r < 0) throw newErrnoError(r, path);
+            return r;
         }
     }
 
@@ -386,11 +386,11 @@
         if (typeof callback === 'function') {
             return fs.utime(path, atime, mtime, callback);
         } else {
-            try {
-                return fs.utime(path, atime, mtime);
-            } catch(e) {
-                throw newError(e);
-            }
+            print('utimeSync atime '+atime+' mtime '+mtime+' path '+path);
+            var r = fs.utime(path, atime, mtime);
+            print('utimeSync atime '+atime+' mtime '+mtime+' path '+path+' r '+r);
+            if (r < 0) throw newErrnoError(r, path);
+            return r;
         }
     }
 
@@ -406,32 +406,30 @@
         if (typeof callback === 'function') {
             return fs.futime(fd, atime, mtime, callback);
         } else {
-            try {
-                return fs.futime(fd, atime, mtime);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.futime(fd, atime, mtime);
+            if (r < 0) throw newErrnoError(r, fd);
+            return r;
         }
     }
 
+    var _lstats = new exports.Stats();
     fs.setLStatCallback(function(cb, stats, nativeException) {
         if (nativeException) {
             cb(newError(nativeException));
         } else {
-            cb(undefined, new exports.Stats(stats));
+            cb(undefined, _lstats.update(stats)); // stats === _ljstats
         }
     });
 
+    var _ljstats = new JavaStats();
     exports.lstat = function(path, callback) {
         if (typeof callback === 'function') {
-            return fs.lstat(path, callback);
+            return fs.lstat(path, _ljstats, callback);
         } else {
-            try {
-                var stats = fs.lstat(path);
-                return new exports.Stats(stats);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.lstat(path, _ljstats);
+            _lstats.update(_ljstats);
+            if (r < 0) throw newErrnoError(r, path);
+            return _lstats;
         }
     }
 
@@ -447,11 +445,9 @@
         if (typeof callback === 'function') {
             return fs.link(srcpath, dstpath, callback);
         } else {
-            try {
-                return fs.link(srcpath, dstpath);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.link(srcpath, dstpath);
+            if (r < 0) throw newErrnoError(r, srcpath, dstpath);
+            return r;
         }
     }
 
@@ -479,11 +475,9 @@
         if (typeof callback === 'function') {
             return fs.symlink(destination, path, flags, callback);
         } else {
-            try {
-                return fs.symlink(destination, path, flags);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r =fs.symlink(destination, path, flags);
+            if (r < 0) throw newErrnoError(r, path);
+            return r;
         }
     }
 
@@ -499,11 +493,9 @@
         if (typeof callback === 'function') {
             return fs.readlink(path, callback);
         } else {
-            try {
-                return fs.readlink(path);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.readlink(path);
+            if (r < 0) throw newErrnoError(r, path);
+            return r;
         }
     }
 
@@ -519,11 +511,9 @@
         if (typeof callback === 'function') {
             return fs.fchmod(fd, mode, callback);
         } else {
-            try {
-                return fs.fchmod(fd, mode);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.fchmod(fd, mode);
+            if (r < 0) throw newErrnoError(r, fd);
+            return r;
         }
     }
 
@@ -539,11 +529,9 @@
         if (typeof callback === 'function') {
             return fs.chown(path, uid, gid, callback);
         } else {
-            try {
-                return fs.chown(path, uid, gid);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.chown(path, uid, gid);
+            if (r < 0) throw newErrnoError(r, path);
+            return r;
         }
     }
 
@@ -559,11 +547,9 @@
         if (typeof callback === 'function') {
             return fs.fchown(path, uid, gid, callback);
         } else {
-            try {
-                return fs.fchown(path, uid, gid);
-            } catch(e) {
-                throw newError(e);
-            }
+            var r = fs.fchown(path, uid, gid);
+            if (r < 0) throw newErrnoError(r, path);
+            return r;
         }
     }
 
@@ -591,47 +577,31 @@
     }
 
     StatWatcher.prototype.start = function(filename, persistent, interval) {
-        try {
-            var status = this._fsPoll.start(filename, persistent, interval);
-        } catch (err) {
-            if(!err.errnoString) {
-                throw err;
-            }
-            process._errno = err.errnoString();
-        }
-        return status;
+        return this._fsPoll.start(filename, persistent, interval);
     }
 
     StatWatcher.prototype.stop = function() {
         this._fsPoll.stop();
     }
 
-    exports.Stats = function(stats) {
-        this.update = function(stats) {
-            this.dev = stats ? stats.getDev() : undefined;
-            this.ino = stats ? stats.getIno() : undefined;
-            this.mode = stats ? stats.getMode() : undefined;
-            this.nlink = stats ? stats.getNlink() : undefined;
-            this.uid = stats ? stats.getUid() : undefined;
-            this.gid = stats ? stats.getGid() : undefined;
-            this.rdev = stats ? stats.getRdev() : undefined;
-            this.size = stats ? stats.getSize() : undefined;
-            this.blksize = stats ? stats.getBlksize() : undefined;
-            this.blocks = stats ? stats.getBlocks() : undefined;
-            this.atime = stats ? new Date(stats.getAtime()) : undefined;
-            this.mtime = stats ? new Date(stats.getMtime()) : undefined;
-            this.ctime = stats ? new Date(stats.getMtime()) : undefined;
-        }
-        this.update(stats);
-    }
-
     var newError = function(exception) {
-        var error = new Error(exception.getErrnoMessage());
-        error.errno = exception.errno()
+        var error = new Error();
+        error.errno = exception.errno();
         error.code = exception.errnoString();
         error.message = exception.errnoString() + ', ' + exception.getErrnoMessage() + ' \'' + exception.path() +'\'';
         error.path = exception.path();
-        process._errno = error.code;
         return error;
     }
+
+    var newErrnoError = function(errno, path, path2) {
+        var error = new Error();
+        var code = uv.errname(errno);
+        var msg = uv.errmsg(errno);
+        error.errno = errno;
+        error.code = code;
+        error.message = code + ', ' + msg + (path ? ' \'' + path +'\'' : '') + (path2 ? ' \'' + path2 +'\'' : '');
+        error.path = path;
+        return error;
+    }
+
 });

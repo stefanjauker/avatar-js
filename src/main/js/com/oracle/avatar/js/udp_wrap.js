@@ -53,10 +53,6 @@
         }
 
         this._udp.sendCallback = function(status, nativeException, req) {
-            if (status < 0) {
-                var errno = nativeException.errnoString();
-                process._errno = errno;
-            }
             var callback = req.oncomplete;
             if (callback) {
                 callback.call(req, status);
@@ -65,25 +61,11 @@
     }
 
     UDP.prototype.bind = function(address, port, flags) {
-        try {
-            return this._udp.bind(port, address);
-        } catch (err) {
-            if (!err.errnoString) {
-                throw err;
-            }
-            throw newError(err);
-        }
+        return this._udp.bind(port, address);
     }
 
     UDP.prototype.bind6 = function(address, port, flags) {
-        try {
-            return this._udp.bind6(port, address);
-        } catch (err) {
-            if (!err.errnoString) {
-                throw err;
-            }
-            throw newError(err);
-        }
+        return this._udp.bind6(port, address);
     }
 
     UDP.prototype.send = function(req, buffer, offset, length, port, ip, callback) {
@@ -95,15 +77,15 @@
     }
 
     UDP.prototype.recvStart = function() {
-        this._udp.recvStart();
+        return this._udp.recvStart();
     }
 
     UDP.prototype.recvStop = function() {
-        this._udp.recvStop();
+        return this._udp.recvStop();
     }
 
     UDP.prototype.close = function() {
-        this._udp.close();
+        return this._udp.close();
     }
 
     UDP.prototype.getsockname = function(out) {
@@ -138,18 +120,17 @@
     }
 
     UDP.prototype.ref = function() {
-        this._udp.ref();
+        return this._udp.ref();
     }
 
     UDP.prototype.unref = function() {
-        this._udp.unref();
+        return this._udp.unref();
     }
 
     var newError = function(exception) {
         var error = new Error(exception.getMessage());
         error.errno = exception.errno()
         error.code = exception.errnoString();
-        process._errno = error.code;
         return error;
     }
 });

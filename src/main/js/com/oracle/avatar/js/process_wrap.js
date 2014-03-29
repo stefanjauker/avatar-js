@@ -56,10 +56,6 @@
             if (typeof signal == 'number' && signal > 0) {
                 signal = Constants.getConstantsString().get(signal);
             }
-            if (nativeException) {
-                var errno = nativeException.errnoString();
-                process._errno = errno;
-            }
             that.onexit(status, signal);
         };
     }
@@ -130,7 +126,7 @@
     }
 
     Process.prototype.close = function() {
-        this.process.close();
+        return this.process.close();
     }
 
     Process.prototype.kill = function(signal) {
@@ -138,11 +134,11 @@
     }
 
     Process.prototype.ref = function() {
-      this.process.ref();
+        return this.process.ref();
     }
 
     Process.prototype.unref = function() {
-      this.process.unref();
+        return this.process.unref();
     }
 });
 

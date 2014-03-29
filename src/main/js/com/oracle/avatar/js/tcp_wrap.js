@@ -56,10 +56,6 @@
         }, avatarContext, LibUVPermission.HANDLE);
 
         this._connection.connectionCallback = function(status, nativeException) {
-            if (status < 0) {
-                var errno = nativeException.errnoString();
-                process._errno = errno;
-            }
             var clientHandle = new TCP();
             AccessController.doPrivileged(new PrivilegedAction() {
                 run: function() {
@@ -73,10 +69,7 @@
         }
 
         this._connection.connectCallback = function(status, nativeException, req) {
-            if (status < 0) {
-                var errno = nativeException.errnoString();
-                process._errno = errno;
-            } else {
+            if (status >= 0) {
                 that._connection.readStart();
                 Object.defineProperty(that, '_connected', {value: true});
             }
@@ -88,19 +81,12 @@
                 var buffer = new Buffer(new JavaBuffer(byteBuffer));
                 that.onread(status, buffer);
             } else {
-                process._errno = nativeException.errnoString();
                 that.onread(status);
             }
         }
 
         this._connection.writeCallback = function(status, nativeException, req) {
-            if (status < 0) {
-                var errno = nativeException.errnoString();
-                process._errno = errno;
-            }
-            if (req && req.oncomplete) {
-                req.oncomplete(status, that, req);
-            }
+            req.oncomplete(status, that, req);
         }
 
         this._connection.closeCallback = function() {
@@ -110,10 +96,6 @@
         }
 
         this._connection.shutdownCallback = function(status, nativeException, req) {
-            if (status < 0) {
-                var errno = nativeException.errnoString();
-                process._errno = errno;
-            }
             req.oncomplete(status, that, req);
         }
     }
@@ -121,35 +103,19 @@
     util.inherits(TCP, events.EventEmitter);
 
     TCP.prototype.bind = function(address, port) {
-        try {
-            this._connection.bind(address, port);
-        } catch (err) {
-            if (!err.errnoString) {
-                throw err;
-            }
-            process._errno = err.errnoString();
-            this._connection = undefined;
-            return -1;
-        }
-        return 0;
+        return this._connection.bind(address, port);
     }
 
     TCP.prototype.bind6 = function(address, port) {
-        this.bind(address, port);
+        return this.bind(address, port);
     }
 
     TCP.prototype.listen = function(backlog) {
         try {
-            this._connection.listen(backlog);
+            return this._connection.listen(backlog);
         } catch (err) {
-            if (!err.errnoString) {
-                throw err;
-            }
-            process._errno = err.errnoString();
-            this._connection = undefined;
-            return -1;
+            return err.errno();
         }
-        return 0;
     }
 
     TCP.prototype.connect6 = function(address, port) {
@@ -157,39 +123,21 @@
     }
 
     TCP.prototype.connect = function(req, address, port) {
-        try {
-            return this._connection.connect(address, port, req);
-        } catch (err) {
-            if (!err.errnoString) {
-                throw err;
-            }
-            process._errno = err.errnoString();
-            return err;
-        }
+        return this._connection.connect(address, port, req);
     }
 
     TCP.prototype.open = function(fd) {
-        try {
-            this._connection.open(fd);
-        } catch (err) {
-            if (!err.errnoString) {
-                throw err;
-            }
-            process._errno = err.errnoString();
-            this._connection = undefined;
-            return -1;
-        }
-        return 0;
+        return this._connection.open(fd);
     }
 
     TCP.prototype.readStart = function() {
         if (this._connected) {
-            this._connection.readStart();
+            return this._connection.readStart();
         }
     }
 
     TCP.prototype.readStop = function() {
-        this._connection.readStop();
+        return this._connection.readStop();
     }
 
     TCP.prototype.writeBuffer = function(req, data) {
@@ -214,11 +162,11 @@
     }
 
     TCP.prototype.setNoDelay = function(enable) {
-        this._connection.setNoDelay(enable);
+        return this._connection.setNoDelay(enable);
     }
 
     TCP.prototype.setKeepAlive = function(enable, initialDelay) {
-        this._connection.setKeepAlive(enable, initialDelay);
+        return this._connection.setKeepAlive(enable, initialDelay);
     }
 
     TCP.prototype._addressToJS = function(address) {
@@ -244,10 +192,11 @@
     TCP.prototype.close = function(cb) {
         if (this._connection) {
             this._connection.readStop();
-            this._connection.close();
+            var r = this._connection.close();
             if (cb) {
                 Object.defineProperty(this, '_closeCallback', {value: cb});
             }
+            return r;
         }
     }
 
@@ -256,11 +205,11 @@
     }
 
     TCP.prototype.ref = function() {
-        this._connection.ref();
+        return this._connection.ref();
     }
 
     TCP.prototype.unref = function() {
-        this._connection.unref();
+        return this._connection.unref();
     }
 
 });

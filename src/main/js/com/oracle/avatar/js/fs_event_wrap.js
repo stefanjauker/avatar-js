@@ -41,18 +41,10 @@
     }
 
     FSEvent.prototype.start = function(filename, persistent) {
-        try {
-            var status = this._fsEvent.start(filename, persistent);
-        } catch (err) {
-            if(!err.errnoString) {
-                throw err;
-            }
-            process._errno = err.errnoString();
-        }
-        return status;
+        return this._fsEvent.start(filename, persistent);
     }
 
     FSEvent.prototype.close = function() {
-        this._fsEvent.stop();
+        return this._fsEvent.stop();
     }
 });

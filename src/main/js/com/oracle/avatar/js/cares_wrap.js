@@ -46,7 +46,6 @@
             message = 'domain has no data.'
         }
         var error = new Error(code + ', ' + message + ' \'' + e.message + '\'');
-        process._errno = error.code = code;
         return error;
     }
 

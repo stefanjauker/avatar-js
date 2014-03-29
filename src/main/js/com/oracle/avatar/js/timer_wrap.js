@@ -45,43 +45,19 @@
     }
 
     Timer.prototype.start = function(timeout, repeat) {
-        try {
-            this._timer.start(timeout, repeat);
-        } catch(err) {
-            if (!err.errnoString) {
-                throw err;
-            }
-            process._errno = err.errnoString();
-            throw err;
-        }
+        return this._timer.start(timeout, repeat);
     }
 
     Timer.prototype.stop = function() {
-        try {
-            this._timer.stop();
-        } catch(err) {
-            if (!err.errnoString) {
-                throw err;
-            }
-            process._errno = err.errnoString();
-            throw err;
-        }
+        return this._timer.stop();
     }
 
     Timer.prototype.again = function() {
-        try {
-            this._timer.again();
-        } catch(err) {
-            if (!err.errnoString) {
-                throw err;
-            }
-            process._errno = err.errnoString();
-            throw err;
-        }
+        return this._timer.again();
     }
 
     Timer.prototype.setRepeat = function(repeat) {
-        this._timer.setRepeat(repeat);
+        return this._timer.setRepeat(repeat);
     }
 
     Timer.prototype.getRepeat = function() {
@@ -89,17 +65,17 @@
     }
 
     Timer.prototype.ref = function() {
-        this._timer.ref();
+        return this._timer.ref();
     }
 
     Timer.prototype.unref = function() {
-        this._timer.unref();
+        return this._timer.unref();
     }
 
     Timer.prototype.close = function() {
         if (!this.closed) {
             this.closed = true;
-            this._timer.close();
+            return this._timer.close();
         }
     }
 

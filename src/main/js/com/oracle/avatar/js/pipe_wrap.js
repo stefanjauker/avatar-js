@@ -62,7 +62,6 @@
 
         this._pipe.readCallback = function(status, error, byteBuffer, handle, type) {
             if (byteBuffer) {
-               process._errno = undefined;
                var data = new Buffer(new JavaBuffer(byteBuffer));
                // Defined in uv.h (see UV_HANDLE_TYPE_MAP)
                var UV_NAMED_PIPE = 7;
@@ -94,55 +93,33 @@
                    var udp = new UDP(datagram);
                    that.onread(status, data, 0, udp);
                } else {
-                   if (that.onread) {
-                     that.onread(status, data);
-                   } else {
-                     print('WARNING: pipe.onread undefined'); // TODO
-                   }
+                   that.onread(status, data);
                }
             } else {
-                var errno = 'EOF';
-                process._errno = errno;
-                that.onread(status, undefined);
+                that.onread(status); // assert(status < 0);
             }
         }
 
         this._pipe.writeCallback = function(status, nativeException, req) {
-            if (status < 0) {
-                var errno = nativeException.errnoString();
-                process._errno = errno;
-            }
-            if (req && req.oncomplete) {
-                req.oncomplete(status, that, req);
-            }
+            req.oncomplete(status, that, req);
         }
 
         this._pipe.connectCallback = function(status, nativeException, req) {
-            if (status < 0) {
-                var errno = nativeException.errnoString();
-                process._errno = errno;
-            } else {
+            if (status >= 0) {
                 that._pipe.readStart();
             }
             req.oncomplete(status, that, req, true, true);
         }
 
         this._pipe.connectionCallback = function(status, nativeException) {
-            if (status < 0) {
-                var errno = nativeException.errnoString();
-                process._errno = errno;
-            } else {
-                var clientHandle = new Pipe();
-                AccessController.doPrivileged(new PrivilegedAction() {
-                    run: function() {
-                        that._pipe.accept(clientHandle._pipe);
-                    }
-                }, that._callerContext);
-                clientHandle._pipe.readStart();
-            }
-            if (that.onconnection) {
-                that.onconnection(status, clientHandle);
-            }
+            var clientHandle = new Pipe();
+            AccessController.doPrivileged(new PrivilegedAction() {
+                run: function() {
+                    that._pipe.accept(clientHandle._pipe);
+                }
+            }, that._callerContext);
+            clientHandle._pipe.readStart();
+            that.onconnection(status, clientHandle);
         }
 
         this._pipe.closeCallback = function() {
@@ -152,10 +129,6 @@
         }
 
         this._pipe.shutdownCallback = function(status, nativeException, req) {
-            if (status < 0) {
-                var errno = nativeException.errnoString();
-                process._errno = errno;
-            }
             req.oncomplete(status, that, req);
         }
 
@@ -174,37 +147,19 @@
     }
 
     Pipe.prototype.bind = function(address) {
-        try {
-            this._pipe.bind(address);
-        } catch (err) {
-            if(!err.errnoString) {
-                throw err;
-            }
-            process._errno = err.errnoString();
-            this._pipe = undefined;
-            throw newError(err);
-        }
+        return this._pipe.bind(address);
     }
 
     Pipe.prototype.listen = function(backlog) {
-        try {
-            this._pipe.listen(backlog);
-        } catch (err) {
-            if(!err.errnoString) {
-                throw err;
-            }
-            process._errno = err.errnoString();
-            this._pipe = undefined;
-            return newError(err);
-        }
+        return this._pipe.listen(backlog);
     }
 
     Pipe.prototype.readStart = function() {
-        this._pipe.readStart();
+        return this._pipe.readStart();
     }
 
     Pipe.prototype.readStop = function() {
-        this._pipe.readStop();
+        return this._pipe.readStop();
     }
 
     Pipe.prototype.writeUtf8String = function(req, message, handle) {
@@ -250,10 +205,11 @@
     Pipe.prototype.close = function(callback) {
         if (this._pipe) {
             this._pipe.readStop();
-            this._pipe.close();
+            var r = this._pipe.close();
             if (callback) {
                 Object.defineProperty(this, '_closeCallback', {value: callback});
             }
+            return r;
         }
     }
 
@@ -262,18 +218,17 @@
     }
 
     Pipe.prototype.ref = function() {
-      this._pipe.ref();
+        return this._pipe.ref();
     }
 
     Pipe.prototype.unref = function() {
-      this._pipe.unref();
+        return this._pipe.unref();
     }
 
     var newError = function(exception) {
         var error = new Error(exception.getMessage());
         error.errno = exception.errno()
         error.code = exception.errnoString();
-        process._errno = error.code;
         return error;
     }
 });

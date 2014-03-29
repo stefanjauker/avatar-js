@@ -47,41 +47,25 @@
     }
 
     Signal.prototype.start = function(signum) {
-        try {
-            this._signal.start(signum);
-        } catch (err) {
-            if (!err.errnoString) {
-                throw err;
-            }
-            process._errno = err.errnoString();
-            throw err;
-        }
+        return this._signal.start(signum);
     }
 
     Signal.prototype.stop = function() {
-        try {
-            this._signal.stop();
-        } catch (err) {
-            if (!err.errnoString) {
-                throw err;
-            }
-            process._errno = err.errnoString();
-            throw err;
-        }
+        return this._signal.stop();
     }
 
     Signal.prototype.ref = function() {
-        this._signal.ref();
+        return this._signal.ref();
     }
 
     Signal.prototype.unref = function() {
-        this._signal.unref();
+        return this._signal.unref();
     }
 
     Signal.prototype.close = function() {
         if (!this.closed) {
             this.closed = true;
-            this._signal.close();
+            return this._signal.close();
         }
     }
 
