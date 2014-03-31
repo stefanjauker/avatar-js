@@ -53,7 +53,7 @@
         this.mtime = stats ? new Date(stats.getMtime()) : undefined;
         this.ctime = stats ? new Date(stats.getMtime()) : undefined;
         return this;
-    }
+    };
 
     exports.Stats = Stats;
 
@@ -73,7 +73,7 @@
             if (r < 0) throw newErrnoError(r, fd);
             return r;
         }
-    }
+    };
 
     fs.setOpenCallback(function(cb, fd, nativeException) {
         if (nativeException) {
@@ -91,7 +91,7 @@
             if (r < 0) throw newErrnoError(r, path);
             return r;
         }
-    }
+    };
 
     fs.setReadCallback(function(cb, bytesRead, data, nativeException) {
         if (nativeException) {
@@ -102,7 +102,7 @@
     });
 
     exports.read = function(fd, buffer, offset, length, position, callback) {
-        if (position == null || position == undefined) {
+        if (position === null || position === undefined) {
             position = -1;
         }
         if (typeof callback === 'function') {
@@ -112,7 +112,7 @@
             if (r < 0) throw newErrnoError(r, fd);
             return r;
         }
-    }
+    };
 
     fs.setUnlinkCallback(function(cb, nativeException) {
         if (nativeException) {
@@ -130,7 +130,7 @@
             if (r < 0) throw newErrnoError(r, path);
             return r;
         }
-    }
+    };
 
     fs.setWriteCallback(function(cb, bytesWritten, nativeException) {
         if (nativeException) {
@@ -141,9 +141,9 @@
     });
 
     exports.writeBuffer = function(fd, buffer, offset, length, position, callback) {
-        if (position == null || position == undefined) {
+        if (position === null || position === undefined) {
             position = -1;
-        } else if (position % 1 != 0) {
+        } else if (position % 1 !== 0) {
             throw new TypeError("Not an integer");
         }
 
@@ -157,9 +157,9 @@
     }
 
     exports.writeString = function(fd, string, position, encoding, callback) {
-        if (position == null || position == undefined) {
+        if (position === null || position === undefined) {
             position = -1;
-        } else if (position % 1 != 0) {
+        } else if (position % 1 !== 0) {
             throw new TypeError("Not an integer");
         }
 
@@ -174,7 +174,7 @@
             if (r < 0) throw newErrnoError(r, fd);
             return r;
         }
-    }
+    };
 
     fs.setMkDirCallback(function(cb, nativeException) {
         if (nativeException) {
@@ -192,7 +192,7 @@
             if (r < 0) throw newErrnoError(r, path);
             return r;
         }
-    }
+    };
 
     fs.setRmDirCallback(function(cb, nativeException) {
         if (nativeException) {
@@ -210,7 +210,7 @@
             if (r < 0) throw newErrnoError(r, path);
             return r;
         }
-    }
+    };
 
     fs.setReadDirCallback(function(cb, names, nativeException) {
         if (nativeException) {
@@ -261,7 +261,7 @@
             if (r < 0) throw newErrnoError(r, path);
             return _stats;
         }
-    }
+    };
 
     var _fstats = new exports.Stats();
     fs.setFStatCallback(function(cb, stats, nativeException) {
@@ -282,7 +282,7 @@
             if (r < 0) throw newErrnoError(r, fd);
             return _fstats;
         }
-    }
+    };
 
     fs.setRenameCallback(function(cb, nativeException) {
         if (nativeException) {
@@ -300,7 +300,7 @@
             if (r < 0) throw newErrnoError(r, oldPath, newPath);
             return r;
         }
-    }
+    };
 
     fs.setFSyncCallback(function(cb, nativeException) {
         if (nativeException) {
@@ -318,7 +318,7 @@
             if (r < 0) throw newErrnoError(r, fd);
             return r;
         }
-    }
+    };
 
     fs.setFDatasyncCallback(function(cb, nativeException) {
         if (nativeException) {
@@ -336,7 +336,7 @@
             if (r < 0) throw newErrnoError(r, fd);
             return r;
         }
-    }
+    };
 
     fs.setFTruncateCallback(function(cb, nativeException) {
         if (nativeException) {
@@ -354,7 +354,7 @@
             if (r < 0) throw newErrnoError(r, fd);
             return r;
         }
-    }
+    };
 
     fs.setChmodCallback(function(cb, nativeException) {
         if (nativeException) {
@@ -372,7 +372,7 @@
             if (r < 0) throw newErrnoError(r, path);
             return r;
         }
-    }
+    };
 
     fs.setUTimeCallback(function(cb, time, nativeException) {
         if (nativeException) {
@@ -392,7 +392,7 @@
             if (r < 0) throw newErrnoError(r, path);
             return r;
         }
-    }
+    };
 
     fs.setFUTimeCallback(function(cb, time, nativeException) {
         if (nativeException) {
@@ -410,7 +410,7 @@
             if (r < 0) throw newErrnoError(r, fd);
             return r;
         }
-    }
+    };
 
     var _lstats = new exports.Stats();
     fs.setLStatCallback(function(cb, stats, nativeException) {
@@ -431,7 +431,7 @@
             if (r < 0) throw newErrnoError(r, path);
             return _lstats;
         }
-    }
+    };
 
     fs.setLinkCallback(function(cb, nativeException) {
         if (nativeException) {
@@ -449,7 +449,7 @@
             if (r < 0) throw newErrnoError(r, srcpath, dstpath);
             return r;
         }
-    }
+    };
 
     fs.setSymLinkCallback(function(cb, nativeException) {
         if (nativeException) {
@@ -468,7 +468,7 @@
             flags |= 0x0001;  //UV_FS_SYMLINK_DIR
         } else if (type === 'junction') {
             flags |= 0x0002; //UV_FS_SYMLINK_JUNCTION
-        } else if (type != 'file') {
+        } else if (type !== 'file') {
             throw new Error('Unknown symlink type');
         }
 
@@ -479,7 +479,7 @@
             if (r < 0) throw newErrnoError(r, path);
             return r;
         }
-    }
+    };
 
     fs.setReadLinkCallback(function(cb, name, nativeException) {
         if (nativeException) {
@@ -493,11 +493,12 @@
         if (typeof callback === 'function') {
             return fs.readlink(path, callback);
         } else {
-            var r = fs.readlink(path);
+            var values = java.lang.reflect.Array.newInstance(java.lang.String.class, 1);
+            var r = fs.readlink(path, values);
             if (r < 0) throw newErrnoError(r, path);
-            return r;
+            return values[0];
         }
-    }
+    };
 
     fs.setFChmodCallback(function(cb, nativeException) {
         if (nativeException) {
@@ -515,7 +516,7 @@
             if (r < 0) throw newErrnoError(r, fd);
             return r;
         }
-    }
+    };
 
     fs.setChownCallback(function(cb, nativeException) {
         if (nativeException) {
@@ -533,7 +534,7 @@
             if (r < 0) throw newErrnoError(r, path);
             return r;
         }
-    }
+    };
 
     fs.setFChownCallback(function(cb, nativeException) {
         if (nativeException) {
@@ -551,7 +552,7 @@
             if (r < 0) throw newErrnoError(r, path);
             return r;
         }
-    }
+    };
 
     exports.StatWatcher = StatWatcher;
 
@@ -578,11 +579,11 @@
 
     StatWatcher.prototype.start = function(filename, persistent, interval) {
         return this._fsPoll.start(filename, persistent, interval);
-    }
+    };
 
     StatWatcher.prototype.stop = function() {
         this._fsPoll.stop();
-    }
+    };
 
     var newError = function(exception) {
         var error = new Error();
@@ -591,7 +592,7 @@
         error.message = exception.errnoString() + ', ' + exception.getErrnoMessage() + ' \'' + exception.path() +'\'';
         error.path = exception.path();
         return error;
-    }
+    };
 
     var newErrnoError = function(errno, path, path2) {
         var error = new Error();
@@ -602,6 +603,6 @@
         error.message = code + ', ' + msg + (path ? ' \'' + path +'\'' : '') + (path2 ? ' \'' + path2 +'\'' : '');
         error.path = path;
         return error;
-    }
+    };
 
 });
