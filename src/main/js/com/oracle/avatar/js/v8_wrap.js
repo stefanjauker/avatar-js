@@ -26,12 +26,12 @@
 (function(exports) {
 
     exports.getHeapStatistics = function() {
-    }
+    };
 
     exports.startGarbageCollectionTracking = function() {
-    }
+    };
 
     exports.stopGarbageCollectionTracking = function() {
-    }
+    };
 
 });

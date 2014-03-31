@@ -74,43 +74,45 @@
     function Gzip() {
         this.createPeer = function() {
             return new Packages.com.oracle.avatar.js.zlib.Gzip(__avatar.eventloop);
-        }
+        };
     }
 
     function Deflate() {
         this.createPeer = function() {
             return new Packages.com.oracle.avatar.js.zlib.Deflate(__avatar.eventloop);
-        }
+        };
     }
 
     function DeflateRaw() {
         this.createPeer = function() {
             return new Packages.com.oracle.avatar.js.zlib.DeflateRaw(__avatar.eventloop);
-        }
+        };
     }
 
     function Gunzip() {
         this.createPeer = function() {
             return new Packages.com.oracle.avatar.js.zlib.Gunzip(__avatar.eventloop);
-        }
+        };
     }
 
     function Inflate() {
         this.createPeer = function() {
             return new Packages.com.oracle.avatar.js.zlib.Inflate(__avatar.eventloop);
-        }
+        };
     }
 
     function InflateRaw() {
         this.createPeer = function() {
             return new Packages.com.oracle.avatar.js.zlib.InflateRaw(__avatar.eventloop);
-        }
+        };
     }
+
     function Unzip() {
         this.createPeer = function() {
             return new Packages.com.oracle.avatar.js.zlib.Unzip(__avatar.eventloop);
-        }
+        };
     }
+
     exports.GZIP    = new Gzip();
     exports.DEFLATE = new Deflate();
     exports.DEFLATERAW = new DeflateRaw();
@@ -158,7 +160,7 @@
                 var availOutAfter = args[1];
                 res.callback(availInAfter, availOutAfter);
             });
-        }
+        };
 
         if (chunk === null) { // No more input
             chunk = new Buffer(0);
@@ -186,7 +188,8 @@
 
     Zlib.prototype.close = function() {
         this.peer.close();
-    }
+    };
+
     exports.Zlib = Zlib;
 
 });

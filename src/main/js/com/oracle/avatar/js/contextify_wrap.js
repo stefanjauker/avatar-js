@@ -35,23 +35,23 @@
     exports.ContextifyScript = ContextifyScript;
 
     ContextifyScript.prototype.runInThisContext = function(options) {
-       if (this._code == null) {
+       if (this._code === null) {
            return load(__avatar.loader.wrapURL(this._filename));
        } else {
            return load({script: this._code, name: this._filename});
        }
-    }
+    };
 
     ContextifyScript.prototype.runInContext = function(sandbox, options) {
         print('contextify.runInContext sandbox ' + JSON.stringify(sandbox) + ', options: ' + JSON.stringify(options));
-    }
+    };
 
     ContextifyScript.prototype.makeContext = function(sandbox) {
         print('contextify.makeContext sandbox ' + JSON.stringify(sandbox));
-    }
+    };
 
     ContextifyScript.prototype.isContext = function(sandbox) {
         print('contextify.isContext sandbox ' + JSON.stringify(sandbox));
-    }
+    };
 
 });

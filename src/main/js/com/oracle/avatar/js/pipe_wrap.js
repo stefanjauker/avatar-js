@@ -67,7 +67,7 @@
                var UV_NAMED_PIPE = 7;
                var UV_TCP = 12;
                var UV_UDP = 15;
-               if (type == UV_NAMED_PIPE) {
+               if (type === UV_NAMED_PIPE) {
                    var pipeHandle = AccessController.doPrivileged(new PrivilegedAction() {
                         run: function() {
                             return new PipeHandle(loop, handle, true);
@@ -75,7 +75,7 @@
                     }, avatarContext, LibUVPermission.HANDLE);
                    var p = new Pipe(true, pipeHandle);
                    that.onread(status, data, 0, p);
-               } else if (type == UV_TCP) {
+               } else if (type === UV_TCP) {
                    var socket = AccessController.doPrivileged(new PrivilegedAction() {
                         run: function() {
                             return new TCPHandle(loop, handle);
@@ -84,7 +84,7 @@
                    var tcp = new TCP(socket);
                    tcp._connected = true;
                    that.onread(status, data, 0, tcp);
-               } else if (type == UV_UDP) {
+               } else if (type === UV_UDP) {
                    var datagram = AccessController.doPrivileged(new PrivilegedAction() {
                         run: function() {
                             return new UDPHandle(loop, handle);
@@ -98,18 +98,18 @@
             } else {
                 that.onread(status); // assert(status < 0);
             }
-        }
+        };
 
         this._pipe.writeCallback = function(status, nativeException, req) {
             req.oncomplete(status, that, req);
-        }
+        };
 
         this._pipe.connectCallback = function(status, nativeException, req) {
             if (status >= 0) {
                 that._pipe.readStart();
             }
             req.oncomplete(status, that, req, true, true);
-        }
+        };
 
         this._pipe.connectionCallback = function(status, nativeException) {
             var clientHandle = new Pipe();
@@ -120,47 +120,48 @@
             }, that._callerContext);
             clientHandle._pipe.readStart();
             that.onconnection(status, clientHandle);
-        }
+        };
 
         this._pipe.closeCallback = function() {
             if (that._closeCallback) {
                 process.nextTick(that._closeCallback);
             }
-        }
+        };
 
         this._pipe.shutdownCallback = function(status, nativeException, req) {
             req.oncomplete(status, that, req);
-        }
+        };
 
         Object.defineProperty(this, 'writeQueueSize', { enumerable: true,
-            get : function() {  return that._pipe ? that._pipe.writeQueueSize() : 0 } } );
+            get : function() {  return that._pipe ? that._pipe.writeQueueSize() : 0; }
+        });
     }
 
     util.inherits(Pipe, events.EventEmitter);
 
     Pipe.prototype.open = function(fd) {
         this._pipe.open(fd);
-    }
+    };
 
     Pipe.prototype.connect = function(req, name) {
         return this._pipe.connect(name, req);
-    }
+    };
 
     Pipe.prototype.bind = function(address) {
         return this._pipe.bind(address);
-    }
+    };
 
     Pipe.prototype.listen = function(backlog) {
         return this._pipe.listen(backlog);
-    }
+    };
 
     Pipe.prototype.readStart = function() {
         return this._pipe.readStart();
-    }
+    };
 
     Pipe.prototype.readStop = function() {
         return this._pipe.readStop();
-    }
+    };
 
     Pipe.prototype.writeUtf8String = function(req, message, handle) {
         if (handle) {
@@ -179,28 +180,28 @@
             return this._pipe.write2(buffer.toStringContent(), send_handle, req);
         }
         return this._writeString(req, message, 'utf8');
-     }
+     };
 
     Pipe.prototype.writeBuffer = function(req, message) {
         if (message._impl) message = message._impl; // unwrap if necessary
         return this._pipe.write(message.underlying(), req);
-    }
+    };
 
     Pipe.prototype._writeString = function(req, string, encoding) {
         return this.writeBuffer(req, new JavaBuffer(string, encoding));
-    }
+    };
 
     Pipe.prototype.writeAsciiString = function(req, data) {
         return this._writeString(req, data, 'ascii');
-    }
+    };
 
     Pipe.prototype.writeUcs2String = function(req, data) {
         return this._writeString(req, data, 'ucs2');
-    }
+    };
 
     Pipe.prototype.setBlocking = function(blocking) {
         return this._pipe.setBlocking(blocking);
-    }
+    };
 
     Pipe.prototype.close = function(callback) {
         if (this._pipe) {
@@ -211,24 +212,25 @@
             }
             return r;
         }
-    }
+    };
 
     Pipe.prototype.shutdown = function(req) {
         return this._pipe.shutdown(req);
-    }
+    };
 
     Pipe.prototype.ref = function() {
         return this._pipe.ref();
-    }
+    };
 
     Pipe.prototype.unref = function() {
         return this._pipe.unref();
-    }
+    };
 
     var newError = function(exception) {
         var error = new Error(exception.getMessage());
-        error.errno = exception.errno()
+        error.errno = exception.errno();
         error.code = exception.errnoString();
         return error;
-    }
+    };
+
 });

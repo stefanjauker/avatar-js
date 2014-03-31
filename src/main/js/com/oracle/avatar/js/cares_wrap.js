@@ -43,11 +43,11 @@
             message = 'domain name not found.';
         } else {
             code = 'ENODATA';
-            message = 'domain has no data.'
+            message = 'domain has no data.';
         }
         var error = new Error(code + ', ' + message + ' \'' + e.message + '\'');
         return error;
-    }
+    };
 
     exports.getHostByAddr = function(req, name) {
         var address = name;
@@ -66,7 +66,7 @@
             req.callback(mapJavaException(args[0]), values);
         });
         return null;
-    }
+    };
 
     exports.getaddrinfo = exports.queryA = exports.queryAaaa = function(req, hostname, family) {
         dns.getAddressByHost(hostname, family, function(name, args) {
@@ -79,7 +79,7 @@
             req.callback(mapJavaException(args[0]), values, family);
         });
         return null;
-    }
+    };
 
     exports.isIP = function(input) {
         if (!input) {
@@ -99,6 +99,6 @@
             }
             return 0;
         }
-    }
+    };
 
 });

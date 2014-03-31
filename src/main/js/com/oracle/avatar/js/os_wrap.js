@@ -30,37 +30,37 @@
 
     exports.getHostname = function() {
         return java.net.InetAddress.getLocalHost().getHostName();
-    }
+    };
 
     exports.getOSType = function() {
         var r = OS.getType();
         return r ? r : undefined;
-    }
+    };
 
     exports.getOSRelease = function() {
         var r = OS.getRelease();
         return r ? r : undefined;
-    }
+    };
 
     exports.getUptime = function() {
         var r = LibUV.getUptime();
         return r ? r : undefined;
-    }
+    };
 
     exports.getLoadAvg = function() {
         var r = LibUV.getLoadAvg();
         return r ? Java.from(r) : undefined;
-    }
+    };
 
     exports.getTotalMem = function() {
         var r = LibUV.getTotalMem();
         return r < 0 ? undefined : r;
-    }
+    };
 
     exports.getFreeMem = function() {
         var r = LibUV.getFreeMem();
         return r < 0 ? undefined : r;
-    }
+    };
 
     exports.getCPUs = function() {
         var cpuinfoarray = [];
@@ -84,7 +84,7 @@
             });
         }
         return cpuinfoarray;
-    }
+    };
 
     exports.getInterfaceAddresses = function() {
         var ret = {};
@@ -113,10 +113,10 @@
             ret[iface.getName()] = addressArray;
         }
         return ret;
-    }
+    };
 
     exports.getEndianness = function() {
         return OS.getEndianness();
-    }
+    };
 
 });

@@ -42,9 +42,9 @@
 
     FSEvent.prototype.start = function(filename, persistent) {
         return this._fsEvent.start(filename, persistent);
-    }
+    };
 
     FSEvent.prototype.close = function() {
         return this._fsEvent.stop();
-    }
+    };
 });

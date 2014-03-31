@@ -39,7 +39,7 @@
                }
            }
        }
-   }
+   };
 
    /**
     * Static load of filename URL or code. This is the entry point for all
@@ -47,13 +47,13 @@
     * Script loading is done in current (or this) context.
     */
    exports.NodeScript.runInThisContext = function(code, filename, displayError) {
-       if (code == null) {
+       if (code === null) {
            return load(__avatar.loader.wrapURL(filename));
        } else {
            // Done outside any codebase.
            return load({script: code, name: filename});
        }
-   }
+   };
 
    /**
     * Load of this Script filename URL or code. This is the entry point for all
@@ -61,7 +61,7 @@
     */
    exports.NodeScript.prototype.runInThisContext = function() {
        return exports.NodeScript.runInThisContext(this._source, this._filename);
-   }
+   };
 
    /* All the functions defined here after are dealing with foreign global context.
     *
@@ -109,7 +109,7 @@
        }
        addGlobalScope(init, context);
        return context;
-   }
+   };
 
 
    /**
@@ -119,7 +119,7 @@
     */
    exports.NodeScript.prototype.createContext = function(init) {
        return exports.NodeScript.createContext(init);
-   }
+   };
 
    /**
     * A new global scope. init has been created from createContext (runInContext)
@@ -150,12 +150,12 @@
            prefix += "Object.defineProperty(this, '" + key + "', {\n";
            prefix += "get: function() { return " + CTX_PROPERTY_NAME + "['" + key + "']},\n";
            prefix += "set: function(val) { " + CTX_PROPERTY_NAME + "['" + key + "'] = val },\n";
-           prefix += "});\n"
+           prefix += "});\n";
        }
 
        return prefix;
    }
-   
+
    /**
     * Generate global accessors for new properties
     */
@@ -166,13 +166,13 @@
             prefix += "Object.defineProperty(glob, '" + k + "', {\n";
             prefix += "get: function() { return ctx" + "['" + k + "']},\n";
             prefix += "set: function(val) { ctx['" + k + "'] = val },\n";
-            prefix += "});\n"
-           }
+            prefix += "});\n";
+           };
        }
-       prefix += "});"
+       prefix += "});";
        return prefix;
    }
-   
+
    /*
     * Static execution of script inside the passed global context.
     * The core of this function is the use of nashorn loadWithNewGlobal.
@@ -197,7 +197,7 @@
 
        // Export to global
        syncGlobal(context);
-       
+
        var loader = context._global.eval("(function loader(code, filename) { return load({name:filename, script:code}); });");
        var res = loader(code, name);
 
@@ -205,11 +205,11 @@
        syncContext(context);
 
        return res;
-   }
+   };
 
    exports.NodeScript.prototype.runInContext = function(context) {
        return exports.NodeScript.runInContext(this._source, context, this._filename);
-   }
+   };
 
    /*
     * Context could have been updated, resync the global with the current context state
@@ -218,7 +218,7 @@
        var updater = context._global.eval(update_global_script(context));
        updater(context._global, context);
    }
-   
+
    /**
     * Feed the context and the sandbox (if any) with what has been loaded in the
     * foreign global scope (context._global).
@@ -246,12 +246,12 @@
    exports.NodeScript.prototype.runInNewContext = function(sandbox) {
        var context = createNewContext(sandbox);
        return this.runInContext(context);
-   }
+   };
 
    exports.NodeScript.runInNewContext = function(code, sandbox, filename) {
        var context = createNewContext(sandbox);
        return exports.NodeScript.runInContext(code, context, filename);
-   }
+   };
 
    function createNewContext(sandbox) {
        var context = {};

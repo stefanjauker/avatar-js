@@ -46,42 +46,42 @@
 
     Timer.prototype.start = function(timeout, repeat) {
         return this._timer.start(timeout, repeat);
-    }
+    };
 
     Timer.prototype.stop = function() {
         return this._timer.stop();
-    }
+    };
 
     Timer.prototype.again = function() {
         return this._timer.again();
-    }
+    };
 
     Timer.prototype.setRepeat = function(repeat) {
         return this._timer.setRepeat(repeat);
-    }
+    };
 
     Timer.prototype.getRepeat = function() {
         return this._timer.getRepeat();
-    }
+    };
 
     Timer.prototype.ref = function() {
         return this._timer.ref();
-    }
+    };
 
     Timer.prototype.unref = function() {
         return this._timer.unref();
-    }
+    };
 
     Timer.prototype.close = function() {
         if (!this.closed) {
             this.closed = true;
             return this._timer.close();
         }
-    }
+    };
 
     Timer.now = function() {
         return loop.updateTime(); // also returns value of now()
-    }
+    };
 
     exports.Timer = Timer;
 

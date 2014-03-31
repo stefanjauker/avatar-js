@@ -24,6 +24,7 @@
  */
 
 (function(exports) {
+
     var kMaxLength = 0x3fffffff;
     var jBinding = new Packages.com.oracle.avatar.js.crypto.Crypto(__avatar.eventloop);
     var defaultEncoding = "binary";
@@ -62,7 +63,7 @@
         if (encoding) {
             enc = encoding;
         }
-        if (typeof obj == 'string') {
+        if (typeof obj === 'string') {
             if (enc === 'buffer') {// provide a string with no encoding
                 enc = undefined;
             }
@@ -93,7 +94,7 @@
 
         this.init = function() {
             var secureProtocol = null;
-            if (arguments.length == 1) {
+            if (arguments.length === 1) {
                 secureProtocol = arguments[0];
             }
             that.peer = jBinding.newSecureContext(secureProtocol);
@@ -131,7 +132,7 @@
         this.loadPKCS12 = function(pfx) {
             var buffer = toBuffer(pfx);
             var passPhrase = null;
-            if (arguments.length == 2) {
+            if (arguments.length === 2) {
                 passPhrase = arguments[1];
             }
             try {
@@ -148,7 +149,7 @@
 
         this.setKey = function() {
             var pass = null;
-            if (arguments.length == 2) {
+            if (arguments.length === 2) {
                 pass = arguments[1];
             }
             that.peer.setKey(arguments[0], pass);
@@ -323,7 +324,7 @@
     function DiffieHellman(size_or_key) {
         var isBuffer = Buffer.isBuffer(size_or_key);
         if (!size_or_key ||
-            (!isBuffer && typeof size_or_key != 'number')) {
+            (!isBuffer && typeof size_or_key !== 'number')) {
             throw new Error("Invalid prime or size");
         }
         var peer;
@@ -355,7 +356,7 @@
                 var ex = args[0];
                 var buf = args[1];
                 callback(ex, new Buffer(buf));
-            }
+            };
             jBinding.pbkdf2(password, salt, iterations, keylen, cb);
         } else {
             return new Buffer(jBinding.pbkdf2(password, salt, iterations, keylen));
@@ -370,7 +371,7 @@
                 var ex = args[0];
                 var buf = new Buffer(args[1]);
                 callback(ex, buf);
-            }
+            };
             jBinding.randomBytes(size, cb);
         } else {
             buffer = jBinding.randomBytes(size);
@@ -386,7 +387,7 @@
                 var ex = args[0];
                 var buf = new Buffer(args[1]);
                 callback(ex, buf);
-            }
+            };
             jBinding.pseudoRandomBytes(size, cb);
         } else {
             buffer = jBinding.pseudoRandomBytes(size);
@@ -437,7 +438,7 @@
             if (that.onhandshakestart) {
                 that.onhandshakestart();
             }
-        }
+        };
         this.peer = new connection(__avatar.eventloop,
                     secureContext.peer, reqCertOrServerName, rejectUnauthorized, renegoStart);
         Object.defineProperty(this, 'peer',  { writable: false,  enumerable: false });
@@ -453,7 +454,7 @@
                  var arr = java.lang.reflect.Array.newInstance(java.lang.Object.class, 1);
                  java.lang.reflect.Array.set(arr, 0, ctx);
                  retCb.call("", arr);
-             }
+             };
              that.peer.setSNICallback(cb);
         };
 
@@ -467,7 +468,7 @@
 
         this.getCurrentCipher = function() {
             return that.peer.getCipherSuite();
-        }
+        };
 
         this.start = function() {
             if (this.onhandshakestart) {
@@ -482,14 +483,14 @@
 
         this.clearOut = function(pool, offset, length) {
              return that.peer.clearOut(pool._impl, offset, length);
-        }
+        };
 
         this.getPeerCertificate = function() {
             var out = {};
             var jcert = that.peer.getPeerCertificate();
-            if (jcert != null) {
+            if (jcert !== null) {
                 var alt = jcert.alternateNames;
-                if (alt == null) {
+                if (alt === null) {
                     alt = undefined;
                 }
                 out = {issuer: jcert.issuer,
@@ -518,7 +519,7 @@
                 };
             }
             return out;
-        }
+        };
 
         this.verifyError = function() {
             var err;
@@ -528,7 +529,8 @@
                 err = new Error(ex.getMessage());
             }
             return err;
-        }
+        };
+
         Object.defineProperty(this, 'error', {
             enumerable: true,
             get: function() {
@@ -538,6 +540,7 @@
                 return that.peer.resetError();
             }
         });
+
         this.isInitFinished = function() {
              var finished = that.peer.isHandshakeFinished();
              if (!this.hsDoneCalled && finished && this.onhandshakedone) {
@@ -545,46 +548,49 @@
                  this.onhandshakedone();
              }
              return finished;
-        }
+        };
 
         this.setSession = function(session) {
              that.peer.setSession(session);
-        }
+        };
 
         this.getSession = function() {
              return that.peer.getSession();
-        }
+        };
 
         this.isSessionReused = function() {
             return that.peer.isSessionReused();
-        }
+        };
 
         this.getNegotiatedProtocol = function() {
             print("getNegotiatedProtocol not yet implemented");
-        }
+        };
 
         this.clearIn = function(pool, offset, length) {
              return that.peer.clearIn(pool._impl, offset, length);
-        }
+        };
+
         this.clearPending = function() {
              return that.peer.clearPending();
-        }
+        };
 
         this.shutdown = function() {
             that.peer.shutdown();
-        }
+        };
 
         this.encOut = function(pool, offset, length) {
              return that.peer.encOut(pool._impl, offset, length);
-        }
+        };
 
         this.encIn = function(pool, offset, length) {
              return that.peer.encIn(pool._impl, offset, length);
-        }
+        };
 
         this.encPending = function() {
              return that.peer.encPending();
-        }
+        };
     }
+
     exports.Connection = Connection;
+
 });

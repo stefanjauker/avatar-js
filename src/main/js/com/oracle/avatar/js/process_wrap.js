@@ -42,7 +42,7 @@
 
     exports.Process = function() {
         return new Process();
-    }
+    };
 
     function Process() {
         var that = this;
@@ -53,7 +53,7 @@
         }, avatarContext, LibUVPermission.HANDLE);
 
         this.process.exitCallback = function(status, signal, nativeException) {
-            if (typeof signal == 'number' && signal > 0) {
+            if (typeof signal === 'number' && signal > 0) {
                 signal = Constants.getConstantsString().get(signal);
             }
             that.onexit(status, signal);
@@ -93,19 +93,19 @@
         var stdioOptions = new StdioOptionsArray(options.stdio.length);
         for (var i = 0; i < stdioOptions.length; i++) {
             var type = options.stdio[i].type;
-            if (type == 'ignore') {
+            if (type === 'ignore') {
                 stdioOptions[i] = new StdioOptions(StdioOptions.StdioType.IGNORE, null, -1);
-            } else if (type == 'pipe') {
+            } else if (type === 'pipe') {
                 stdioOptions[i] = new StdioOptions(StdioOptions.StdioType.CREATE_PIPE, options.stdio[i].handle._pipe, -1);
-            } else if (type == 'wrap') {
+            } else if (type === 'wrap') {
                 var wrapType = options.stdio[i].wrapType;
-                if (wrapType == "pipe") {
+                if (wrapType === "pipe") {
                     stdioOptions[i] = new StdioOptions(StdioOptions.StdioType.INHERIT_STREAM, options.stdio[i].handle._pipe, -1);
-                } else if (wrapType == "tty") {
+                } else if (wrapType === "tty") {
                     stdioOptions[i] = new StdioOptions(StdioOptions.StdioType.INHERIT_STREAM, options.stdio[i].handle._tty, -1);
-                } else if (wrapType == "tcp") {
+                } else if (wrapType === "tcp") {
                     stdioOptions[i] = new StdioOptions(StdioOptions.StdioType.INHERIT_STREAM, options.stdio[i].handle._connection, -1);
-                } else if (wrapType == "udp") {
+                } else if (wrapType === "udp") {
                     stdioOptions[i] = new StdioOptions(StdioOptions.StdioType.INHERIT_STREAM, options.stdio[i].handle._udp, -1);
                 }
             } else {
@@ -122,23 +122,24 @@
                     stdioOptions,
                     uid,
                     gid);
-        return this.pid == -1 ? -1 : 0;
-    }
+        return this.pid === -1 ? -1 : 0;
+    };
 
     Process.prototype.close = function() {
         return this.process.close();
-    }
+    };
 
     Process.prototype.kill = function(signal) {
         return this.process.kill(signal);
-    }
+    };
 
     Process.prototype.ref = function() {
         return this.process.ref();
-    }
+    };
 
     Process.prototype.unref = function() {
         return this.process.unref();
-    }
+    };
+
 });
 

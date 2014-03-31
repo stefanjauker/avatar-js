@@ -47,7 +47,7 @@
 
         var that = this;
         Object.defineProperty(this, 'writeQueueSize', { enumerable: true,
-            get : function() { return that._connection ? that._connection.writeQueueSize() : 0 } });
+            get : function() { return that._connection ? that._connection.writeQueueSize() : 0; } });
 
         var clientHandle = AccessController.doPrivileged(new PrivilegedAction() {
             run: function() {
@@ -66,7 +66,7 @@
             Object.defineProperty(clientHandle, '_connected', {value: true});
             clientHandle._connection.readStart();
             that.onconnection(status, clientHandle);
-        }
+        };
 
         this._connection.connectCallback = function(status, nativeException, req) {
             if (status >= 0) {
@@ -74,7 +74,7 @@
                 Object.defineProperty(that, '_connected', {value: true});
             }
             req.oncomplete(status, that, req, true, true);
-        }
+        };
 
         this._connection.readCallback = function(status, nativeException, byteBuffer) {
             if (byteBuffer) {
@@ -83,32 +83,32 @@
             } else {
                 that.onread(status);
             }
-        }
+        };
 
         this._connection.writeCallback = function(status, nativeException, req) {
             req.oncomplete(status, that, req);
-        }
+        };
 
         this._connection.closeCallback = function() {
             if (that._closeCallback) {
                 process.nextTick(that._closeCallback);
             }
-        }
+        };
 
         this._connection.shutdownCallback = function(status, nativeException, req) {
             req.oncomplete(status, that, req);
-        }
+        };
     }
 
     util.inherits(TCP, events.EventEmitter);
 
     TCP.prototype.bind = function(address, port) {
         return this._connection.bind(address, port);
-    }
+    };
 
     TCP.prototype.bind6 = function(address, port) {
         return this.bind(address, port);
-    }
+    };
 
     TCP.prototype.listen = function(backlog) {
         try {
@@ -116,58 +116,58 @@
         } catch (err) {
             return err.errno();
         }
-    }
+    };
 
     TCP.prototype.connect6 = function(address, port) {
         return this.connect(address, port);
-    }
+    };
 
     TCP.prototype.connect = function(req, address, port) {
         return this._connection.connect(address, port, req);
-    }
+    };
 
     TCP.prototype.open = function(fd) {
         return this._connection.open(fd);
-    }
+    };
 
     TCP.prototype.readStart = function() {
         if (this._connected) {
             return this._connection.readStart();
         }
-    }
+    };
 
     TCP.prototype.readStop = function() {
         return this._connection.readStop();
-    }
+    };
 
     TCP.prototype.writeBuffer = function(req, data) {
         if (data._impl) data = data._impl; // unwrap if necessary
         return this._connection.write(data.underlying(), req);
-    }
+    };
 
     TCP.prototype._writeString = function(req, string, encoding) {
         return this.writeBuffer(req, new JavaBuffer(string, encoding));
-    }
+    };
 
     TCP.prototype.writeUtf8String = function(req, string) {
         return this._writeString(req, string, 'utf8');
-    }
+    };
 
     TCP.prototype.writeAsciiString = function(req, data) {
         return this._writeString(req, data, 'ascii');
-    }
+    };
 
     TCP.prototype.writeUcs2String = function(req, data) {
         return this._writeString(req, data, 'ucs2');
-    }
+    };
 
     TCP.prototype.setNoDelay = function(enable) {
         return this._connection.setNoDelay(enable);
-    }
+    };
 
     TCP.prototype.setKeepAlive = function(enable, initialDelay) {
         return this._connection.setKeepAlive(enable, initialDelay);
-    }
+    };
 
     TCP.prototype._addressToJS = function(address) {
         return {
@@ -175,19 +175,19 @@
             address: address ? address.getIp() : undefined,
             family: address ? address.getFamily() : undefined
         };
-    }
+    };
 
     TCP.prototype.getsockname = function() {
         return this._addressToJS(this._connection.getSocketName());
-    }
+    };
 
     TCP.prototype.getpeername = function() {
         return this._addressToJS(this._connected ? this._connection.getPeerName() : null);
-    }
+    };
 
     TCP.prototype.setSimultaneousAccepts = function(enable) {
         return this._connection.setSimultaneousAccepts(enable);
-    }
+    };
 
     TCP.prototype.close = function(cb) {
         if (this._connection) {
@@ -198,18 +198,18 @@
             }
             return r;
         }
-    }
+    };
 
     TCP.prototype.shutdown = function(req) {
         return this._connection.shutdown(req);
-    }
+    };
 
     TCP.prototype.ref = function() {
         return this._connection.ref();
-    }
+    };
 
     TCP.prototype.unref = function() {
         return this._connection.unref();
-    }
+    };
 
 });

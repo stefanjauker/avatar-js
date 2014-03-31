@@ -26,8 +26,8 @@
 exports.toASCII = function(input) {
     // j.n.IDN converts [A-Z] to [a-z], restricts input length to 63
     return java.net.IDN.toASCII(input);
-}
+};
 
 exports.encode = function(input) {
     return exports.toASCII(input).replace(/^xn--/, '');
-}
+};

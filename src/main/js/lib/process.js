@@ -58,8 +58,7 @@ var Map = java.util.HashMap;
 var Process = Packages.com.oracle.avatar.js.os.Process;
 var Server = Packages.com.oracle.avatar.js.Server;
 var Constants = Packages.com.oracle.libuv.Constants;
-
-var ScriptUtils = Packages.jdk.nashorn.api.scripting.ScriptUtils
+var ScriptUtils = Packages.jdk.nashorn.api.scripting.ScriptUtils;
 
 var separator = exports.platform === 'win32' ? ';' : ':';
 var pathSeparator = exports.platform === 'win32' ? '\\' : '/';
@@ -111,25 +110,25 @@ var current = Array.prototype.splice;
 Array.prototype.splice = function() {
     var args = arguments.length === 1 ? [arguments[0], this.length] : arguments;
     return current.apply(this, args);
-}
+};
 
 exports._setupAsyncListener = function(asyncFlags, runAsyncQueue, loadAsyncQueue, unloadAsyncQueue) {
     // TODO
-}
+};
 
 exports._setupNextTick = function(tickInfo, _tickCallback) {
     // TODO
-}
+};
 
 exports._setupDomainUse = function(domain, domain_flag) {
     // TODO
-}
+};
 
 exports.moduleLoadList = [];
 
 exports._rawDebug = function(s) {
     print(s);
-}
+};
 
 Object.defineProperty(exports, 'throwDeprecation', {
     enumerable: true,
@@ -173,12 +172,12 @@ Object.defineProperty(exports, 'execPath', {
                 if (libPath[i].endsWith(pathSeparator)) {
                     libPath[i] = libPath[i].substr(0, libPath[i].length - 1);
                 }
-                if (libPath[i].indexOf(' ') >= 0 && libPath[i].indexOf('\"') == -1) {
+                if (libPath[i].indexOf(' ') >= 0 && libPath[i].indexOf('\"') === -1) {
                     libs += '\"' + libPath[i] + '\"' ;
                 } else {
                     libs += libPath[i];
                 }
-                libs += (i != libPath.length - 1) ? separator : '';
+                libs += (i !== libPath.length - 1) ? separator : '';
             }
 
             _execPath = 'java ' +
@@ -314,11 +313,11 @@ exports.exit = function(status) {
     }
     __avatar.eventloop.stop();
     exports.reallyExit(code);
-}
+};
 
 exports.reallyExit = function(code) {
     System.exit(code);
-}
+};
 
 Object.defineProperty(exports, 'memoryUsage', {
     enumerable: true,
@@ -328,7 +327,7 @@ Object.defineProperty(exports, 'memoryUsage', {
         return {
             heapTotal: total,
             heapUsed: total - free,
-            rss: LibUV.rss(),
+            rss: LibUV.rss()
         };
     }
 });
@@ -458,27 +457,27 @@ Object.defineProperty(exports, 'kill', {
       }
       return true;
     }
-})
+});
 
 exports.getuid = function() {
     return Process.getUid();
-}
+};
 
 exports.setuid = function(value) {
     Process.setUid(value);
-}
+};
 
 exports.getgid = function() {
     return Process.getGid();
-}
+};
 
 exports.setgid = function(value) {
     Process.setGid(value);
-}
+};
 
 exports.dlopen = function(module) {
     throw new Error('dlopen is not supported, cannot load ' + module);
-}
+};
 
 exports.versions = {openssl: true, node: eventloop.version()};
 
@@ -486,8 +485,8 @@ exports.versions = {openssl: true, node: eventloop.version()};
 exports.features = {tls_sni: true};
 
 exports.umask  = function(mask) {
-    var oct = 0
-    if (mask != undefined) {
+    var oct = 0;
+    if (mask !== undefined) {
         if (typeof mask === 'number') {
             oct = mask;
         } else if (typeof mask === 'string') {
@@ -510,7 +509,7 @@ exports.umask  = function(mask) {
 exports.openStdin = function() {
     process.stdin.resume();
     return process.stdin;
-}
+};
 
 exports._usingDomains = function() {
     // redefine nextTick at this time to speedup
@@ -523,10 +522,10 @@ exports._usingDomains = function() {
             }
             eventloop.nextTickWithDomain(function(name, args) {
                 callback();
-            }, process.domain)
+            }, process.domain);
         }
     });
-}
+};
 
 Object.defineProperty(exports, 'domain', {
     enumerable : true,
@@ -572,7 +571,7 @@ exports._needTickCallback = function() {
     need_tick_cb = true;
     eventloop.enableSyncEventsProcessing(false);
     spinnerHandle.start();
-}
+};
 
 function checkImmediate() {
     // This needs to be treated as a callback, all ticked events need to be handled.
@@ -619,7 +618,7 @@ Object.defineProperty(exports.signals, 'start', {
             signalHandle.unref();
             signalHandle.signalCallback = function(signum) {
                 exports.emit(Constants.getConstantsString().get(signum));
-            }
+            };
             signalHandle.start(signal);
             exports.signals.cache.put(signal, signalHandle);
         }
@@ -634,19 +633,19 @@ if (exports.platform !== 'win32') {
             ret.push(groupArray[group]);
         }
         return ret;
-    }
+    };
 
     exports.setgroups = function(groups) {
         var groupArray = Java.to(groups, "java.lang.String[]");
         Process.setGroups(groupArray);
-    }
+    };
 
     exports.initgroups = function(user, group) {
         if (!user || !group) {
             throw new Error("Invalid parameters");
         }
         Process.initGroups(user, group);
-    }
+    };
 }
 
 });

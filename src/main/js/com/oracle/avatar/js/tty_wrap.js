@@ -40,11 +40,11 @@
 
     exports.isTTY = function(fd) {
         return TTYHandle.isTTY(fd);
-    }
+    };
 
     exports.guessHandleType = function(fd) {
         return TTYHandle.guessHandleType(fd);
-    }
+    };
 
     function TTY(fd, readable) {
 
@@ -63,44 +63,44 @@
             } else {
                 that.onread(status);
             }
-        }
+        };
 
         this._tty.writeCallback = function(status, nativeException, req) {
             req.oncomplete(status, that, req);
-        }
+        };
 
         Object.defineProperty(this, 'writeQueueSize', { enumerable: true,
-            get : function() {  return that._tty ? that._tty.writeQueueSize() : 0 } } );
-    }
+            get : function() {  return that._tty ? that._tty.writeQueueSize() : 0; } } );
+    };
 
     TTY.prototype.readStart = function() {
         return this._tty.readStart();
-    }
+    };
 
     TTY.prototype.readStop = function() {
         return this._tty.readStop();
-    }
+    };
 
     TTY.prototype.writeBuffer = function(req, data) {
         if (data._impl) data = data._impl; // unwrap if necessary
         return this._tty.write(data.underlying(), req);
-    }
+    };
 
     TTY.prototype._writeString = function(req, string, encoding) {
         return this.writeBuffer(req, new JavaBuffer(string, encoding));
-    }
+    };
 
     TTY.prototype.writeUtf8String = function(req, string) {
         return this._writeString(req, string, 'utf8');
-    }
+    };
 
     TTY.prototype.writeAsciiString = function(req, data) {
         return this._writeString(req, data, 'ascii');
-    }
+    };
 
     TTY.prototype.writeUcs2String = function(req, data) {
         return this._writeString(req, data, 'ucs2');
-    }
+    };
 
     TTY.prototype.close = function(callback) {
         if (this._tty) {
@@ -111,26 +111,26 @@
             }
             return r;
         }
-    }
+    };
 
     TTY.prototype.setRawMode = function(mode) {
-        if (mode == 0) {
+        if (mode === 0) {
             return this._tty.setMode(Mode.NORMAL);
-        } else if (mode == 1) {
+        } else if (mode === 1) {
             return this._tty.setMode(Mode.RAW);
         }
-    }
+    };
 
     TTY.prototype.getWindowSize = function() {
         return this._tty.getWindowSize();
-    }
+    };
 
     TTY.prototype.ref = function() {
         return this._tty.ref();
-    }
+    };
 
     TTY.prototype.unref = function() {
         return this._tty.unref();
-    }
+    };
 
 });

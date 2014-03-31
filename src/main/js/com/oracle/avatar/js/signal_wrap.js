@@ -48,26 +48,26 @@
 
     Signal.prototype.start = function(signum) {
         return this._signal.start(signum);
-    }
+    };
 
     Signal.prototype.stop = function() {
         return this._signal.stop();
-    }
+    };
 
     Signal.prototype.ref = function() {
         return this._signal.ref();
-    }
+    };
 
     Signal.prototype.unref = function() {
         return this._signal.unref();
-    }
+    };
 
     Signal.prototype.close = function() {
         if (!this.closed) {
             this.closed = true;
             return this._signal.close();
         }
-    }
+    };
 
     exports.Signal = Signal;
 

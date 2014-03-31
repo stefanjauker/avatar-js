@@ -296,12 +296,12 @@
   errmsg[exports.UV_ETXTBSY] = "text file is busy";
   errmsg[exports.UV_EXDEV] = "cross-device link not permitted";
   errmsg[exports.UV_UNKNOWN] = "unknown error";
-  errmsg[exports.UV_EOF] = "end of file"
-  errmsg[exports.UV_ENXIO] = "no such device or address"
+  errmsg[exports.UV_EOF] = "end of file";
+  errmsg[exports.UV_ENXIO] = "no such device or address";
 
   exports.errmsg = function(err) {
     return errmsg[err];
-  }
+  };
 
   var errnames = {};
 
@@ -314,6 +314,6 @@
 
   exports.errname = function(err) {
     return errnames[err];
-  }
+  };
 
 });

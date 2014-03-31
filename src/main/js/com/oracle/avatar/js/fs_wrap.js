@@ -154,7 +154,7 @@
             if (r < 0) throw newErrnoError(r, fd);
             return r;
         }
-    }
+    };
 
     exports.writeString = function(fd, string, position, encoding, callback) {
         if (position === null || position === undefined) {
@@ -240,7 +240,7 @@
                 throw newError(e);
             }
         }
-    }
+    };
 
     var _stats = new exports.Stats();
     fs.setStatCallback(function(cb, stats, nativeException) {

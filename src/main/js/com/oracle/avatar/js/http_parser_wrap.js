@@ -114,7 +114,7 @@
         this._type = type;
         this._parser.init(valueOf(typeClass, type));
         this._got_exception = null;
-    }
+    };
 
     HTTPParser.prototype.execute = function(data, start, length) {
         if (!Buffer.isBuffer(data)) {
@@ -143,12 +143,12 @@
         this._dataStart = -1;
         if (this._got_exception)
             throw this._got_exception;
-        if (!this._parser.upgrade() && nparsed != length) {
+        if (!this._parser.upgrade() && nparsed !== length) {
             return newError(this._parser, nparsed);
         } else {
             return nparsed;
         }
-    }
+    };
 
     function newError(parser, nparsed) {
         var e = new Error();
@@ -158,24 +158,25 @@
         return e;
     }
 
-    var FINISH_BUFFER = new Buffer(0)._impl.toByteBuffer()
+    var FINISH_BUFFER = new Buffer(0)._impl.toByteBuffer();
     HTTPParser.prototype.finish = function() {
         this._got_exception = null;
         var nparsed = this._parser.execute(this._settings, FINISH_BUFFER, 0, 0);
         if (this._got_exception) {
             throw this._got_exception;
         }
-        if (nparsed != 0) {
+        if (nparsed !== 0) {
             return newError(this._parser, nparsed);
         }
         return undefined;
-    }
+    };
 
     HTTPParser.prototype.pause = function() {
        this._parser.pause();
-    }
+    };
 
     HTTPParser.prototype.resume = function() {
        this._parser.resume();
-    }
+    };
+
 });
