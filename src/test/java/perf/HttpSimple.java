@@ -45,7 +45,6 @@
 
 package perf;
 
-import java.lang.Throwable;
 import java.nio.ByteBuffer;
 import com.oracle.httpparser.HttpParser;
 import com.oracle.httpparser.HttpParserSettings;
@@ -81,7 +80,7 @@ public class HttpSimple {
                 server.accept(peer);
                 peer.setReadCallback(new StreamReadCallback() {
                     @Override
-                    public void onRead(final ByteBuffer data) throws Exception {
+                    public void onRead(int status, Exception error, ByteBuffer data) throws Exception {
                         final Req req = new Req();
                         if (data == null) {
                             peer.close();
