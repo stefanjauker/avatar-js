@@ -217,9 +217,8 @@
             cb(newError(nativeException));
         } else {
             var dirs = [];
-            var files = names;
-            for (var i = 0; i < files.length; i++) {
-                dirs.push(files[i]);
+            for (var i = 0; i < names.length; i++) {
+                dirs.push(names[i]);
             }
             cb(undefined, dirs);
         }
@@ -229,16 +228,15 @@
         if (typeof callback === 'function') {
             return fs.readdir(path, 0, callback);
         } else {
-            try {
-                var args = fs.readdir(path, 0);
-                var dirs = [];
-                for (var i = 0; i < args.length; i++) {
-                    dirs.push(args[i]);
-                }
-                return dirs;
-            } catch(e) {
-                throw newError(e);
+            var values = java.lang.reflect.Array.newInstance(java.lang.Object.class, 1, 1);
+            var r = fs.readdir(path, 0, values);
+            if (r < 0) throw newErrnoError(r, path);
+            var names = values[0];
+            var dirs = [];
+            for (var i = 0; i < names.length; i++) {
+                dirs.push(names[i]);
             }
+            return dirs;
         }
     };
 
@@ -386,9 +384,7 @@
         if (typeof callback === 'function') {
             return fs.utime(path, atime, mtime, callback);
         } else {
-            print('utimeSync atime '+atime+' mtime '+mtime+' path '+path);
             var r = fs.utime(path, atime, mtime);
-            print('utimeSync atime '+atime+' mtime '+mtime+' path '+path+' r '+r);
             if (r < 0) throw newErrnoError(r, path);
             return r;
         }
