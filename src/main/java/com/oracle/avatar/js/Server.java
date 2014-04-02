@@ -35,6 +35,8 @@ import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -49,12 +51,15 @@ import com.oracle.avatar.js.eventloop.ThreadPool;
 import com.oracle.avatar.js.log.Logger;
 import com.oracle.avatar.js.log.Logging;
 import com.oracle.libuv.LibUV;
+import com.oracle.libuv.cb.AsyncCallback;
+import com.oracle.libuv.handles.AsyncHandle;
+
 import jdk.nashorn.api.scripting.URLReader;
 
 /**
- * Node server.
+ * Avatar.js server.
  */
-public final class Server {
+public final class Server implements AutoCloseable {
 
     private static final String PACKAGE = "/com/oracle/avatar/js";
     private static final String HELP =
@@ -96,6 +101,8 @@ public final class Server {
     private final Logging logging;
     private final Logger log;
     private final SecureHolder holder;
+    private final AsyncHandle keepAlive;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     private final String version;
     private final String uvVersion;
@@ -147,6 +154,22 @@ public final class Server {
         assert uvVersion != null;
         this.eventLoop = new EventLoop(version, uvVersion, logging, workDir, instanceNumber, executor, sharedExecutor);
         this.holder = new SecureHolder(eventLoop, loader, (Invocable) engine);
+
+        if (sharedExecutor) {
+            // we are running embedded, keep running until explicitly closed
+            // use an AsyncHandle since the close would be called from another thread
+            final AsyncHandle keepAlive = new AsyncHandle(eventLoop.loop());
+            keepAlive.setAsyncCallback(new AsyncCallback() {
+                @Override
+                public void onSend(int status) throws Exception {
+                    keepAlive.close();
+                    eventLoop.interrupt();
+                }
+            });
+            this.keepAlive = keepAlive;
+        } else {
+            this.keepAlive = null;
+        }
     }
 
     public void run(final String... args) throws Throwable {
@@ -178,8 +201,13 @@ public final class Server {
         }
     }
 
-    public void interrupt() {
-        eventLoop.stop();
+    @Override
+    public void close() {
+        if (closed.compareAndSet(false, true)) {
+            if (keepAlive != null) {
+                keepAlive.send();
+            }
+        }
     }
 
     private void runSystemScript(final SystemScriptRunner... scripts) throws FileNotFoundException, ScriptException {

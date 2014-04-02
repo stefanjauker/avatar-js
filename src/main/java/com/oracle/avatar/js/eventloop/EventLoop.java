@@ -239,6 +239,10 @@ public final class EventLoop {
         }
     }
 
+    public void interrupt() {
+        interruptMainLoopHandle.send();
+    }
+
     public void release() {
         hooks.set(0);
         if (!sharedExecutor) {
