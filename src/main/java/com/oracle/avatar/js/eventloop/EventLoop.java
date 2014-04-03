@@ -74,7 +74,6 @@ public final class EventLoop {
     private final AsyncHandle unrefHandle;
     private final AsyncHandle interruptMainLoopHandle;
     private final Thread mainThread;
-    private final boolean sharedExecutor;
     private final AtomicBoolean stopped = new AtomicBoolean(false);
 
     private Callback isHandlerRegistered = null;
@@ -229,7 +228,7 @@ public final class EventLoop {
 
     public void stop() {
         if (stopped.compareAndSet(false, true)) {
-            if (!sharedExecutor) {
+            if (!executor.isShared()) {
                 executor.shutdown();
             }
             checkHandle.close();
@@ -245,7 +244,7 @@ public final class EventLoop {
 
     public void release() {
         hooks.set(0);
-        if (!sharedExecutor) {
+        if (!executor.isShared()) {
             executor.clearQueuedTasks();
         }
     }
@@ -393,8 +392,7 @@ public final class EventLoop {
                      final Logging logging,
                      final String workDir,
                      final int instanceNumber,
-                     final ThreadPool executor,
-                     final boolean sharedExecutor) throws IOException {
+                     final ThreadPool executor) throws IOException {
         mainThread = Thread.currentThread();
         final String uv = LibUV.version();
         if (!uvVersion.equals(uv)) {
@@ -446,7 +444,6 @@ public final class EventLoop {
 
         this.instanceNumber = instanceNumber;
         this.executor = executor;
-        this.sharedExecutor = sharedExecutor;
 
         LibUV.chdir(workDir);
         LOG = logger("eventloop");

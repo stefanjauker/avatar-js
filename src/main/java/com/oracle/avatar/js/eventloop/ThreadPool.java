@@ -49,6 +49,7 @@ public final class ThreadPool extends ThreadPoolExecutor {
     private final int taskQueueSize;
     private final BlockingQueue<Runnable> taskQueue;
     private final AtomicInteger activeTasks;
+    private final boolean shared;
 
     /**
      * Returns a new default instance.
@@ -56,11 +57,20 @@ public final class ThreadPool extends ThreadPoolExecutor {
      * @return The instance.
      */
     public static ThreadPool newInstance() {
+         return newInstance(false);
+    }
+
+    /**
+     * Returns a new default instance.
+     *
+     * @return The instance.
+     */
+    public static ThreadPool newInstance(final boolean shared) {
         final int corePoolSize = Integer.getInteger(CORE_THREAD_PROPERTY, DEFAULT_CORE_THREADS);
         final int maximumPoolSize = Integer.getInteger(MAX_THREADS_PROPERTY, DEFAULT_MAX_THREADS);
         final long keepAliveTime = Long.getLong(THREAD_TIMEOUT_PROPERTY, DEFAULT_THREAD_TIMEOUT_SECONDS);
         final int taskQueueSize = Integer.getInteger(QUEUE_SIZE_PROPERTY, DEFAULT_QUEUE_SIZE);
-        return newInstance(corePoolSize, maximumPoolSize, keepAliveTime, taskQueueSize);
+        return newInstance(corePoolSize, maximumPoolSize, keepAliveTime, taskQueueSize, shared);
     }
 
     /**
@@ -70,21 +80,24 @@ public final class ThreadPool extends ThreadPoolExecutor {
      * @param maximumPoolSize The maximum number of threads in the pool.
      * @param keepAliveTime   How long to keep threads beyond the initial threads alive.
      * @param taskQueueSize   The size of the task queue.
+     * @param shared          {@code true} if this pool is shared.
      * @return The instance.
      */
     public static ThreadPool newInstance(final int poolSize,
                                          final int maximumPoolSize,
                                          final long keepAliveTime,
-                                         final int taskQueueSize) {
+                                         final int taskQueueSize,
+                                         final boolean shared) {
         final BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>(taskQueueSize);
-        return new ThreadPool(poolSize, maximumPoolSize, keepAliveTime, taskQueueSize, taskQueue);
+        return new ThreadPool(poolSize, maximumPoolSize, keepAliveTime, taskQueueSize, taskQueue, shared);
     }
 
     private ThreadPool(final int corePoolSize,
                        final int maximumPoolSize,
                        final long keepAliveTime,
                        final int taskQueueSize,
-                       final BlockingQueue<Runnable> taskQueue) {
+                       final BlockingQueue<Runnable> taskQueue,
+                       final boolean shared) {
         super(corePoolSize,
               maximumPoolSize,
               keepAliveTime,
@@ -95,6 +108,15 @@ public final class ThreadPool extends ThreadPoolExecutor {
         this.taskQueueSize = taskQueueSize;
         this.taskQueue = taskQueue;
         this.activeTasks = new AtomicInteger(0);
+        this.shared = shared;
+    }
+
+    /**
+     * Returns {@code true} if this pool is shared.
+     * @return {@code true} if this pool is shared.
+     */
+    public boolean isShared() {
+        return shared;
     }
 
     /**

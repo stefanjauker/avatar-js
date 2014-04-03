@@ -28,7 +28,6 @@ import java.io.Reader;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.oracle.avatar.js.eventloop.EventLoop;
@@ -73,8 +72,7 @@ public class MultipleEventLoopTest {
                                 logging,
                                 System.getProperty("user.dir"),
                                 fi,
-                                ThreadPool.newInstance(1, 1, 1, Integer.MAX_VALUE),
-                                false);
+                                ThreadPool.newInstance(1, 1, 1, Integer.MAX_VALUE, false));
 
                         final AsyncHandle async = asyncHandles[fi] = new AsyncHandle(loop.loop());
                         async.setAsyncCallback(new AsyncCallback() {

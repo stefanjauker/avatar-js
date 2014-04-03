@@ -46,6 +46,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import com.oracle.avatar.js.eventloop.Callback;
 import com.oracle.avatar.js.eventloop.EventLoop;
 import com.oracle.avatar.js.eventloop.ThreadPool;
 import com.oracle.avatar.js.log.Logger;
@@ -103,6 +104,7 @@ public final class Server implements AutoCloseable {
     private final SecureHolder holder;
     private final AsyncHandle keepAlive;
     private final AtomicBoolean closed = new AtomicBoolean(false);
+    private final Callback listener;
 
     private final String version;
     private final String uvVersion;
@@ -132,7 +134,7 @@ public final class Server implements AutoCloseable {
                   final Loader loader,
                   final Logging logging,
                   final String workDir) throws Exception {
-        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.newInstance(), false);
+        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.newInstance(), null);
     }
 
     public Server(final ScriptEngine engine,
@@ -142,7 +144,7 @@ public final class Server implements AutoCloseable {
                   final ScriptContext context,
                   final int instanceNumber,
                   final ThreadPool executor,
-                  final boolean sharedExecutor) throws Exception {
+                  final Callback listener) throws Exception {
         this.engine = engine;
         this.context = context;
         this.bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
@@ -152,10 +154,11 @@ public final class Server implements AutoCloseable {
         assert version != null;
         uvVersion = loader.getBuildProperty(LIBUV_VERSION_BUILD_PROPERTY);
         assert uvVersion != null;
-        this.eventLoop = new EventLoop(version, uvVersion, logging, workDir, instanceNumber, executor, sharedExecutor);
+        this.eventLoop = new EventLoop(version, uvVersion, logging, workDir, instanceNumber, executor);
         this.holder = new SecureHolder(eventLoop, loader, (Invocable) engine);
+        this.listener = listener;
 
-        if (sharedExecutor) {
+        if (executor.isShared()) {
             // we are running embedded, keep running until explicitly closed
             // use an AsyncHandle since the close would be called from another thread
             final AsyncHandle keepAlive = new AsyncHandle(eventLoop.loop());
@@ -198,6 +201,7 @@ public final class Server implements AutoCloseable {
         } finally {
             eventLoop.stop();
             logging.shutdown();
+            emit("stopped");
         }
     }
 
@@ -268,6 +272,9 @@ public final class Server implements AutoCloseable {
                 }
             }
         }
+
+        emit("started");
+
         // ...then run the main event loop. If an exception has been handled
         // the process can continue. For example some timer events can be fired.
         try {
@@ -294,6 +301,12 @@ public final class Server implements AutoCloseable {
                 }
                 throw ex;
             }
+        }
+    }
+
+    private void emit(final String eventName, final String... args) throws Exception {
+        if (listener != null) {
+            listener.call(eventName, args);
         }
     }
 
