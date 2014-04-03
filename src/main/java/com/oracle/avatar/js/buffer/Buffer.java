@@ -41,6 +41,7 @@ public final class Buffer {
     private static final String EMPTY_STRING = "";
 
     private final ByteBuffer byteBuffer;
+    private int charsWritten = 0;
 
     public static Buffer wrap(final byte[] array) {
         return new Buffer(ByteBuffer.wrap(array));
@@ -237,16 +238,15 @@ public final class Buffer {
         return "{" + "pos:" + position() + ", lim:" + limit() + ", cap:" + capacity() + "}";
     }
 
-    public int write(final String str, final int off, final int length, final String encoding, final Integer[] charsWrittenReturn)
-            throws UnsupportedEncodingException {
-
+    public int write(final String str, final int off, final int length, final String encoding) throws UnsupportedEncodingException {
+        charsWritten = 0;
         // these encodings will not write partial characters
         if ("us-ascii".equals(encoding) || "binary".equals(encoding) || "iso-8859-1".equals(encoding)) {
             final byte[] src = Buffer.toBytes(str, encoding);
             final int towrite = Math.min(byteBuffer.capacity() - off, Math.min(src.length, length));
             byteBuffer.position(off);
             byteBuffer.put(src, 0, towrite);
-            charsWrittenReturn[0] = towrite;
+            charsWritten = towrite;
             return towrite;
         }
 
@@ -263,7 +263,7 @@ public final class Buffer {
             if (bytes.length <= canwrite) {
                 byteBuffer.position(off);
                 byteBuffer.put(bytes, 0, bytes.length);
-                charsWrittenReturn[0] = isEncoded(encoding) ?
+                charsWritten = isEncoded(encoding) ?
                         bytes.length :
                         new String(bytes, encoding).toCharArray().length;
                 return bytes.length;
@@ -271,6 +271,10 @@ public final class Buffer {
         }
 
         return 0;
+    }
+
+    public int getCharsWritten() {
+        return charsWritten;
     }
 
     public int copy(final Buffer targetBuffer, final int targetStart, final int sourceStart, final int sourceEnd) {

@@ -279,9 +279,8 @@ Buffer.prototype.write = function(string, offset, length, encoding) {
         return 0;
     }
 
-    var charsWrittenReturn = java.lang.reflect.Array.newInstance(java.lang.Integer.class, 1);
-    var writtenBytes = this._impl.write(string, off, len, Buffer._javaEncoding(encoding), charsWrittenReturn);
-    _writtenChars = charsWrittenReturn[0];
+    var writtenBytes = this._impl.write(string, off, len, Buffer._javaEncoding(encoding));
+    _writtenChars = this._impl.getCharsWritten();
     return writtenBytes;
 }
 
