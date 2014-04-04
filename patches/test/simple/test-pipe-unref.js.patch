@@ -1,5 +1,5 @@
---- ..\nodejs\test\simple\test-pipe-unref.js	2013-10-03 11:03:17.964435800 -0700
-+++ test\simple\test-pipe-unref.js	2013-12-18 16:24:35.665326600 -0800
+--- ../node/test/simple/test-pipe-unref.js	2013-12-10 12:33:53.480593078 -0800
++++ test/simple/test-pipe-unref.js	2014-04-03 13:27:12.141150440 -0700
 @@ -29,11 +29,26 @@
  s.listen(common.PIPE);
  s.unref();
@@ -14,7 +14,7 @@
    closed = true;
    s.close();
 -}, 1000).unref();
-+}, 7000).unref();
++}, 10000).unref();
  
  process.on('exit', function() {
 +  if (process.platform != 'win32') {
