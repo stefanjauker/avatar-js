@@ -134,7 +134,7 @@ public final class Server implements AutoCloseable {
                   final Loader loader,
                   final Logging logging,
                   final String workDir) throws Exception {
-        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.newInstance(), null);
+        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.newInstance(), null, false);
     }
 
     public Server(final ScriptEngine engine,
@@ -144,7 +144,8 @@ public final class Server implements AutoCloseable {
                   final ScriptContext context,
                   final int instanceNumber,
                   final ThreadPool executor,
-                  final Callback listener) throws Exception {
+                  final Callback listener,
+                  final boolean embedded) throws Exception {
         this.engine = engine;
         this.context = context;
         this.bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
@@ -158,7 +159,7 @@ public final class Server implements AutoCloseable {
         this.holder = new SecureHolder(eventLoop, loader, (Invocable) engine);
         this.listener = listener;
 
-        if (executor.isShared()) {
+        if (embedded) {
             // we are running embedded, keep running until explicitly closed
             // use an AsyncHandle since the close would be called from another thread
             final AsyncHandle keepAlive = new AsyncHandle(eventLoop.loop());
