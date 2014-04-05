@@ -61,6 +61,7 @@ var colorize = !(process.platform === 'win32' && typeof java != 'undefined');
 
 var testNames = [];
 var exclusions = [];
+var jvmArgs = [];
 try {
     exclusions = fs.readFileSync(
         process.platform + '-test-exclusions.txt')
@@ -92,6 +93,7 @@ for (var i=0; i < testlen; i++) {
             case '-delay': delay = Number(tests[++i]); break;
             case '-mx': maxheap = tests[++i]; break;
             case '-timeout': timeout = Number(tests[++i]) * 1000; break;
+            default: jvmArgs.push(root);
         }
         continue;
     }
@@ -160,6 +162,7 @@ var args = ['-server', (assertions ? '-ea' : '-da'), '-Djava.awt.headless=true']
 args.push('-Xmx' + maxheap);
 args.push('-Xcheck:jni');
 args.push('-Djava.library.path=' + target);
+args.push(jvmArgs);
 var jarArgs = ['-jar', jar.toString()];
 if (deprecations) {
     jarArgs.push('--throw-deprecation');
