@@ -162,7 +162,6 @@ var args = ['-server', (assertions ? '-ea' : '-da'), '-Djava.awt.headless=true']
 args.push('-Xmx' + maxheap);
 args.push('-Xcheck:jni');
 args.push('-Djava.library.path=' + target);
-args.push(jvmArgs);
 var jarArgs = ['-jar', jar.toString()];
 if (deprecations) {
     jarArgs.push('--throw-deprecation');
@@ -218,7 +217,7 @@ function runNextTest() {
         var err = fs.createWriteStream(path.join(dir, 'stderr.txt'), 'w');
     }
 
-    var restArgs = [].concat(args, '-Davatar-js.log.output.dir=' + dir, jarArgs, testName);
+    var restArgs = args.concat(jvmArgs, '-Davatar-js.log.output.dir=' + dir, jarArgs, testName);
     var start = Date.now();
     var java = spawn(command, restArgs, options);
     var failed = false;
