@@ -35,6 +35,7 @@ import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.script.Bindings;
@@ -54,6 +55,8 @@ import com.oracle.avatar.js.log.Logging;
 import com.oracle.libuv.LibUV;
 import com.oracle.libuv.cb.AsyncCallback;
 import com.oracle.libuv.handles.AsyncHandle;
+import com.oracle.libuv.handles.DefaultHandleFactory;
+import com.oracle.libuv.handles.HandleFactory;
 
 import jdk.nashorn.api.scripting.URLReader;
 
@@ -134,7 +137,7 @@ public final class Server implements AutoCloseable {
                   final Loader loader,
                   final Logging logging,
                   final String workDir) throws Exception {
-        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.newInstance(), null, false);
+        this(engine, loader, logging, workDir, engine.getContext(), 0, ThreadPool.newInstance(), null, null, false);
     }
 
     public Server(final ScriptEngine engine,
@@ -145,24 +148,37 @@ public final class Server implements AutoCloseable {
                   final int instanceNumber,
                   final ThreadPool executor,
                   final Callback listener,
+                  final HandleFactory handleFactory,
                   final boolean embedded) throws Exception {
-        this.engine = engine;
-        this.context = context;
+        this.engine = Objects.requireNonNull(engine);
+        Objects.requireNonNull(loader);
+        this.logging = Objects.requireNonNull(logging);
+        Objects.requireNonNull(workDir);
+        this.context = Objects.requireNonNull(context);
+        Objects.requireNonNull(executor);
         this.bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
-        this.logging = logging;
         this.log = logging.getDefault(); // server-wide log
-        version = loader.getBuildProperty(VERSION_BUILD_PROPERTY);
+
+        this.version = loader.getBuildProperty(VERSION_BUILD_PROPERTY);
         assert version != null;
-        uvVersion = loader.getBuildProperty(LIBUV_VERSION_BUILD_PROPERTY);
+        this.uvVersion = loader.getBuildProperty(LIBUV_VERSION_BUILD_PROPERTY);
         assert uvVersion != null;
-        this.eventLoop = new EventLoop(version, uvVersion, logging, workDir, instanceNumber, executor);
+        final String uv = LibUV.version();
+        if (!uvVersion.equals(uv)) {
+            throw new LinkageError(String.format("libuv version mismatch: expected '%s', found '%s'",
+                    uvVersion,
+                    uv));
+        }
+
+        this.eventLoop = new EventLoop(version, uvVersion, logging, workDir, instanceNumber, executor, handleFactory);
         this.holder = new SecureHolder(eventLoop, loader, (Invocable) engine);
         this.listener = listener;
 
         if (embedded) {
             // we are running embedded, keep running until explicitly closed
             // use an AsyncHandle since the close would be called from another thread
-            final AsyncHandle keepAlive = new AsyncHandle(eventLoop.loop());
+            final HandleFactory factory = eventLoop.handleFactory();
+            final AsyncHandle keepAlive = factory.newAsyncHandle();
             keepAlive.setAsyncCallback(new AsyncCallback() {
                 @Override
                 public void onSend(int status) throws Exception {

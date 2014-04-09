@@ -33,6 +33,7 @@ import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -51,7 +52,10 @@ import com.oracle.libuv.cb.CallbackHandlerFactory;
 import com.oracle.libuv.cb.ContextProvider;
 import com.oracle.libuv.handles.AsyncHandle;
 import com.oracle.libuv.handles.CheckHandle;
+import com.oracle.libuv.handles.DefaultHandleFactory;
+import com.oracle.libuv.handles.HandleFactory;
 import com.oracle.libuv.handles.LoopHandle;
+
 import jdk.nashorn.api.scripting.NashornException;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.internal.runtime.ECMAException;
@@ -69,6 +73,7 @@ public final class EventLoop {
     private final Logger LOG;
     private final BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<>();
     private final AtomicInteger hooks = new AtomicInteger(0);
+    private final HandleFactory handleFactory;
     private final CheckHandle checkHandle;
     private final AsyncHandle refHandle;
     private final AsyncHandle unrefHandle;
@@ -392,55 +397,57 @@ public final class EventLoop {
                      final Logging logging,
                      final String workDir,
                      final int instanceNumber,
-                     final ThreadPool executor) throws IOException {
+                     final ThreadPool executor,
+                     final HandleFactory handleFactory) throws IOException {
         mainThread = Thread.currentThread();
-        final String uv = LibUV.version();
-        if (!uvVersion.equals(uv)) {
-            throw new LinkageError(String.format("libuv version mismatch: expected '%s', found '%s'",
-                    uvVersion,
-                    uv));
-        }
 
-        this.version = version;
-        this.uvVersion = uvVersion;
-        this.logging = logging;
+        this.version = Objects.requireNonNull(version);
+        this.uvVersion = Objects.requireNonNull(uvVersion);
+        this.logging = Objects.requireNonNull(logging);
         this.dns = new DNS(this);
 
         final LoopCallbackHandler defaultHandler = new LoopCallbackHandler(this);
 
-        this.uvLoop = new LoopHandle(new CallbackExceptionHandler() {
-            @Override
-            public void handle(final Throwable ex) {
-                if (!handleCallbackException(ex)) {
-                    if (pendingException == null) {
-                        pendingException = ex;
-                    } else {
-                        pendingException.addSuppressed(ex);
+        if (handleFactory == null) {
+            this.handleFactory = new DefaultHandleFactory(
+                    new CallbackExceptionHandler() {
+                        @Override
+                        public void handle(final Throwable ex) {
+                            if (!handleCallbackException(ex)) {
+                                if (pendingException == null) {
+                                    pendingException = ex;
+                                } else {
+                                    pendingException.addSuppressed(ex);
+                                }
+                                // interrupt uvLoop.run() so that pending exception can be thrown synchronously
+                                interruptMainLoopHandle.send();
+                            }
+                        }
+                    },
+
+                    new CallbackHandlerFactory() {
+                        @Override
+                        public CallbackHandler newCallbackHandler(Object context) {
+                            return new LoopCallbackHandler(EventLoop.this, context);
+                        }
+
+                        @Override
+                        public CallbackHandler newCallbackHandler() {
+                            return defaultHandler;
+                        }
+                    },
+
+                    new ContextProvider() {
+                        @Override
+                        public Object getContext() {
+                            return EventLoop.this.getDomain();
+                        }
                     }
-                    // interrupt uvLoop.run() so that pending exception can be thrown synchronously
-                    interruptMainLoopHandle.send();
-                }
-            }
-        },
-
-        new CallbackHandlerFactory() {
-            @Override
-            public CallbackHandler newCallbackHandler(Object context) {
-                return new LoopCallbackHandler(EventLoop.this, context);
-            }
-
-            @Override
-            public CallbackHandler newCallbackHandler() {
-                return defaultHandler;
-            }
-        },
-
-        new ContextProvider() {
-            @Override
-            public Object getContext() {
-                return EventLoop.this.getDomain();
-            }
-        });
+            );
+        } else {
+            this.handleFactory = new DefaultHandleFactory();
+        }
+        this.uvLoop = this.handleFactory.getLoopHandle();
 
         this.instanceNumber = instanceNumber;
         this.executor = executor;
@@ -448,10 +455,10 @@ public final class EventLoop {
         LibUV.chdir(workDir);
         LOG = logger("eventloop");
 
-        checkHandle = new CheckHandle(uvLoop);
+        checkHandle = this.handleFactory.newCheckHandle();
         checkHandle.unref();
 
-        refHandle = new AsyncHandle(uvLoop);
+        refHandle = this.handleFactory.newAsyncHandle();
         refHandle.setAsyncCallback(new AsyncCallback() {
             @Override
             public void onSend(int status) throws Exception {
@@ -460,7 +467,7 @@ public final class EventLoop {
         });
         refHandle.unref();
 
-        unrefHandle = new AsyncHandle(uvLoop);
+        unrefHandle = this.handleFactory.newAsyncHandle();
         unrefHandle.setAsyncCallback(new AsyncCallback() {
             @Override
             public void onSend(int status) throws Exception {
@@ -469,7 +476,7 @@ public final class EventLoop {
         });
         unrefHandle.unref();
 
-        interruptMainLoopHandle = new AsyncHandle(uvLoop);
+        interruptMainLoopHandle = this.handleFactory.newAsyncHandle();
         interruptMainLoopHandle.setAsyncCallback(new AsyncCallback() {
             @Override
             public void onSend(int status) throws Exception {
@@ -505,6 +512,10 @@ public final class EventLoop {
 
     public void setWorkDir(final String newDir) {
         LibUV.chdir(newDir);
+    }
+
+    public HandleFactory handleFactory() {
+        return handleFactory;
     }
 
     public LoopHandle loop() {

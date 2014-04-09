@@ -26,9 +26,10 @@
 (function(exports) {
     var TimerHandle = Packages.com.oracle.libuv.handles.TimerHandle;
     var loop = __avatar.eventloop.loop();
+    var factory = __avatar.eventloop.handleFactory();
 
     function Timer() {
-        Object.defineProperty(this, '_timer', { value: new TimerHandle(loop) });
+        Object.defineProperty(this, '_timer', { value: factory.newTimerHandle() });
         var that = this;
         this._timer.setTimerFiredCallback(function(status) {
             if (that.ontimeout) {

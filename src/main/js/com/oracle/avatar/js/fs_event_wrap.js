@@ -27,12 +27,13 @@
 
     var FileEventHandle = Packages.com.oracle.libuv.handles.FileEventHandle;
     var loop = __avatar.eventloop.loop();
+    var factory = __avatar.eventloop.handleFactory();
 
     exports.FSEvent = FSEvent;
 
     function FSEvent() {
         var that = this;
-        this._fsEvent = new FileEventHandle(loop);
+        this._fsEvent = factory.newFileEventHandle();
         this._fsEvent.setFileEventCallback(function(status, event, filename) {
             if (that.onchange) {
                 that.onchange(status, event, filename);

@@ -37,6 +37,7 @@
     var TCPHandle = Packages.com.oracle.libuv.handles.TCPHandle;
     var UDPHandle = Packages.com.oracle.libuv.handles.UDPHandle;
     var loop = __avatar.eventloop.loop();
+    var factory = __avatar.eventloop.handleFactory();
 
     var AccessController = java.security.AccessController;
     var PrivilegedAction = java.security.PrivilegedAction;
@@ -56,7 +57,7 @@
         AccessController.doPrivileged(new PrivilegedAction() {
             run: function() {
                 Object.defineProperty(that, '_pipe',
-                    { value: pipe ? pipe : new PipeHandle(loop, ipc) });
+                    { value: pipe ? pipe : factory.newPipeHandle(ipc) });
             }
         }, avatarContext, LibUVPermission.HANDLE);
 
@@ -83,7 +84,7 @@
                if (type == UV_NAMED_PIPE) {
                    var pipeHandle = AccessController.doPrivileged(new PrivilegedAction() {
                         run: function() {
-                            return new PipeHandle(loop, handle, true);
+                            return factory.newPipeHandle(handle, true);
                         }
                     }, avatarContext, LibUVPermission.HANDLE);
                    var p = new Pipe(true, pipeHandle);
@@ -91,7 +92,7 @@
                } else if (type == UV_TCP) {
                    var socket = AccessController.doPrivileged(new PrivilegedAction() {
                         run: function() {
-                            return new TCPHandle(loop, handle);
+                            return factory.newTCPHandle(handle);
                         }
                     }, avatarContext, LibUVPermission.HANDLE);
                    var tcp = new TCP(socket);
@@ -100,7 +101,7 @@
                } else if (type == UV_UDP) {
                    var datagram = AccessController.doPrivileged(new PrivilegedAction() {
                         run: function() {
-                            return new UDPHandle(loop, handle);
+                            return factory.newUDPHandle(handle);
                         }
                     }, avatarContext, LibUVPermission.HANDLE);
                    var udp = new UDP(datagram);

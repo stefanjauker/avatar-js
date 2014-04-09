@@ -28,6 +28,7 @@
     var JavaBuffer = Packages.com.oracle.avatar.js.buffer.Buffer;
     var UDPHandle = Packages.com.oracle.libuv.handles.UDPHandle;
     var loop = __avatar.eventloop.loop();
+    var factory = __avatar.eventloop.handleFactory();
     var AccessController = java.security.AccessController;
     var PrivilegedAction = java.security.PrivilegedAction;
     var LibUVPermission = Packages.com.oracle.libuv.LibUVPermission;
@@ -43,7 +44,7 @@
         AccessController.doPrivileged(new PrivilegedAction() {
             run: function() {
                 Object.defineProperty(that, '_udp',
-                { value: dgram ? dgram : new UDPHandle(loop) });
+                { value: dgram ? dgram : factory.newUDPHandle() });
             }
         }, avatarContext, LibUVPermission.HANDLE);
 

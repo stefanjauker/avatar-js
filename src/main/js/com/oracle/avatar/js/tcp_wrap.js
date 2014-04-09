@@ -31,6 +31,7 @@
     var JavaBuffer = Packages.com.oracle.avatar.js.buffer.Buffer;
     var TCPHandle = Packages.com.oracle.libuv.handles.TCPHandle;
     var loop = __avatar.eventloop.loop();
+    var factory = __avatar.eventloop.handleFactory();
 
     var AccessController = java.security.AccessController;
     var PrivilegedAction = java.security.PrivilegedAction;
@@ -53,7 +54,7 @@
 
         var clientHandle = AccessController.doPrivileged(new PrivilegedAction() {
             run: function() {
-                Object.defineProperty(that, '_connection', { value: socket ? socket : new TCPHandle(loop) });
+                Object.defineProperty(that, '_connection', { value: socket ? socket : factory.newTCPHandle() });
             }
         }, avatarContext, LibUVPermission.HANDLE);
 

@@ -29,6 +29,7 @@
     var Mode = Packages.com.oracle.libuv.handles.TTYHandle.Mode;
     var TTYHandle = Packages.com.oracle.libuv.handles.TTYHandle;
     var loop = __avatar.eventloop.loop();
+    var factory = __avatar.eventloop.handleFactory();
 
     var AccessController = java.security.AccessController;
     var PrivilegedAction = java.security.PrivilegedAction;
@@ -52,7 +53,7 @@
         AccessController.doPrivileged(new PrivilegedAction() {
             run: function() {
                 Object.defineProperty(that, '_tty',
-                    { value: new TTYHandle(loop, fd, readable) });
+                    { value: factory.newTTYHandle(fd, readable) });
             }
         }, avatarContext, LibUVPermission.HANDLE);
 

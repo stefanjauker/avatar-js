@@ -33,6 +33,7 @@
     var ProcessHandle = Packages.com.oracle.libuv.handles.ProcessHandle;
     var Constants = Packages.com.oracle.libuv.Constants;
     var loop = __avatar.eventloop.loop();
+    var factory = __avatar.eventloop.handleFactory();
 
     var AccessController = java.security.AccessController;
     var PrivilegedAction = java.security.PrivilegedAction;
@@ -48,7 +49,7 @@
         var that = this;
         this.process = AccessController.doPrivileged(new PrivilegedAction() {
             run: function() {
-                return new ProcessHandle(loop);
+                return factory.newProcessHandle();
             }
         }, avatarContext, LibUVPermission.HANDLE);
 

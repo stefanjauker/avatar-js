@@ -58,6 +58,7 @@ for (var f in events) {
 }
 
 var eventloop = __avatar.eventloop;
+var factory = eventloop.handleFactory();
 var System = java.lang.System;
 var Runtime = java.lang.Runtime.getRuntime();
 
@@ -651,7 +652,7 @@ Object.defineProperty(exports, 'domain', {
     }
 });
 
-var checkHandle = new CheckHandle(eventloop.loop());
+var checkHandle = factory.newCheckHandle();
 checkHandle.setCheckCallback(checkImmediate);
 // this handle should not keep the event loop from terminating
 checkHandle.unref();
@@ -659,11 +660,11 @@ checkHandle.unref();
 // During the lifetime of an immediate callback, we want to keep the loop running.
 // This is why an IdleHandle is started/stopped when the unrefed CheckHandle is started/stopped
 // Nodejs core.cc
-var idleHandle = new IdleHandle(eventloop.loop());
+var idleHandle = factory.newIdleHandle();
 idleHandle.setIdleCallback(IdleCallbackHandler);
 
 // Handle the nextTick in a UV callback
-var spinnerHandle = new IdleHandle(eventloop.loop());
+var spinnerHandle = factory.newIdleHandle();
 spinnerHandle.setIdleCallback(spin);
 var need_tick_cb = false;
 function spin() {
@@ -722,7 +723,7 @@ Object.defineProperty(exports.signals, 'start', {
         var signalHandle = exports.signals.cache.get(signal);
         if (!signalHandle) {
 
-            signalHandle = new SignalHandle(eventloop.loop());
+            signalHandle = factory.newSignalHandle();
             // this handle should not keep the event loop from terminating
             signalHandle.unref();
             signalHandle.signalCallback = function(signum) {

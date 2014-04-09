@@ -29,6 +29,7 @@
     var FilePollHandle = Packages.com.oracle.libuv.handles.FilePollHandle;
     var JavaBuffer = Packages.com.oracle.avatar.js.buffer.Buffer;
     var loop = __avatar.eventloop.loop();
+    var factory = __avatar.eventloop.handleFactory();
     var fs = new Files(loop);
 
     fs.setCloseCallback(function(cb, fd, nativeException) {
@@ -549,7 +550,7 @@
 
     function StatWatcher() {
         var that = this;
-        this._fsPoll = new FilePollHandle(loop);
+        this._fsPoll = factory.newFilePollHandle();
         this._previous = new exports.Stats();
         this._current = new exports.Stats();
 
