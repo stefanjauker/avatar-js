@@ -55,7 +55,6 @@ import com.oracle.avatar.js.log.Logging;
 import com.oracle.libuv.LibUV;
 import com.oracle.libuv.cb.AsyncCallback;
 import com.oracle.libuv.handles.AsyncHandle;
-import com.oracle.libuv.handles.DefaultHandleFactory;
 import com.oracle.libuv.handles.HandleFactory;
 
 import jdk.nashorn.api.scripting.URLReader;

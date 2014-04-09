@@ -30,7 +30,7 @@
     var JavaBuffer = Packages.com.oracle.avatar.js.buffer.Buffer;
     var loop = __avatar.eventloop.loop();
     var factory = __avatar.eventloop.handleFactory();
-    var fs = new Files(loop);
+    var fs = factory.newFiles();
 
     fs.setCloseCallback(function(cb, fd, nativeException) {
         if (nativeException) {
