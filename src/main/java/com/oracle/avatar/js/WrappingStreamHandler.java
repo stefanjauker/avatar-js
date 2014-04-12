@@ -46,21 +46,19 @@ public class WrappingStreamHandler extends URLStreamHandler {
 
     private static final class ContentWrapper {
 
-        private int offset = 0;
         private final byte[] content;
+        private int offset = 0;
 
-        private ContentWrapper(byte[] content) {
+        private ContentWrapper(final byte[] content) {
             this.content = content;
         }
 
-        private boolean needsContent() {
+        private boolean hasMore() {
             return offset < content.length;
         }
 
         private int read() {
-            int read = content[offset];
-            offset++;
-            return read;
+            return content[offset++];
         }
 
         public int read(final byte[] b, final int o, final int len) {
@@ -87,37 +85,36 @@ public class WrappingStreamHandler extends URLStreamHandler {
     }
 
     protected static final class WrapperInputStream extends InputStream {
-        private static final byte[] PREFIX = Loader.PREFIX.getBytes();
-        private static final byte[] SUFFIX = Loader.SUFFIX.getBytes();
+        private static final byte[] WRAP_PREFIX = Loader.PREFIX.getBytes();
+        private static final byte[] WRAP_SUFFIX = Loader.SUFFIX.getBytes();
+        private static final int WRAP_LENGTH = WRAP_PREFIX.length + WRAP_SUFFIX.length;
 
-        private final InputStream real;
-        private boolean endReached;
-        private ContentWrapper prefix = new ContentWrapper(PREFIX);
-        private ContentWrapper suffix = new ContentWrapper(SUFFIX);
+        private final ContentWrapper prefix = new ContentWrapper(WRAP_PREFIX);
+        private final ContentWrapper suffix = new ContentWrapper(WRAP_SUFFIX);
+        private final InputStream wrapped;
+        private boolean wrappedHasMore = true;
 
-        public WrapperInputStream(InputStream real) {
-            this.real = real;
+        public WrapperInputStream(final InputStream wrapped) {
+            this.wrapped = wrapped;
         }
 
         @Override
         public int read() throws IOException {
-            if (prefix.needsContent()) {
+            if (prefix.hasMore()) {
                 return prefix.read();
-            } else {
-                if (endReached) {
-                    if (suffix.needsContent()) {
-                        return suffix.read();
-                    } else {
-                        return -1;
-                    }
+            } else if (wrappedHasMore) {
+                final int read = wrapped.read();
+                if (read >= 0) {
+                    return read;
                 } else {
-                    int r = real.read();
-                    if (r == -1) {
-                        endReached = true;
-                        return suffix.read();
-                    } else {
-                        return r;
-                    }
+                    wrappedHasMore = false;
+                    return suffix.read();
+                }
+            } else {
+                if (suffix.hasMore()) {
+                    return suffix.read();
+                } else {
+                    return -1;
                 }
             }
         }
@@ -125,36 +122,32 @@ public class WrappingStreamHandler extends URLStreamHandler {
         // read method has to be overridden for performance purpose.
         @Override
         public int read(final byte[] b, final int off, final int len) throws IOException {
-            int offset = off;
-            if (prefix.needsContent()) {
-                return prefix.read(b, offset, len);
-            } else {
-                if (endReached) {
-                    if (suffix.needsContent()) {
-                        return suffix.read(b, offset, len);
-                    } else {
-                        return -1;
-                    }
+            if (prefix.hasMore()) {
+                return prefix.read(b, off, len);
+            } else if (wrappedHasMore) {
+                final int read = wrapped.read(b, off, len);
+                if (read >= 0) {
+                    return read;
                 } else {
-                    int read = real.read(b, offset, len);
-                    if (read == -1) {
-                        endReached = true;
-                        return suffix.read(b, offset, len);
-                    } else {
-                        return read;
-                    }
+                    wrappedHasMore = false;
+                    return suffix.read(b, off, len);
+                }
+            } else {
+                if (suffix.hasMore()) {
+                    return suffix.read(b, off, len);
+                } else {
+                    return -1;
                 }
             }
         }
     }
 
     private final class WrappedURLConnection extends URLConnection {
+        private final URLConnection wrapped;
 
-        private final URLConnection real;
-
-        WrappedURLConnection(URL url, URLConnection real) {
+        WrappedURLConnection(final URL url, final URLConnection wrapped) {
             super(url);
-            this.real = real;
+            this.wrapped = wrapped;
         }
 
         @Override
@@ -164,13 +157,23 @@ public class WrappingStreamHandler extends URLStreamHandler {
 
         @Override
         public InputStream getInputStream() throws IOException {
-            return new WrapperInputStream(real.getInputStream());
+            return new WrapperInputStream(wrapped.getInputStream());
+        }
+
+        @Override
+        public int getContentLength() {
+            return wrapped.getContentLength() + WrapperInputStream.WRAP_LENGTH;
+        }
+
+        @Override
+        public long getLastModified() {
+            return wrapped.getLastModified();
         }
     }
 
     @Override
     protected URLConnection openConnection(URL u) throws IOException {
-        // Reconstruct an URL without handler.
+        // Reconstruct a URL without handler.
         final URL withoutHandler = new URL(u.toExternalForm());
         return new WrappedURLConnection(withoutHandler, withoutHandler.openConnection());
     }
