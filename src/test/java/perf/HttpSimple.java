@@ -53,6 +53,8 @@ import com.oracle.libuv.LibUV;
 import com.oracle.libuv.cb.StreamCloseCallback;
 import com.oracle.libuv.cb.StreamConnectionCallback;
 import com.oracle.libuv.cb.StreamReadCallback;
+import com.oracle.libuv.handles.DefaultHandleFactory;
+import com.oracle.libuv.handles.HandleFactory;
 import com.oracle.libuv.handles.LoopHandle;
 import com.oracle.libuv.handles.TCPHandle;
 
@@ -70,13 +72,14 @@ public class HttpSimple {
 
     public static void main(String[] args) throws Throwable {
         LibUV.cwd();
-        final LoopHandle loop = new LoopHandle();
-        final TCPHandle server = new TCPHandle(loop);
+        final HandleFactory factory = new DefaultHandleFactory();
+        final LoopHandle loop = factory.getLoopHandle();
+        final TCPHandle server = factory.newTCPHandle();
         final String CRLF = "\r\n";
         server.setConnectionCallback(new StreamConnectionCallback() {
             @Override
             public void onConnection(int status, Exception error) throws Exception {
-                final TCPHandle peer = new TCPHandle(loop);
+                final TCPHandle peer = factory.newTCPHandle();
 
                 server.accept(peer);
                 peer.setReadCallback(new StreamReadCallback() {
